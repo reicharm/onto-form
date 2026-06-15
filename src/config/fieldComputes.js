@@ -15,12 +15,12 @@
  */
 
 export const fieldComputes = {
-  // Example: auto-fill dct:modified with today's date when title is entered
-  // 'dct:modified': (data) => {
-  //   const title = data['dct:title']
-  //   const hasTitle = title?.de || title?.en || (typeof title === 'string' && title)
-  //   return hasTitle ? new Date().toISOString().slice(0, 10) : undefined
-  // },
+  // Auto-fill dct:modified with today's date whenever a title is present
+  'dct:modified': (data) => {
+    const title = data['dct:title']
+    const hasTitle = title?.de || title?.en || (typeof title === 'string' && title)
+    return hasTitle ? new Date().toISOString().slice(0, 10) : undefined
+  },
 
   // Example: auto-fill dct:language based on UI language
   // 'dct:language': (data, lang) => {
