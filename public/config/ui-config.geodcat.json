@@ -1,0 +1,109 @@
+{
+  "standard": "geodcat",
+  "version": "2.0",
+  "groups": [
+    {
+      "id": "basic",
+      "label": { "de": "Grundinformationen", "en": "Basic Information" },
+      "fields": ["dct:title", "dct:description", "dct:identifier"]
+    },
+    {
+      "id": "geographic",
+      "label": { "de": "Geografische Informationen", "en": "Geographic Information" },
+      "fields": ["dct:spatial", "geo:hasGeometry", "locn:geometry"]
+    },
+    {
+      "id": "dates",
+      "label": { "de": "Datumsangaben", "en": "Dates" },
+      "fields": ["dct:issued", "dct:modified", "dct:temporal"]
+    },
+    {
+      "id": "contact",
+      "label": { "de": "Kontakt & Herausgeber", "en": "Contact & Publisher" },
+      "fields": ["dct:publisher", "dcat:contactPoint", "dct:language"]
+    },
+    {
+      "id": "provenance",
+      "label": { "de": "Herkunft & Konformität", "en": "Provenance & Conformance" },
+      "fields": ["dct:conformsTo", "dct:source"]
+    }
+  ],
+  "fields": {
+    "dct:title": {
+      "label": { "de": "Titel", "en": "Title" },
+      "placeholder": { "de": "Titel des Geodatensatzes", "en": "Title of the geodataset" },
+      "order": 1,
+      "visible": true
+    },
+    "dct:description": {
+      "label": { "de": "Beschreibung", "en": "Description" },
+      "order": 2,
+      "visible": true
+    },
+    "dct:identifier": {
+      "label": { "de": "Identifikator", "en": "Identifier" },
+      "order": 3,
+      "visible": true
+    },
+    "dct:spatial": {
+      "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
+      "hint": { "de": "URI einer geografischen Region (z.B. Geonames)", "en": "URI of a geographic region (e.g. Geonames)" },
+      "order": 4,
+      "visible": true
+    },
+    "geo:hasGeometry": {
+      "label": { "de": "GeoSPARQL Geometrie", "en": "GeoSPARQL Geometry" },
+      "placeholder": { "de": "URI der Geometrie", "en": "URI of geometry" },
+      "order": 5,
+      "visible": true
+    },
+    "locn:geometry": {
+      "label": { "de": "WKT/GeoJSON Geometrie", "en": "WKT/GeoJSON Geometry" },
+      "placeholder": { "de": "POLYGON((...))", "en": "POLYGON(())" },
+      "order": 6,
+      "visible": true
+    },
+    "dct:issued": {
+      "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
+      "order": 7,
+      "visible": true
+    },
+    "dct:modified": {
+      "label": { "de": "Änderungsdatum", "en": "Modification Date" },
+      "order": 8,
+      "visible": true
+    },
+    "dct:temporal": {
+      "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
+      "order": 9,
+      "visible": true
+    },
+    "dct:publisher": {
+      "label": { "de": "Herausgeber", "en": "Publisher" },
+      "order": 10,
+      "visible": true
+    },
+    "dcat:contactPoint": {
+      "label": { "de": "Kontaktpunkt", "en": "Contact Point" },
+      "order": 11,
+      "visible": true
+    },
+    "dct:language": {
+      "label": { "de": "Sprache", "en": "Language" },
+      "order": 12,
+      "visible": true
+    },
+    "dct:conformsTo": {
+      "label": { "de": "Konformität", "en": "Conforms To" },
+      "placeholder": { "de": "URI der Spezifikation", "en": "URI of specification" },
+      "order": 13,
+      "visible": true
+    },
+    "dct:source": {
+      "label": { "de": "Quelldatensatz", "en": "Source Dataset" },
+      "placeholder": { "de": "URI des Quelldatensatzes", "en": "URI of source dataset" },
+      "order": 14,
+      "visible": true
+    }
+  }
+}

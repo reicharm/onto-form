@@ -1,0 +1,108 @@
+{
+  "standard": "dcat-ap-at",
+  "version": "2.0",
+  "groups": [
+    {
+      "id": "basic",
+      "label": { "de": "Grundinformationen", "en": "Basic Information" },
+      "fields": ["dct:title", "dct:description", "dct:identifier"]
+    },
+    {
+      "id": "dates",
+      "label": { "de": "Datumsangaben", "en": "Dates" },
+      "fields": ["dct:issued", "dct:modified"]
+    },
+    {
+      "id": "classification",
+      "label": { "de": "Klassifizierung", "en": "Classification" },
+      "fields": ["dcat:theme", "dcat:keyword", "dct:language"]
+    },
+    {
+      "id": "coverage",
+      "label": { "de": "Abdeckung", "en": "Coverage" },
+      "fields": ["dct:spatial", "dct:temporal"]
+    },
+    {
+      "id": "contact",
+      "label": { "de": "Kontakt & Herausgeber", "en": "Contact & Publisher" },
+      "fields": ["dct:publisher", "dcat:contactPoint"]
+    }
+  ],
+  "fields": {
+    "dct:title": {
+      "label": { "de": "Titel", "en": "Title" },
+      "placeholder": { "de": "Titel des Datensatzes eingeben", "en": "Enter dataset title" },
+      "errorMessages": {
+        "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
+      },
+      "order": 1,
+      "visible": true
+    },
+    "dct:description": {
+      "label": { "de": "Beschreibung", "en": "Description" },
+      "placeholder": { "de": "Beschreiben Sie den Datensatz...", "en": "Describe the dataset..." },
+      "errorMessages": {
+        "required": { "de": "Beschreibung ist erforderlich", "en": "Description is required" }
+      },
+      "order": 2,
+      "visible": true
+    },
+    "dct:identifier": {
+      "label": { "de": "Identifikator", "en": "Identifier" },
+      "placeholder": { "de": "z.B. https://data.gv.at/dataset/123", "en": "e.g. https://data.gv.at/dataset/123" },
+      "order": 3,
+      "visible": true
+    },
+    "dct:issued": {
+      "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
+      "order": 4,
+      "visible": true
+    },
+    "dct:modified": {
+      "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
+      "order": 5,
+      "visible": true
+    },
+    "dct:publisher": {
+      "label": { "de": "Herausgeber (URI)", "en": "Publisher (URI)" },
+      "placeholder": { "de": "https://...", "en": "https://..." },
+      "order": 6,
+      "visible": true
+    },
+    "dcat:keyword": {
+      "label": { "de": "Schlagwörter", "en": "Keywords" },
+      "placeholder": { "de": "Schlagwort eingeben", "en": "Enter keyword" },
+      "order": 7,
+      "visible": true
+    },
+    "dcat:theme": {
+      "label": { "de": "Thema", "en": "Theme" },
+      "placeholder": { "de": "http://publications.europa.eu/resource/authority/data-theme/...", "en": "http://publications.europa.eu/resource/authority/data-theme/..." },
+      "order": 8,
+      "visible": true
+    },
+    "dct:language": {
+      "label": { "de": "Sprache", "en": "Language" },
+      "placeholder": { "de": "http://publications.europa.eu/resource/authority/language/DEU", "en": "http://publications.europa.eu/resource/authority/language/ENG" },
+      "order": 9,
+      "visible": true
+    },
+    "dct:spatial": {
+      "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
+      "placeholder": { "de": "URI der geografischen Region", "en": "URI of geographic region" },
+      "order": 10,
+      "visible": true
+    },
+    "dct:temporal": {
+      "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
+      "order": 11,
+      "visible": true
+    },
+    "dcat:contactPoint": {
+      "label": { "de": "Kontaktpunkt", "en": "Contact Point" },
+      "placeholder": { "de": "URI des Kontaktpunkts", "en": "URI of contact point" },
+      "order": 12,
+      "visible": true
+    }
+  }
+}

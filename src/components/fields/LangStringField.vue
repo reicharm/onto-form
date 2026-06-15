@@ -1,0 +1,63 @@
+<template>
+  <div class="field">
+    <label :class="{ required: field.required }">{{ label }}</label>
+    <div class="lang-inputs">
+      <div v-for="l in activeLangs" :key="l" class="lang-row">
+        <span class="lang-tag">{{ l }}</span>
+        <input
+          type="text"
+          :value="(modelValue || {})[l] || ''"
+          :placeholder="placeholder"
+          @input="update(l, $event.target.value)"
+        />
+      </div>
+    </div>
+    <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
+  </div>
+</template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  field: Object,
+  lang: String,
+  modelValue: Object
+})
+const emit = defineEmits(['update:modelValue'])
+
+const activeLangs = ['de', 'en']
+const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
+const placeholder = computed(() => props.field.placeholder?.[props.lang] || props.field.placeholder?.en || '')
+
+function update(l, val) {
+  emit('update:modelValue', { ...(props.modelValue || {}), [l]: val })
+}
+</script>
+
+<style scoped>
+.field { display: flex; flex-direction: column; gap: 0.3rem; }
+label { font-size: 0.85rem; font-weight: 500; color: #555; }
+label.required::after { content: ' *'; color: #c0392b; }
+.lang-inputs { display: flex; flex-direction: column; gap: 0.4rem; }
+.lang-row { display: flex; align-items: center; gap: 0.5rem; }
+.lang-tag {
+  background: #2c5f8a;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 2rem;
+  text-align: center;
+}
+input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+input:focus { outline: none; border-color: #2c5f8a; box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
+.hint { font-size: 0.78rem; color: #888; }
+</style>
