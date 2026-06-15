@@ -24,12 +24,21 @@
     </div>
 
     <div class="form-actions">
-      <button class="btn-export" @click="$emit('export')">Export JSON-LD / Turtle</button>
+      <span v-if="!isValid" class="validation-hint">
+        {{ lang === 'de' ? 'Bitte alle Pflichtfelder (*) ausfüllen.' : 'Please fill in all required fields (*).' }}
+      </span>
+      <button
+        class="btn-export"
+        :disabled="!isValid"
+        :class="{ disabled: !isValid }"
+        @click="isValid && $emit('export')"
+      >Export JSON-LD / Turtle</button>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import TextField from './fields/TextField.vue'
 import TextareaField from './fields/TextareaField.vue'
 import SelectField from './fields/SelectField.vue'
@@ -71,6 +80,32 @@ function groupFields(group) {
 function updateField(id, value) {
   emit('update:modelValue', { ...props.modelValue, [id]: value })
 }
+
+function hasValue(value, field) {
+  if (value == null) return false
+  if (Array.isArray(value)) {
+    return value.some(item =>
+      item && (typeof item === 'object' ? (item.value || Object.values(item).some(v => v)) : item)
+    )
+  }
+  if (typeof value === 'object') {
+    // Sub-object: check required sub-fields
+    if (field?.subFields) {
+      return field.subFields.filter(sf => sf.required).every(sf => value[sf.id])
+    }
+    // Language map: at least one language filled
+    return Object.values(value).some(v => v)
+  }
+  return value !== ''
+}
+
+const isValid = computed(() => {
+  if (!props.config?.fields) return true
+  return Object.entries(props.config.fields).every(([id, field]) => {
+    if (!field.required) return true
+    return hasValue(props.modelValue?.[id], field)
+  })
+})
 </script>
 
 <style scoped>
@@ -106,5 +141,16 @@ function updateField(id, value) {
   cursor: pointer;
   font-weight: 500;
 }
-.btn-export:hover { background: #1e4468; }
+.btn-export:hover:not(.disabled) { background: #1e4468; }
+.btn-export.disabled {
+  background: #a0b4c5;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.validation-hint {
+  font-size: 0.85rem;
+  color: #c0392b;
+  align-self: center;
+  margin-right: 1rem;
+}
 </style>
