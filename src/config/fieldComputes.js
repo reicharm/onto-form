@@ -35,13 +35,26 @@ export const fieldComputes = {
  * Returns a new formData object with computed values applied.
  * Only fields whose compute function returns a non-undefined value are updated.
  */
+function equal(a, b) {
+  if (a === b) return true
+  if (typeof a !== typeof b) return false
+  if (a === null || b === null) return false
+  return JSON.stringify(a) === JSON.stringify(b)
+}
+
+/**
+ * Run all registered compute functions against current form data.
+ * Returns a new formData object with computed values applied.
+ * Only updates a field when the computed value actually differs from the current
+ * value — preventing recursive watcher triggers.
+ */
 export function applyComputes(formData, lang) {
   let updated = false
   const next = { ...formData }
 
   for (const [fieldId, fn] of Object.entries(fieldComputes)) {
     const result = fn(next, lang)
-    if (result !== undefined) {
+    if (result !== undefined && !equal(result, next[fieldId])) {
       next[fieldId] = result
       updated = true
     }
