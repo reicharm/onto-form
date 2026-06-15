@@ -1,0 +1,257 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix schema: <http://schema.org/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex: <http://example.org/shapes/> .
+
+ex:DatasetShape a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:name "DCAT-AP.at Dataset" ;
+
+  sh:property [
+    sh:path dct:title ;
+    sh:name "Titel"@de , "Title"@en ;
+    sh:description "Name des Datensatzes"@de , "Name of the dataset"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 1
+  ] ;
+
+  sh:property [
+    sh:path dct:description ;
+    sh:name "Beschreibung"@de , "Description"@en ;
+    sh:description "Beschreibung des Datensatzes"@de , "Description of the dataset"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 2
+  ] ;
+
+  sh:property [
+    sh:path dct:identifier ;
+    sh:name "Identifikator"@de , "Identifier"@en ;
+    sh:description "Eindeutiger Bezeichner"@de , "Unique identifier"@en ;
+    sh:datatype xsd:string ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 3
+  ] ;
+
+  sh:property [
+    sh:path dct:issued ;
+    sh:name "Veröffentlichungsdatum"@de , "Issued"@en ;
+    sh:description "Datum der Erstveröffentlichung"@de , "Date of first publication"@en ;
+    sh:datatype xsd:date ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 4
+  ] ;
+
+  sh:property [
+    sh:path dct:modified ;
+    sh:name "Änderungsdatum"@de , "Modified"@en ;
+    sh:description "Datum der letzten Änderung"@de , "Date of last modification"@en ;
+    sh:datatype xsd:date ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 5
+  ] ;
+
+  sh:property [
+    sh:path dct:publisher ;
+    sh:name "Herausgeber"@de , "Publisher"@en ;
+    sh:description "Organisation die den Datensatz veröffentlicht"@de , "Organization publishing the dataset"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 6
+  ] ;
+
+  sh:property [
+    sh:path dcat:contactPoint ;
+    sh:name "Kontaktstelle"@de , "Contact Point"@en ;
+    sh:description "Kontaktinformation"@de , "Contact information"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 7
+  ] ;
+
+  sh:property [
+    sh:path dcat:keyword ;
+    sh:name "Schlagwörter"@de , "Keywords"@en ;
+    sh:description "Stichwörter zur Beschreibung"@de , "Keywords describing the dataset"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 0 ;
+    sh:order 8
+  ] ;
+
+  sh:property [
+    sh:path dcat:theme ;
+    sh:name "Thema"@de , "Theme"@en ;
+    sh:description "Thematische Kategorie"@de , "Thematic category"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:order 9 ;
+    sh:in (
+      <http://publications.europa.eu/resource/authority/data-theme/AGRI>
+      <http://publications.europa.eu/resource/authority/data-theme/ECON>
+      <http://publications.europa.eu/resource/authority/data-theme/EDUC>
+      <http://publications.europa.eu/resource/authority/data-theme/ENVI>
+      <http://publications.europa.eu/resource/authority/data-theme/GOVE>
+      <http://publications.europa.eu/resource/authority/data-theme/HEAL>
+      <http://publications.europa.eu/resource/authority/data-theme/INTR>
+      <http://publications.europa.eu/resource/authority/data-theme/JUST>
+      <http://publications.europa.eu/resource/authority/data-theme/REGI>
+      <http://publications.europa.eu/resource/authority/data-theme/SOCI>
+      <http://publications.europa.eu/resource/authority/data-theme/TECH>
+      <http://publications.europa.eu/resource/authority/data-theme/TRAN>
+    )
+  ] ;
+
+  sh:property [
+    sh:path dct:language ;
+    sh:name "Sprache"@de , "Language"@en ;
+    sh:description "Sprache des Datensatzes"@de , "Language of the dataset"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 10 ;
+    sh:in (
+      <http://publications.europa.eu/resource/authority/language/DEU>
+      <http://publications.europa.eu/resource/authority/language/ENG>
+      <http://publications.europa.eu/resource/authority/language/FRA>
+      <http://publications.europa.eu/resource/authority/language/ITA>
+    )
+  ] ;
+
+  sh:property [
+    sh:path dct:spatial ;
+    sh:name "Räumliche Abdeckung"@de , "Spatial Coverage"@en ;
+    sh:description "Geografische Region"@de , "Geographic region"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 11
+  ] ;
+
+  sh:property [
+    sh:path dct:temporal ;
+    sh:name "Zeitliche Abdeckung"@de , "Temporal Coverage"@en ;
+    sh:description "Zeitraum der Daten"@de , "Time period covered by the data"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 12
+  ] ;
+
+  sh:property [
+    sh:path dcat:distribution ;
+    sh:name "Distribution"@de , "Distribution"@en ;
+    sh:description "Verfügbare Distributionen"@de , "Available distributions"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 13
+  ] ;
+
+  sh:property [
+    sh:path dct:accrualPeriodicity ;
+    sh:name "Aktualisierungsfrequenz"@de , "Update Frequency"@en ;
+    sh:description "Wie oft wird der Datensatz aktualisiert"@de , "How often is the dataset updated"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 14 ;
+    sh:in (
+      <http://publications.europa.eu/resource/authority/frequency/DAILY>
+      <http://publications.europa.eu/resource/authority/frequency/WEEKLY>
+      <http://publications.europa.eu/resource/authority/frequency/MONTHLY>
+      <http://publications.europa.eu/resource/authority/frequency/QUARTERLY>
+      <http://publications.europa.eu/resource/authority/frequency/ANNUAL>
+      <http://publications.europa.eu/resource/authority/frequency/IRREG>
+      <http://publications.europa.eu/resource/authority/frequency/UNKNOWN>
+    )
+  ] ;
+
+  sh:property [
+    sh:path dct:license ;
+    sh:name "Lizenz"@de , "License"@en ;
+    sh:description "Lizenz des Datensatzes"@de , "License of the dataset"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 15
+  ] .
+
+ex:DistributionShape a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+  sh:name "DCAT-AP.at Distribution" ;
+
+  sh:property [
+    sh:path dcat:accessURL ;
+    sh:name "Zugriffs-URL"@de , "Access URL"@en ;
+    sh:description "URL für den Zugriff auf die Distribution"@de , "URL to access the distribution"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 1
+  ] ;
+
+  sh:property [
+    sh:path dcat:downloadURL ;
+    sh:name "Download-URL"@de , "Download URL"@en ;
+    sh:description "Direkte Download-URL"@de , "Direct download URL"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 2
+  ] ;
+
+  sh:property [
+    sh:path dct:format ;
+    sh:name "Format"@de , "Format"@en ;
+    sh:description "Dateiformat"@de , "File format"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 3 ;
+    sh:in (
+      <http://publications.europa.eu/resource/authority/file-type/CSV>
+      <http://publications.europa.eu/resource/authority/file-type/JSON>
+      <http://publications.europa.eu/resource/authority/file-type/XML>
+      <http://publications.europa.eu/resource/authority/file-type/PDF>
+      <http://publications.europa.eu/resource/authority/file-type/XLSX>
+      <http://publications.europa.eu/resource/authority/file-type/RDF_TURTLE>
+      <http://publications.europa.eu/resource/authority/file-type/GEOJSON>
+      <http://publications.europa.eu/resource/authority/file-type/SHP>
+    )
+  ] ;
+
+  sh:property [
+    sh:path dct:license ;
+    sh:name "Lizenz"@de , "License"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 4
+  ] ;
+
+  sh:property [
+    sh:path dcat:byteSize ;
+    sh:name "Dateigröße (Bytes)"@de , "Byte Size"@en ;
+    sh:datatype xsd:decimal ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 5
+  ] ;
+
+  sh:property [
+    sh:path dcat:mediaType ;
+    sh:name "Medientyp"@de , "Media Type"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 6
+  ] .
