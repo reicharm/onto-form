@@ -3,15 +3,23 @@
     <div v-for="group in config.groups" :key="group.id" class="form-group">
       <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
       <div class="group-fields">
-        <component
-          v-for="field in groupFields(group)"
-          :key="field.id"
-          :is="fieldComponent(field)"
-          :field="field"
-          :lang="lang"
-          :modelValue="modelValue[field.id]"
-          @update:modelValue="updateField(field.id, $event)"
-        />
+        <template v-for="field in groupFields(group)" :key="field.id">
+          <RepeatableField
+            v-if="field.multiple"
+            :field="field"
+            :lang="lang"
+            :modelValue="modelValue[field.id]"
+            @update:modelValue="updateField(field.id, $event)"
+          />
+          <component
+            v-else
+            :is="fieldComponent(field)"
+            :field="field"
+            :lang="lang"
+            :modelValue="modelValue[field.id]"
+            @update:modelValue="updateField(field.id, $event)"
+          />
+        </template>
       </div>
     </div>
 
@@ -28,6 +36,8 @@ import SelectField from './fields/SelectField.vue'
 import DateField from './fields/DateField.vue'
 import URIField from './fields/URIField.vue'
 import LangStringField from './fields/LangStringField.vue'
+import ObjectField from './fields/ObjectField.vue'
+import RepeatableField from './fields/RepeatableField.vue'
 
 const props = defineProps({
   config: Object,
@@ -43,7 +53,8 @@ const componentMap = {
   date: DateField,
   uri: URIField,
   langstring: LangStringField,
-  text: TextField
+  text: TextField,
+  object: ObjectField
 }
 
 function fieldComponent(field) {

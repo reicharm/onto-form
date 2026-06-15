@@ -30,15 +30,18 @@
   ],
   "fields": {
     "dct:title": {
+      "type": "langstring",
       "label": { "de": "Titel", "en": "Title" },
       "placeholder": { "de": "Titel des Datensatzes eingeben", "en": "Enter dataset title" },
       "errorMessages": {
         "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
       },
+      "defaultValue": { "de": "", "en": "" },
       "order": 1,
       "visible": true
     },
     "dct:description": {
+      "type": "textarea",
       "label": { "de": "Beschreibung", "en": "Description" },
       "placeholder": { "de": "Beschreiben Sie den Datensatz...", "en": "Describe the dataset..." },
       "errorMessages": {
@@ -48,61 +51,91 @@
       "visible": true
     },
     "dct:identifier": {
+      "type": "uri",
       "label": { "de": "Identifikator", "en": "Identifier" },
       "placeholder": { "de": "z.B. https://data.gv.at/dataset/123", "en": "e.g. https://data.gv.at/dataset/123" },
       "order": 3,
       "visible": true
     },
     "dct:issued": {
+      "type": "date",
       "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
       "order": 4,
       "visible": true
     },
     "dct:modified": {
+      "type": "date",
       "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
       "order": 5,
       "visible": true
     },
     "dct:publisher": {
-      "label": { "de": "Herausgeber (URI)", "en": "Publisher (URI)" },
-      "placeholder": { "de": "https://...", "en": "https://..." },
+      "type": "object",
+      "multiple": false,
+      "label": { "de": "Herausgeber", "en": "Publisher" },
       "order": 6,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        { "id": "foaf:name", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
+        { "id": "foaf:homepage", "type": "uri", "label": { "de": "Webseite", "en": "Homepage" } },
+        { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
+          "options": [
+            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
+            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
+            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
+            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } }
+          ]
+        }
+      ]
     },
     "dcat:keyword": {
+      "type": "langstring",
+      "multiple": true,
       "label": { "de": "Schlagwörter", "en": "Keywords" },
       "placeholder": { "de": "Schlagwort eingeben", "en": "Enter keyword" },
       "order": 7,
       "visible": true
     },
     "dcat:theme": {
+      "type": "uri",
       "label": { "de": "Thema", "en": "Theme" },
       "placeholder": { "de": "http://publications.europa.eu/resource/authority/data-theme/...", "en": "http://publications.europa.eu/resource/authority/data-theme/..." },
       "order": 8,
       "visible": true
     },
     "dct:language": {
+      "type": "uri",
       "label": { "de": "Sprache", "en": "Language" },
       "placeholder": { "de": "http://publications.europa.eu/resource/authority/language/DEU", "en": "http://publications.europa.eu/resource/authority/language/ENG" },
+      "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 9,
       "visible": true
     },
     "dct:spatial": {
+      "type": "uri",
       "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
       "placeholder": { "de": "URI der geografischen Region", "en": "URI of geographic region" },
       "order": 10,
       "visible": true
     },
     "dct:temporal": {
+      "type": "text",
       "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
       "order": 11,
       "visible": true
     },
     "dcat:contactPoint": {
-      "label": { "de": "Kontaktpunkt", "en": "Contact Point" },
-      "placeholder": { "de": "URI des Kontaktpunkts", "en": "URI of contact point" },
+      "type": "object",
+      "multiple": false,
+      "label": { "de": "Kontaktstelle", "en": "Contact Point" },
       "order": 12,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        { "id": "vcard:fn", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
+        { "id": "vcard:hasEmail", "type": "text", "label": { "de": "E-Mail", "en": "Email" } },
+        { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
+        { "id": "vcard:hasURL", "type": "uri", "label": { "de": "Webseite", "en": "Website" } }
+      ]
     }
   }
 }

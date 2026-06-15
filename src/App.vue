@@ -51,11 +51,35 @@ const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
 
+function buildDefaultFormData(config) {
+  const data = {}
+  if (!config?.fields) return data
+  for (const [id, field] of Object.entries(config.fields)) {
+    if (field.multiple) {
+      // Start repeatable fields with one empty item
+      if (field.type === 'langstring') {
+        data[id] = [{ value: '', lang: 'de' }]
+      } else {
+        data[id] = ['']
+      }
+    } else if (field.defaultValue !== undefined) {
+      data[id] = field.defaultValue
+    } else if (field.type === 'langstring') {
+      data[id] = { de: '', en: '' }
+    } else if (field.type === 'object') {
+      data[id] = {}
+    }
+  }
+  return data
+}
+
 async function loadFormConfig(standard) {
   formConfig.value = null
   formData.value = {}
   const resolver = new FormConfigResolver()
-  formConfig.value = await resolver.resolve(standard)
+  const config = await resolver.resolve(standard)
+  formConfig.value = config
+  formData.value = buildDefaultFormData(config)
 }
 
 watch(selectedStandard, (std) => loadFormConfig(std))
