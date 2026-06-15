@@ -38,6 +38,7 @@ import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import ExportPanel from './components/ExportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
+import { applyComputes } from './config/fieldComputes.js'
 
 const standards = [
   { id: 'dcat-ap-at', label: 'DCAT-AP.at' },
@@ -81,6 +82,12 @@ async function loadFormConfig(standard) {
   formConfig.value = config
   formData.value = buildDefaultFormData(config)
 }
+
+// Run compute functions whenever formData or lang changes
+watch([formData, lang], ([data, l]) => {
+  const next = applyComputes(data, l)
+  if (next !== data) formData.value = next
+}, { deep: true })
 
 watch(selectedStandard, (std) => loadFormConfig(std))
 onMounted(() => loadFormConfig(selectedStandard.value))
