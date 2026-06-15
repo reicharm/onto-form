@@ -30,76 +30,113 @@
   ],
   "fields": {
     "dct:title": {
+      "type": "langstring",
       "label": { "de": "Titel", "en": "Title" },
       "placeholder": { "de": "Titel des Geodatensatzes", "en": "Title of the geodataset" },
+      "defaultValue": { "de": "", "en": "" },
       "order": 1,
       "visible": true
     },
     "dct:description": {
+      "type": "textarea",
       "label": { "de": "Beschreibung", "en": "Description" },
       "order": 2,
       "visible": true
     },
     "dct:identifier": {
+      "type": "uri",
       "label": { "de": "Identifikator", "en": "Identifier" },
       "order": 3,
       "visible": true
     },
     "dct:spatial": {
+      "type": "uri",
       "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
       "hint": { "de": "URI einer geografischen Region (z.B. Geonames)", "en": "URI of a geographic region (e.g. Geonames)" },
       "order": 4,
       "visible": true
     },
     "geo:hasGeometry": {
+      "type": "uri",
       "label": { "de": "GeoSPARQL Geometrie", "en": "GeoSPARQL Geometry" },
       "placeholder": { "de": "URI der Geometrie", "en": "URI of geometry" },
       "order": 5,
       "visible": true
     },
     "locn:geometry": {
+      "type": "textarea",
       "label": { "de": "WKT/GeoJSON Geometrie", "en": "WKT/GeoJSON Geometry" },
       "placeholder": { "de": "POLYGON((...))", "en": "POLYGON(())" },
       "order": 6,
       "visible": true
     },
     "dct:issued": {
+      "type": "date",
       "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
       "order": 7,
       "visible": true
     },
     "dct:modified": {
+      "type": "date",
       "label": { "de": "Änderungsdatum", "en": "Modification Date" },
       "order": 8,
       "visible": true
     },
     "dct:temporal": {
+      "type": "text",
       "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
       "order": 9,
       "visible": true
     },
     "dct:publisher": {
+      "type": "object",
+      "multiple": false,
       "label": { "de": "Herausgeber", "en": "Publisher" },
       "order": 10,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        { "id": "foaf:name", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
+        { "id": "foaf:homepage", "type": "uri", "label": { "de": "Webseite", "en": "Homepage" } },
+        { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
+          "options": [
+            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
+            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
+            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
+            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } }
+          ]
+        }
+      ]
     },
     "dcat:contactPoint": {
+      "type": "object",
+      "multiple": false,
       "label": { "de": "Kontaktpunkt", "en": "Contact Point" },
       "order": 11,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        { "id": "vcard:fn", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
+        { "id": "vcard:hasEmail", "type": "text", "label": { "de": "E-Mail", "en": "Email" } },
+        { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
+        { "id": "vcard:hasURL", "type": "uri", "label": { "de": "Webseite", "en": "Website" } }
+      ]
     },
     "dct:language": {
+      "type": "uri",
       "label": { "de": "Sprache", "en": "Language" },
+      "placeholder": { "de": "http://publications.europa.eu/resource/authority/language/DEU", "en": "http://publications.europa.eu/resource/authority/language/ENG" },
+      "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 12,
       "visible": true
     },
     "dct:conformsTo": {
+      "type": "uri",
       "label": { "de": "Konformität", "en": "Conforms To" },
       "placeholder": { "de": "URI der Spezifikation", "en": "URI of specification" },
       "order": 13,
       "visible": true
     },
     "dct:source": {
+      "type": "uri",
       "label": { "de": "Quelldatensatz", "en": "Source Dataset" },
       "placeholder": { "de": "URI des Quelldatensatzes", "en": "URI of source dataset" },
       "order": 14,
