@@ -83,9 +83,9 @@ async function loadFormConfig(standard) {
   formData.value = buildDefaultFormData(config)
 }
 
-// Run compute functions whenever formData or lang changes
+// Run compute functions declared in the config whenever formData or lang changes
 watch([formData, lang], ([data, l]) => {
-  const next = applyComputes(data, l)
+  const next = applyComputes(formConfig.value, data, l)
   if (next !== data) formData.value = next
 }, { deep: true })
 
