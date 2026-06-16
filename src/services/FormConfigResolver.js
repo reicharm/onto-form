@@ -1,4 +1,5 @@
 import { SHACLParser } from './SHACLParser.js'
+import { VocabularyLoader } from './VocabularyLoader.js'
 
 export class FormConfigResolver {
   async resolve(standard) {
@@ -36,12 +37,30 @@ export class FormConfigResolver {
       fields: group.fields.filter(fid => mergedFields[fid] && mergedFields[fid].visible !== false)
     }))
 
+    await this.resolveVocabularies(mergedFields)
+
     return {
       standard,
       version: uiConfig.version,
       groups,
       fields: mergedFields
     }
+  }
+
+  async resolveVocabularies(fields) {
+    const loader = new VocabularyLoader()
+    const pending = []
+
+    for (const [id, field] of Object.entries(fields)) {
+      if (!field.optionsSource) continue
+      pending.push(
+        loader.load(field.optionsSource)
+          .then(options => { field.options = [...options, ...(field.options || [])] })
+          .catch(err => console.warn(`[VocabularyLoader] ${id}: ${err.message}`))
+      )
+    }
+
+    await Promise.all(pending)
   }
 
   async loadSHACL(standard) {
