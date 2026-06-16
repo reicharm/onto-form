@@ -157,11 +157,8 @@
       "type": "select",
       "required": true,
       "label": { "de": "Sprache", "en": "Language" },
-      "options": [
-        { "value": "http://publications.europa.eu/resource/authority/language/DEU", "label": { "de": "Deutsch", "en": "German" } },
-        { "value": "http://publications.europa.eu/resource/authority/language/ENG", "label": { "de": "Englisch", "en": "English" } },
-        { "value": "http://publications.europa.eu/resource/authority/language/FRA", "label": { "de": "Französisch", "en": "French" } }
-      ],
+      "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+      "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 12
     },

@@ -54,7 +54,7 @@ export class FormConfigResolver {
     for (const [id, field] of Object.entries(fields)) {
       if (!field.optionsSource) continue
       pending.push(
-        loader.load(field.optionsSource)
+        loader.load(field.optionsSource, field.optionsSourceFallback)
           .then(options => { field.options = [...options, ...(field.options || [])] })
           .catch(err => console.warn(`[VocabularyLoader] ${id}: ${err.message}`))
       )
