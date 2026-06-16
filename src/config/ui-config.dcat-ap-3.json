@@ -137,7 +137,7 @@
       ]
     },
     "dcat:theme": {
-      "type": "select",
+      "type": "multiselect",
       "required": true,
       "label": { "de": "Thema", "en": "Theme" },
       "options": [

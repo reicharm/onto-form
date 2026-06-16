@@ -52,6 +52,7 @@ import URIField from './fields/URIField.vue'
 import LangStringField from './fields/LangStringField.vue'
 import ObjectField from './fields/ObjectField.vue'
 import RepeatableField from './fields/RepeatableField.vue'
+import MultiSelectField from './fields/MultiSelectField.vue'
 import { validateForm } from '../composables/useValidation.js'
 
 const props = defineProps({
@@ -69,7 +70,8 @@ const componentMap = {
   uri: URIField,
   langstring: LangStringField,
   text: TextField,
-  object: ObjectField
+  object: ObjectField,
+  multiselect: MultiSelectField
 }
 
 function fieldComponent(field) {
