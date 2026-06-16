@@ -1,6 +1,8 @@
 import { Parser } from 'n3'
+import { fieldValidators } from '../config/fieldValidators.js'
 
 const PREFIXES = {
+  rdf:   'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   dct:   'http://purl.org/dc/terms/',
   dcat:  'http://www.w3.org/ns/dcat#',
   foaf:  'http://xmlns.com/foaf/0.1/',
@@ -13,7 +15,7 @@ const PREFIXES = {
   odrl:  'http://www.w3.org/ns/odrl/2/',
 }
 
-// Sub-field value cleanup per field id
+// Normalize sub-field values that use special URI schemes
 const SUBFIELD_CLEAN = {
   'vcard:hasEmail': v => v.startsWith('mailto:') ? v.slice(7) : v,
   'foaf:mbox':      v => v.startsWith('mailto:') ? v.slice(7) : v,
@@ -29,14 +31,16 @@ export class RDFImporter {
       const raw = doc[fieldId]
       if (raw == null) continue
       const val = this._deserializeJSONLD(raw, field)
-      if (val != null) formData[fieldId] = val
+      const coerced = this._coerceToFieldType(val, field)
+      if (coerced != null && !this._isInvalid(coerced, field)) {
+        formData[fieldId] = coerced
+      }
     }
 
     return formData
   }
 
   async fromTurtle(text, config) {
-    // Accept both SPARQL-style PREFIX and Turtle-style @prefix
     const normalized = this._normalizePrefixes(text)
     const quads = await this._parseTurtle(normalized)
     return this._quadsToFormData(quads, config)
@@ -44,7 +48,6 @@ export class RDFImporter {
 
   // ── Preprocessing ──────────────────────────────────────────────────────────
 
-  // Convert SPARQL `PREFIX foo: <uri>` → Turtle `@prefix foo: <uri> .`
   _normalizePrefixes(text) {
     return text.replace(/^PREFIX\s+(\S+)\s+(<[^>]+>)\s*$/gim, '@prefix $1 $2 .')
   }
@@ -80,10 +83,13 @@ export class RDFImporter {
       return {}
     }
 
-    // text, textarea, uri, date, select
-    if (Array.isArray(raw)) return raw[0] ? this._coerceScalar(String(raw[0]), field) : ''
-    if (typeof raw === 'object' && '@value' in raw) return this._coerceScalar(raw['@value'], field)
-    return this._coerceScalar(String(raw), field)
+    // text, textarea, uri, date, select — possibly multiple
+    const scalar = Array.isArray(raw)
+      ? (raw[0] ? this._scalarValue(raw[0], field) : '')
+      : (typeof raw === 'object' && '@value' in raw ? this._scalarValue(raw['@value'], field) : this._scalarValue(String(raw), field))
+
+    if (multiple) return scalar ? [scalar] : ['']
+    return scalar
   }
 
   // ── Turtle ─────────────────────────────────────────────────────────────────
@@ -135,7 +141,11 @@ export class RDFImporter {
     for (const [fieldId, field] of Object.entries(fields)) {
       const objects = byPred[fieldId]
       if (!objects?.length) continue
-      formData[fieldId] = this._deserializeTurtleObjects(objects, field, bySubject)
+      const val = this._deserializeTurtleObjects(objects, field, bySubject)
+      const coerced = this._coerceToFieldType(val, field)
+      if (coerced != null && !this._isInvalid(coerced, field)) {
+        formData[fieldId] = coerced
+      }
     }
 
     return formData
@@ -145,16 +155,12 @@ export class RDFImporter {
     const { type, multiple } = field
 
     if (type === 'langstring') {
+      const literals = objects.filter(o => o.termType === 'Literal' && o.value)
       if (multiple) {
-        return objects
-          .filter(o => o.termType === 'Literal' && o.value)
-          .map(o => ({ value: o.value, lang: o.language || 'de' }))
+        return literals.map(o => ({ value: o.value, lang: o.language || 'de' }))
       }
       const result = {}
-      for (const o of objects) {
-        if (o.termType !== 'Literal') continue
-        result[o.language || 'de'] = o.value
-      }
+      for (const o of literals) result[o.language || 'de'] = o.value
       return result
     }
 
@@ -163,24 +169,29 @@ export class RDFImporter {
     }
 
     if (type === 'object') {
-      // Support both blank nodes and named node references
       const node = objects.find(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
       if (!node) return {}
       const subQuads = bySubject.get(node.value) || []
+      // Only include sub-fields that are defined in the field config
+      const validSubIds = new Set((field.subFields || []).map(sf => sf.id))
       const result = {}
       for (const q of subQuads) {
         const subId = this._toPrefixed(q.predicate.value)
+        if (validSubIds.size > 0 && !validSubIds.has(subId)) continue
         const clean = SUBFIELD_CLEAN[subId]
         result[subId] = clean ? clean(q.object.value) : q.object.value
       }
       return result
     }
 
-    // text, textarea, uri, date, select
-    const first = objects[0]
-    if (!first) return ''
-    const val = first.value
-    return this._coerceScalar(val, field)
+    // text, textarea, uri, date, select — skip blank nodes
+    const scalars = objects.filter(o => o.termType === 'Literal' || o.termType === 'NamedNode')
+    if (!scalars.length) return multiple ? [''] : ''
+
+    const values = scalars.map(o => this._scalarValue(o.value, field)).filter(Boolean)
+
+    if (multiple) return values.length ? values : ['']
+    return values[0] ?? ''
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────
@@ -192,12 +203,60 @@ export class RDFImporter {
     return uri
   }
 
-  // Normalize a scalar value to the expected form type
-  _coerceScalar(val, field) {
-    if (field.type === 'date') {
-      // Truncate xsd:dateTime to date portion (YYYY-MM-DD)
-      return val.length > 10 && val[10] === 'T' ? val.slice(0, 10) : val
+  _scalarValue(val, field) {
+    if (field.type === 'date' && val.length > 10 && val[10] === 'T') {
+      return val.slice(0, 10)
     }
     return val
+  }
+
+  // Ensure the value matches what the form expects for this field type
+  _coerceToFieldType(val, field) {
+    const { type, multiple } = field
+
+    if (type === 'langstring') {
+      if (multiple) {
+        if (!Array.isArray(val)) return [{ value: String(val || ''), lang: 'de' }]
+        return val
+      }
+      if (typeof val !== 'object' || Array.isArray(val)) return { de: String(val || '') }
+      return val
+    }
+
+    if (type === 'multiselect') {
+      if (!Array.isArray(val)) return val ? [String(val)] : []
+      return val
+    }
+
+    if (type === 'object') {
+      if (typeof val !== 'object' || Array.isArray(val)) return {}
+      return val
+    }
+
+    // Scalar types with possible multiple
+    if (multiple) {
+      if (!Array.isArray(val)) return val ? [String(val)] : ['']
+      return val
+    }
+
+    return val != null ? String(val) : ''
+  }
+
+  // Returns true if the value should be discarded (fails validation)
+  _isInvalid(val, field) {
+    if (!field.validate) return false
+    const validator = fieldValidators[field.validate]
+    if (!validator) return false
+
+    // For multiple fields, check at least one entry is valid (don't discard the whole array)
+    if (field.multiple && Array.isArray(val)) return false
+
+    // Run validator — if it returns errors, discard the value
+    try {
+      const errors = validator(val, 'de')
+      return errors && errors.length > 0
+    } catch {
+      return false
+    }
   }
 }
