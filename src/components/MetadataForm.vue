@@ -6,7 +6,7 @@
         <template v-for="field in groupFields(group)" :key="field.id">
           <div class="field-wrapper" :class="{ 'has-error': fieldErrors[field.id]?.length }">
             <RepeatableField
-              v-if="field.multiple"
+              v-if="field.multiple && field.type !== 'multiselect'"
               :field="field"
               :lang="lang"
               :modelValue="modelValue[field.id]"

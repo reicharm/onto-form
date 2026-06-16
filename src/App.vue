@@ -67,6 +67,8 @@ function buildDefaultFormData(config) {
       data[id] = field.defaultValue
     } else if (field.type === 'langstring') {
       data[id] = { de: '', en: '' }
+    } else if (field.type === 'multiselect') {
+      data[id] = []
     } else if (field.type === 'object') {
       data[id] = {}
     }
