@@ -94,6 +94,7 @@
     },
     "dct:modified": {
       "type": "date",
+      "compute": "setTodayIfTitle",
       "label": { "de": "Änderungsdatum", "en": "Modification Date" },
       "order": 8,
       "visible": true
