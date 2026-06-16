@@ -40,8 +40,8 @@ export function validateField(field, value, lang) {
     return errors
   }
 
-  // Named validator from config
-  if (field.validate) {
+  // Named validator from config — only if field has a value
+  if (field.validate && hasValue(value, field)) {
     const fn = fieldValidators[field.validate]
     if (fn) {
       errors.push(...fn(value, lang))
