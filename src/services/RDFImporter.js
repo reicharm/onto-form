@@ -13,6 +13,12 @@ const PREFIXES = {
   odrl:  'http://www.w3.org/ns/odrl/2/',
 }
 
+// Sub-field value cleanup per field id
+const SUBFIELD_CLEAN = {
+  'vcard:hasEmail': v => v.startsWith('mailto:') ? v.slice(7) : v,
+  'foaf:mbox':      v => v.startsWith('mailto:') ? v.slice(7) : v,
+}
+
 export class RDFImporter {
   fromJSONLD(text, config) {
     const doc = JSON.parse(text)
@@ -30,8 +36,17 @@ export class RDFImporter {
   }
 
   async fromTurtle(text, config) {
-    const quads = await this._parseTurtle(text)
+    // Accept both SPARQL-style PREFIX and Turtle-style @prefix
+    const normalized = this._normalizePrefixes(text)
+    const quads = await this._parseTurtle(normalized)
     return this._quadsToFormData(quads, config)
+  }
+
+  // ── Preprocessing ──────────────────────────────────────────────────────────
+
+  // Convert SPARQL `PREFIX foo: <uri>` → Turtle `@prefix foo: <uri> .`
+  _normalizePrefixes(text) {
+    return text.replace(/^PREFIX\s+(\S+)\s+(<[^>]+>)\s*$/gim, '@prefix $1 $2 .')
   }
 
   // ── JSON-LD ────────────────────────────────────────────────────────────────
@@ -48,7 +63,6 @@ export class RDFImporter {
           return { value: String(item), lang: 'de' }
         }).filter(i => i.value)
       }
-      // Language map { de: "...", en: "..." } or single tagged literal
       if (typeof raw === 'object' && !Array.isArray(raw) && !('@value' in raw))
         return raw
       if (typeof raw === 'object' && '@value' in raw)
@@ -67,9 +81,9 @@ export class RDFImporter {
     }
 
     // text, textarea, uri, date, select
-    if (Array.isArray(raw)) return raw[0] ? String(raw[0]) : ''
-    if (typeof raw === 'object' && '@value' in raw) return raw['@value']
-    return String(raw)
+    if (Array.isArray(raw)) return raw[0] ? this._coerceScalar(String(raw[0]), field) : ''
+    if (typeof raw === 'object' && '@value' in raw) return this._coerceScalar(raw['@value'], field)
+    return this._coerceScalar(String(raw), field)
   }
 
   // ── Turtle ─────────────────────────────────────────────────────────────────
@@ -87,7 +101,6 @@ export class RDFImporter {
   }
 
   _quadsToFormData(quads, config) {
-    // Group quads by subject
     const bySubject = new Map()
     for (const q of quads) {
       const s = q.subject.value
@@ -109,7 +122,6 @@ export class RDFImporter {
 
     const mainQuads = bySubject.get(mainSubject) || []
 
-    // Group main quads by prefixed predicate
     const byPred = {}
     for (const q of mainQuads) {
       const pred = this._toPrefixed(q.predicate.value)
@@ -151,24 +163,41 @@ export class RDFImporter {
     }
 
     if (type === 'object') {
-      const blank = objects.find(o => o.termType === 'BlankNode')
-      if (!blank) return {}
-      const subQuads = bySubject.get(blank.value) || []
+      // Support both blank nodes and named node references
+      const node = objects.find(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
+      if (!node) return {}
+      const subQuads = bySubject.get(node.value) || []
       const result = {}
       for (const q of subQuads) {
-        result[this._toPrefixed(q.predicate.value)] = q.object.value
+        const subId = this._toPrefixed(q.predicate.value)
+        const clean = SUBFIELD_CLEAN[subId]
+        result[subId] = clean ? clean(q.object.value) : q.object.value
       }
       return result
     }
 
     // text, textarea, uri, date, select
-    return objects[0]?.value ?? ''
+    const first = objects[0]
+    if (!first) return ''
+    const val = first.value
+    return this._coerceScalar(val, field)
   }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
 
   _toPrefixed(uri) {
     for (const [prefix, ns] of Object.entries(PREFIXES)) {
       if (uri.startsWith(ns)) return `${prefix}:${uri.slice(ns.length)}`
     }
     return uri
+  }
+
+  // Normalize a scalar value to the expected form type
+  _coerceScalar(val, field) {
+    if (field.type === 'date') {
+      // Truncate xsd:dateTime to date portion (YYYY-MM-DD)
+      return val.length > 10 && val[10] === 'T' ? val.slice(0, 10) : val
+    }
+    return val
   }
 }
