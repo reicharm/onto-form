@@ -31,6 +31,7 @@
   "fields": {
     "dct:title": {
       "type": "langstring",
+      "required": true,
       "label": { "de": "Titel", "en": "Title" },
       "placeholder": { "de": "Titel des Datensatzes eingeben", "en": "Enter dataset title" },
       "errorMessages": {
@@ -42,6 +43,7 @@
     },
     "dct:description": {
       "type": "textarea",
+      "required": true,
       "label": { "de": "Beschreibung", "en": "Description" },
       "placeholder": { "de": "Beschreiben Sie den Datensatz...", "en": "Describe the dataset..." },
       "errorMessages": {
@@ -52,8 +54,13 @@
     },
     "dct:identifier": {
       "type": "uri",
+      "required": true,
+      "validate": "isURI",
       "label": { "de": "Identifikator", "en": "Identifier" },
       "placeholder": { "de": "z.B. https://data.gv.at/dataset/123", "en": "e.g. https://data.gv.at/dataset/123" },
+      "errorMessages": {
+        "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" }
+      },
       "order": 3,
       "visible": true
     },
@@ -76,8 +83,8 @@
       "order": 6,
       "visible": true,
       "subFields": [
-        { "id": "foaf:name", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
-        { "id": "foaf:homepage", "type": "uri", "label": { "de": "Webseite", "en": "Homepage" } },
+        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Homepage" } },
         { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
           "options": [
             { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
@@ -98,6 +105,7 @@
     },
     "dcat:theme": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Thema", "en": "Theme" },
       "placeholder": { "de": "http://publications.europa.eu/resource/authority/data-theme/...", "en": "http://publications.europa.eu/resource/authority/data-theme/..." },
       "order": 8,
@@ -105,6 +113,7 @@
     },
     "dct:language": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Sprache", "en": "Language" },
       "placeholder": { "de": "http://publications.europa.eu/resource/authority/language/DEU", "en": "http://publications.europa.eu/resource/authority/language/ENG" },
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
@@ -113,6 +122,7 @@
     },
     "dct:spatial": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
       "placeholder": { "de": "URI der geografischen Region", "en": "URI of geographic region" },
       "order": 10,
@@ -131,10 +141,10 @@
       "order": 12,
       "visible": true,
       "subFields": [
-        { "id": "vcard:fn", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
-        { "id": "vcard:hasEmail", "type": "text", "label": { "de": "E-Mail", "en": "Email" } },
+        { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "vcard:hasEmail", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
         { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
-        { "id": "vcard:hasURL", "type": "uri", "label": { "de": "Webseite", "en": "Website" } }
+        { "id": "vcard:hasURL", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } }
       ]
     }
   }

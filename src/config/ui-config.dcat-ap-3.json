@@ -41,6 +41,7 @@
   "fields": {
     "dct:title": {
       "type": "langstring",
+      "required": true,
       "label": { "de": "Titel", "en": "Title" },
       "placeholder": { "de": "Titel des Datensatzes", "en": "Dataset title" },
       "errorMessages": {
@@ -51,6 +52,7 @@
     },
     "dct:description": {
       "type": "textarea",
+      "required": true,
       "label": { "de": "Beschreibung", "en": "Description" },
       "placeholder": { "de": "Kurze Beschreibung des Inhalts", "en": "Brief description of the content" },
       "errorMessages": {
@@ -60,8 +62,13 @@
     },
     "dct:identifier": {
       "type": "uri",
+      "required": true,
+      "validate": "isURI",
       "label": { "de": "Identifikator", "en": "Identifier" },
       "placeholder": { "de": "https://...", "en": "https://..." },
+      "errorMessages": {
+        "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" }
+      },
       "order": 3
     },
     "dcat:version": {
@@ -97,14 +104,15 @@
     "dct:publisher": {
       "type": "object",
       "multiple": false,
+      "required": true,
       "label": { "de": "Herausgeber", "en": "Publisher" },
       "errorMessages": {
         "required": { "de": "Herausgeber ist erforderlich", "en": "Publisher is required" }
       },
       "order": 8,
       "subFields": [
-        { "id": "foaf:name", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
-        { "id": "foaf:homepage", "type": "uri", "label": { "de": "Webseite", "en": "Homepage" } },
+        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Homepage" } },
         { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
           "options": [
             { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
@@ -121,14 +129,15 @@
       "label": { "de": "Kontaktstelle", "en": "Contact Point" },
       "order": 9,
       "subFields": [
-        { "id": "vcard:fn", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
-        { "id": "vcard:hasEmail", "type": "text", "label": { "de": "E-Mail", "en": "Email" } },
+        { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "vcard:hasEmail", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
         { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
-        { "id": "vcard:hasURL", "type": "uri", "label": { "de": "Webseite", "en": "Website" } }
+        { "id": "vcard:hasURL", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } }
       ]
     },
     "dcat:theme": {
       "type": "select",
+      "required": true,
       "label": { "de": "Thema", "en": "Theme" },
       "options": [
         { "value": "http://publications.europa.eu/resource/authority/data-theme/AGRI", "label": { "de": "Landwirtschaft", "en": "Agriculture" } },
@@ -155,6 +164,7 @@
     },
     "dct:language": {
       "type": "select",
+      "required": true,
       "label": { "de": "Sprache", "en": "Language" },
       "options": [
         { "value": "http://publications.europa.eu/resource/authority/language/DEU", "label": { "de": "Deutsch", "en": "German" } },
@@ -166,6 +176,7 @@
     },
     "dct:spatial": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Räumliche Abdeckung (URI)", "en": "Spatial Coverage (URI)" },
       "placeholder": { "de": "https://sws.geonames.org/...", "en": "https://sws.geonames.org/..." },
       "order": 13
@@ -177,12 +188,14 @@
     },
     "dct:license": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Lizenz (URI)", "en": "License (URI)" },
       "placeholder": { "de": "https://creativecommons.org/licenses/by/4.0/", "en": "https://creativecommons.org/licenses/by/4.0/" },
       "order": 15
     },
     "odrl:hasPolicy": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Nutzungsrichtlinie (URI)", "en": "Usage Policy (URI)" },
       "placeholder": { "de": "https://...", "en": "https://..." },
       "hint": { "de": "ODRL Policy URI", "en": "ODRL Policy URI" },
@@ -190,11 +203,13 @@
     },
     "dcat:qualifiedRelation": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Qualifizierte Beziehung (URI)", "en": "Qualified Relation (URI)" },
       "order": 17
     },
     "dcat:distribution": {
       "type": "uri",
+      "validate": "isURI",
       "label": { "de": "Distribution (URI)", "en": "Distribution (URI)" },
       "placeholder": { "de": "https://...", "en": "https://..." },
       "order": 18

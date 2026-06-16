@@ -1,11 +1,4 @@
-/**
- * Central field validation.
- * Add new rules here — MetadataForm picks them up automatically.
- */
-
-function isValidURI(v) {
-  try { new URL(v); return true } catch { return false }
-}
+import { fieldValidators } from '../config/fieldValidators.js'
 
 function hasValue(value, field) {
   if (value == null) return false
@@ -25,44 +18,45 @@ function hasValue(value, field) {
 
 /**
  * Validate a single field value.
+ *
+ * Validation is driven entirely by the UI config field definition:
+ *   field.required  — whether the field must be non-empty
+ *   field.validate  — name of a validator from fieldValidators.js
+ *
+ * Sub-fields of object fields can each carry their own "required" and
+ * "validate" keys and are checked recursively.
+ *
  * Returns an array of localised error strings (empty = valid).
  */
 export function validateField(field, value, lang) {
   const errors = []
   const de = lang === 'de'
 
-  // Required
+  // Required check
   if (field.required && !hasValue(value, field)) {
     const msg = field.errorMessages?.required?.[lang]
       || (de ? 'Dieses Feld ist erforderlich.' : 'This field is required.')
     errors.push(msg)
-    return errors // no point checking further if empty
+    return errors
   }
 
-  // URI format (single value)
-  if (field.type === 'uri' && typeof value === 'string' && value) {
-    if (!isValidURI(value)) {
-      errors.push(de ? 'Ungültige URL.' : 'Invalid URL.')
+  // Named validator from config
+  if (field.validate) {
+    const fn = fieldValidators[field.validate]
+    if (fn) {
+      errors.push(...fn(value, lang))
+    } else {
+      console.warn(`[useValidation] Unknown validator: "${field.validate}"`)
     }
   }
 
-  // URI format (repeatable)
-  if (field.type === 'uri' && field.multiple && Array.isArray(value)) {
-    value.forEach((item, i) => {
-      if (item && !isValidURI(item)) {
-        errors.push(`${de ? 'Eintrag' : 'Entry'} ${i + 1}: ${de ? 'Ungültige URL' : 'Invalid URL'}`)
-      }
-    })
-  }
-
-  // Sub-object: required sub-fields + URI sub-fields
+  // Sub-object: validate each sub-field recursively
   if (field.type === 'object' && field.subFields && value && typeof value === 'object') {
     for (const sf of field.subFields) {
-      const sfLabel = sf.label?.[lang] || sf.label?.de || sf.id
-      if (sf.required && !value[sf.id]) {
-        errors.push(`${sfLabel}: ${de ? 'Pflichtfeld' : 'required'}`)
-      } else if (sf.type === 'uri' && value[sf.id] && !isValidURI(value[sf.id])) {
-        errors.push(`${sfLabel}: ${de ? 'Ungültige URL' : 'Invalid URL'}`)
+      const sfErrors = validateField(sf, value[sf.id], lang)
+      if (sfErrors.length) {
+        const sfLabel = sf.label?.[lang] || sf.label?.de || sf.id
+        errors.push(...sfErrors.map(e => `${sfLabel}: ${e}`))
       }
     }
   }
