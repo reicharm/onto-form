@@ -4,28 +4,33 @@
       <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
       <div class="group-fields">
         <template v-for="field in groupFields(group)" :key="field.id">
-          <RepeatableField
-            v-if="field.multiple"
-            :field="field"
-            :lang="lang"
-            :modelValue="modelValue[field.id]"
-            @update:modelValue="updateField(field.id, $event)"
-          />
-          <component
-            v-else
-            :is="fieldComponent(field)"
-            :field="field"
-            :lang="lang"
-            :modelValue="modelValue[field.id]"
-            @update:modelValue="updateField(field.id, $event)"
-          />
+          <div class="field-wrapper" :class="{ 'has-error': fieldErrors[field.id]?.length }">
+            <RepeatableField
+              v-if="field.multiple"
+              :field="field"
+              :lang="lang"
+              :modelValue="modelValue[field.id]"
+              @update:modelValue="updateField(field.id, $event)"
+            />
+            <component
+              v-else
+              :is="fieldComponent(field)"
+              :field="field"
+              :lang="lang"
+              :modelValue="modelValue[field.id]"
+              @update:modelValue="updateField(field.id, $event)"
+            />
+            <ul v-if="fieldErrors[field.id]?.length" class="field-errors">
+              <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
+            </ul>
+          </div>
         </template>
       </div>
     </div>
 
     <div class="form-actions">
       <span v-if="!isValid" class="validation-hint">
-        {{ lang === 'de' ? 'Bitte alle Pflichtfelder (*) ausfüllen.' : 'Please fill in all required fields (*).' }}
+        {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
       </span>
       <button
         class="btn-export"
@@ -47,6 +52,7 @@ import URIField from './fields/URIField.vue'
 import LangStringField from './fields/LangStringField.vue'
 import ObjectField from './fields/ObjectField.vue'
 import RepeatableField from './fields/RepeatableField.vue'
+import { validateForm } from '../composables/useValidation.js'
 
 const props = defineProps({
   config: Object,
@@ -81,31 +87,9 @@ function updateField(id, value) {
   emit('update:modelValue', { ...props.modelValue, [id]: value })
 }
 
-function hasValue(value, field) {
-  if (value == null) return false
-  if (Array.isArray(value)) {
-    return value.some(item =>
-      item && (typeof item === 'object' ? (item.value || Object.values(item).some(v => v)) : item)
-    )
-  }
-  if (typeof value === 'object') {
-    // Sub-object: check required sub-fields
-    if (field?.subFields) {
-      return field.subFields.filter(sf => sf.required).every(sf => value[sf.id])
-    }
-    // Language map: at least one language filled
-    return Object.values(value).some(v => v)
-  }
-  return value !== ''
-}
+const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))
 
-const isValid = computed(() => {
-  if (!props.config?.fields) return true
-  return Object.entries(props.config.fields).every(([id, field]) => {
-    if (!field.required) return true
-    return hasValue(props.modelValue?.[id], field)
-  })
-})
+const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
 </script>
 
 <style scoped>
@@ -129,7 +113,48 @@ const isValid = computed(() => {
 
 .group-fields { display: flex; flex-direction: column; gap: 1rem; }
 
-.form-actions { display: flex; justify-content: flex-end; padding: 0.5rem 0; }
+.field-wrapper { display: flex; flex-direction: column; gap: 0.2rem; }
+
+.field-wrapper.has-error :deep(input),
+.field-wrapper.has-error :deep(textarea),
+.field-wrapper.has-error :deep(select) {
+  border-color: #c0392b !important;
+}
+
+.field-wrapper.has-error :deep(.uri-input),
+.field-wrapper.has-error :deep(.object-fieldset) {
+  border-color: #c0392b !important;
+}
+
+.field-errors {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.field-errors li {
+  font-size: 0.78rem;
+  color: #c0392b;
+  padding-left: 0.1rem;
+}
+
+.field-errors li::before { content: '⚠ '; }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.validation-hint {
+  font-size: 0.85rem;
+  color: #c0392b;
+}
 
 .btn-export {
   background: #2c5f8a;
@@ -146,11 +171,5 @@ const isValid = computed(() => {
   background: #a0b4c5;
   cursor: not-allowed;
   opacity: 0.7;
-}
-.validation-hint {
-  font-size: 0.85rem;
-  color: #c0392b;
-  align-self: center;
-  margin-right: 1rem;
 }
 </style>
