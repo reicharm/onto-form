@@ -11,8 +11,18 @@
 
 export const fieldComputeFns = {
 
-  // Sets the field to today's date whenever a title (de or en) is present.
+  // Sets the field to today's date whenever a title is present.
+  // Always overwrites — suitable for "last modified" fields that should stay current.
   setTodayIfTitle: (data) => {
+    const title = data['dct:title']
+    const hasTitle = title?.de || title?.en || (typeof title === 'string' && title)
+    return hasTitle ? new Date().toISOString().slice(0, 10) : undefined
+  },
+
+  // Sets the field to today's date only if it has no value yet.
+  // Preserves imported or manually entered values — ideal for hidden auto-filled fields.
+  setTodayIfTitleAndEmpty: (data, lang, fieldId) => {
+    if (data[fieldId]) return undefined
     const title = data['dct:title']
     const hasTitle = title?.de || title?.en || (typeof title === 'string' && title)
     return hasTitle ? new Date().toISOString().slice(0, 10) : undefined
@@ -58,7 +68,7 @@ export function applyComputes(config, formData, lang) {
       console.warn(`[fieldComputes] Unknown compute function: "${field.compute}"`)
       continue
     }
-    const result = fn(next, lang)
+    const result = fn(next, lang, fieldId)
     if (result !== undefined && !equal(result, next[fieldId])) {
       next[fieldId] = result
       updated = true

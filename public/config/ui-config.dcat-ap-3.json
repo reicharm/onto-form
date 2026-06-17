@@ -1,6 +1,7 @@
 {
   "standard": "dcat-ap-3",
   "version": "3.0",
+  "wizard": true,
   "groups": [
     {
       "id": "basic",
@@ -85,7 +86,7 @@
     },
     "dct:modified": {
       "type": "date",
-      "compute": "setTodayIfTitle",
+      "compute": "setTodayIfTitleAndEmpty",
       "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
       "order": 6
     },
@@ -140,17 +141,7 @@
       "type": "multiselect",
       "required": true,
       "label": { "de": "Thema", "en": "Theme" },
-      "options": [
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/AGRI", "label": { "de": "Landwirtschaft", "en": "Agriculture" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/ECON", "label": { "de": "Wirtschaft", "en": "Economy" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/EDUC", "label": { "de": "Bildung", "en": "Education" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/ENVI", "label": { "de": "Umwelt", "en": "Environment" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/GOVE", "label": { "de": "Verwaltung", "en": "Government" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/HEAL", "label": { "de": "Gesundheit", "en": "Health" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/SOCI", "label": { "de": "Gesellschaft", "en": "Society" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/TECH", "label": { "de": "Wissenschaft und Technologie", "en": "Science and Technology" } },
-        { "value": "http://publications.europa.eu/resource/authority/data-theme/TRAN", "label": { "de": "Transport", "en": "Transport" } }
-      ],
+      "optionsSource": "/vocabularies/data-theme.json",
       "errorMessages": {
         "required": { "de": "Thema ist erforderlich", "en": "Theme is required" }
       },
@@ -167,11 +158,8 @@
       "type": "select",
       "required": true,
       "label": { "de": "Sprache", "en": "Language" },
-      "options": [
-        { "value": "http://publications.europa.eu/resource/authority/language/DEU", "label": { "de": "Deutsch", "en": "German" } },
-        { "value": "http://publications.europa.eu/resource/authority/language/ENG", "label": { "de": "Englisch", "en": "English" } },
-        { "value": "http://publications.europa.eu/resource/authority/language/FRA", "label": { "de": "Französisch", "en": "French" } }
-      ],
+      "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+      "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 12
     },

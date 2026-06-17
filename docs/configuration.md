@@ -1,236 +1,229 @@
-# Konfigurationsreferenz
+# Konfigurationsreferenz – DCAT-AP Metadata Editor
 
-Die Anwendung wird über drei Ebenen konfiguriert:
+Die Formularkonfiguration setzt sich aus zwei Quellen zusammen:
 
-1. **UI-Config JSON** (`src/config/ui-config.*.json` + `public/config/`) — Felder, Gruppen, Labels, Validierung, Compute
-2. **`fieldValidators.js`** (`src/config/`) — benannte Validierungsfunktionen
-3. **`fieldComputes.js`** (`src/config/`) — benannte Compute-Funktionen
+1. **SHACL-Shape** (z. B. `public/shacl/dcat-ap-at.ttl`) – liefert Feldtypen, Kardinalität, Pflichtfelder
+2. **UI-Config** (z. B. `public/config/ui-config.dcat-ap-at.json`) – erweitert und überschreibt SHACL-Daten für die Anzeige
 
-> **Hinweis:** Die Dateien in `src/config/` und `public/config/` müssen immer synchron gehalten werden. Die App lädt zur Laufzeit aus `public/config/`.
+`FormConfigResolver` lädt beide, merged sie und löst externe Vokabulare auf.
 
 ---
 
-## UI-Config JSON
-
-Jeder Metadatenstandard hat eine eigene Config-Datei:
-
-| Standard | Datei |
-|---|---|
-| DCAT-AP.at | `ui-config.dcat-ap-at.json` |
-| DCAT-AP 3.0 | `ui-config.dcat-ap-3.json` |
-| GeoDCAT | `ui-config.geodcat.json` |
-
-### Grundstruktur
+## UI-Config: Struktur
 
 ```json
 {
   "standard": "dcat-ap-at",
   "version": "2.0",
+  "wizard": true,
   "groups": [ ... ],
   "fields": { ... }
 }
 ```
 
-### Gruppen (`groups`)
+### `wizard`
 
-Felder werden in benannte Gruppen organisiert, die als Abschnitte im Formular dargestellt werden:
+`true` aktiviert den Schritt-Assistenten als Standard beim Start. Standardmäßig `true` für alle drei vordefinierten Standards. Der Nutzer kann über den Header-Button jederzeit zwischen Wizard und Einzel-Seite wechseln.
+
+---
+
+## Gruppen (`groups`)
+
+Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einzel-Seite.
 
 ```json
 {
   "id": "basic",
   "label": { "de": "Grundinformationen", "en": "Basic Information" },
-  "fields": ["dct:title", "dct:description", "dct:identifier"]
+  "fields": ["dct:title", "dct:description", "dct:identifier"],
+  "visible": true
 }
 ```
 
-### Felddefinitionen (`fields`)
+| Eigenschaft | Typ | Beschreibung |
+|---|---|---|
+| `id` | string | Eindeutige ID der Gruppe |
+| `label` | `{de, en}` | Angezeigter Name |
+| `fields` | string[] | Geordnete Liste der Feld-IDs |
+| `visible` | boolean | `false` blendet die Gruppe aus (Standard: `true`) |
 
-Jedes Feld wird unter seinem RDF-Präfix-Schlüssel definiert:
+---
+
+## Felder (`fields`)
 
 ```json
 "dct:title": {
   "type": "langstring",
   "required": true,
-  "validate": "isURI",
-  "compute": "setTodayIfTitle",
   "label": { "de": "Titel", "en": "Title" },
-  "placeholder": { "de": "...", "en": "..." },
+  "placeholder": { "de": "Titel eingeben", "en": "Enter title" },
   "hint": { "de": "...", "en": "..." },
-  "defaultValue": { "de": "", "en": "" },
-  "multiple": false,
-  "visible": true,
-  "order": 1,
   "errorMessages": {
     "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
   },
-  "options": [ ... ],
-  "subFields": [ ... ]
+  "order": 1,
+  "visible": true,
+  "multiple": false,
+  "compute": "setTodayIfTitleAndEmpty",
+  "validate": "isURI",
+  "options": [...],
+  "optionsSource": "https://...",
+  "optionsSourceFallback": "/vocabularies/..."
 }
 ```
 
-#### Alle Feld-Eigenschaften
+### Allgemeine Eigenschaften
 
 | Eigenschaft | Typ | Beschreibung |
 |---|---|---|
-| `type` | `string` | Feldtyp (siehe unten) |
-| `required` | `boolean` | Pflichtfeld |
-| `validate` | `string` | Name einer Funktion aus `fieldValidators.js` |
-| `compute` | `string` | Name einer Funktion aus `fieldComputes.js` |
-| `label` | `{de, en}` | Beschriftung |
+| `type` | string | Feldtyp (siehe unten) |
+| `required` | boolean | Pflichtfeld |
+| `label` | `{de, en}` | Feldbezeichnung |
 | `placeholder` | `{de, en}` | Platzhaltertext |
 | `hint` | `{de, en}` | Hilfetext unter dem Feld |
-| `defaultValue` | `any` | Vorausgefüllter Startwert |
-| `multiple` | `boolean` | Wiederholbares Feld (Array) |
-| `visible` | `boolean` | Feld im Formular anzeigen |
-| `order` | `number` | Sortierreihenfolge innerhalb der Gruppe |
-| `errorMessages` | `object` | Lokalisierte Fehlermeldungen |
-| `options` | `array` | Optionen für `select` und `multiselect` |
-| `subFields` | `array` | Sub-Felder für `object` |
+| `errorMessages` | object | Eigene Fehlermeldungen |
+| `order` | number | Reihenfolge innerhalb der Gruppe |
+| `visible` | boolean | `false` = Feld unsichtbar (aber weiterhin aktiv für Berechnung und Export) |
+| `multiple` | boolean | Wiederholbares Feld (RepeatableField) |
+| `defaultValue` | any | Standardwert bei Initialisierung |
 
-#### Verfügbare Feldtypen
+### Feldtypen
 
-| `type` | Beschreibung | Wert |
+| Wert | Komponente | Beschreibung |
 |---|---|---|
-| `text` | Einzeiliges Textfeld | `string` |
-| `textarea` | Mehrzeiliges Textfeld | `string` |
-| `langstring` | Mehrsprachiger Text | `{de: string, en: string}` |
-| `uri` | URL/URI-Eingabe | `string` |
-| `date` | Datumsauswahl | `string` (YYYY-MM-DD) |
-| `select` | Einzelauswahl aus Vokabular | `string` |
-| `multiselect` | Mehrfachauswahl aus Vokabular | `string[]` |
-| `object` | Unterobjekt mit Sub-Feldern | `object` |
+| `text` | `TextField` | Einzeiliger Text |
+| `textarea` | `TextareaField` | Mehrzeiliger Text |
+| `langstring` | `LangStringField` | Sprachspezifischer Text (Sprachkürzel → Wert) |
+| `uri` | `URIField` | URI-Eingabe |
+| `date` | `DateField` | Datum (ISO 8601) |
+| `select` | `SelectField` | Einzelauswahl |
+| `multiselect` | `MultiSelectField` | Mehrfachauswahl (Checkbox-Liste); wird nie in `RepeatableField` eingebettet, auch wenn SHACL `multiple: true` setzt |
+| `object` | `ObjectField` | Zusammengesetztes Feld mit Unterfeldern |
 
-#### Optionen (für `select` und `multiselect`)
+### Validierung: `validate`
 
-```json
-"options": [
-  {
-    "value": "http://publications.europa.eu/resource/authority/data-theme/AGRI",
-    "label": { "de": "Landwirtschaft", "en": "Agriculture" }
-  }
-]
-```
+Referenziert eine benannte Validator-Funktion aus `fieldValidators.js`. Validatoren laufen **nur wenn das Feld einen Wert enthält** – leere optionale Felder sind immer gültig.
 
-#### Sub-Felder (für `object`)
+Vordefinierte Validatoren:
 
-Sub-Felder unterstützen dieselben Eigenschaften wie normale Felder (`type`, `required`, `validate`, `label`):
-
-```json
-"subFields": [
-  { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
-  { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Homepage" } }
-]
-```
-
----
-
-## Validierungsfunktionen (`fieldValidators.js`)
-
-In `src/config/fieldValidators.js` werden benannte Validatoren definiert. Ein Feld referenziert einen Validator mit `"validate": "<name>"`.
-
-### Signatur
-
-```js
-(value, lang) => string[]
-// Leeres Array = gültig
-// Strings im Array = Fehlermeldungen
-```
-
-### Eingebaute Validatoren
-
-| Name | Prüft |
+| Name | Prüfung |
 |---|---|
-| `isURI` | Gültige URL (`http://` oder `https://`) |
-| `isURIList` | Jeder Eintrag in einem Array ist eine gültige URL |
-| `isEmail` | Gültiges E-Mail-Format |
-| `isDate` | Format `YYYY-MM-DD` |
-| `isWKTorGeoJSON` | WKT-Geometrie oder GeoJSON-Objekt |
+| `isURI` | Gültige URI |
+| `isEmail` | Gültige E-Mail-Adresse |
 
-### Neuen Validator hinzufügen
+### Berechnungen: `compute`
 
-```js
-// src/config/fieldValidators.js
-export const fieldValidators = {
-  // ... bestehende Validatoren ...
+Referenziert eine benannte Funktion aus `fieldComputes.js`. Die Funktion erhält `(formData, lang, fieldId)` und gibt einen neuen Wert oder `undefined` zurück.
 
-  isPositiveNumber: (value, lang) => {
-    if (!value) return []
-    return Number(value) > 0
-      ? []
-      : [lang === 'de' ? 'Muss eine positive Zahl sein.' : 'Must be a positive number.']
-  }
-}
-```
-
-Danach in der UI-Config:
-```json
-"dcat:byteSize": { "type": "text", "validate": "isPositiveNumber" }
-```
-
----
-
-## Compute-Funktionen (`fieldComputes.js`)
-
-In `src/config/fieldComputes.js` werden benannte Compute-Funktionen definiert. Ein Feld referenziert eine Funktion mit `"compute": "<name>"`. Sie laufen nach jeder Formularänderung.
-
-### Signatur
-
-```js
-(formData, lang) => value | undefined
-// undefined = Feld nicht ändern
-// Anderer Wert = Feld überschreiben
-```
-
-### Eingebaute Funktionen
+Vordefinierte Compute-Funktionen:
 
 | Name | Verhalten |
 |---|---|
-| `setTodayIfTitle` | Setzt das Feld auf das heutige Datum, wenn ein Titel vorhanden ist |
-| `setToday` | Setzt das Feld immer auf das heutige Datum |
-| `setLanguageFromUI` | Setzt `dct:language` aus der UI-Sprache, wenn noch leer |
+| `setTodayIfTitle` | Setzt heute's Datum, wenn ein Titel vorhanden ist. **Überschreibt immer.** |
+| `setTodayIfTitleAndEmpty` | Setzt heute's Datum nur wenn das Feld noch leer ist. Importierte/manuelle Werte bleiben erhalten. |
+| `setToday` | Setzt immer das heutige Datum. |
+| `setLanguageFromUI` | Setzt Sprach-URI aus der aktuellen UI-Sprache, wenn Feld leer. |
 
-### Neue Compute-Funktion hinzufügen
+### Versteckte Felder: `"visible": false`
 
-```js
-// src/config/fieldComputes.js
-export const fieldComputeFns = {
-  // ... bestehende Funktionen ...
+Felder mit `"visible": false` erscheinen nicht im Formular, werden aber weiterhin:
+- durch `compute`-Funktionen befüllt
+- beim Export in JSON-LD/Turtle ausgegeben
 
-  copyTitleToIdentifier: (data) => {
-    const title = data['dct:title']?.de
-    if (!title || data['dct:identifier']) return undefined
-    return `https://example.org/datasets/${encodeURIComponent(title)}`
-  }
+Typischer Anwendungsfall: automatisch berechnete Metadaten (z. B. Erstellungsdatum), die nicht manuell bearbeitet werden sollen.
+
+---
+
+## Vokabulare
+
+### Inline-Optionen: `options`
+
+```json
+"options": [
+  { "value": "http://...", "label": { "de": "Deutsch", "en": "German" } }
+]
+```
+
+### Externe Vokabulare: `optionsSource` / `optionsSourceFallback`
+
+```json
+"optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+"optionsSourceFallback": "/vocabularies/language.json"
+```
+
+- `optionsSource`: primäre URL (Web-API oder lokaler Pfad)
+- `optionsSourceFallback`: Fallback, falls primäre Quelle fehlschlägt (z. B. CORS-Fehler)
+
+Externe Optionen werden beim Laden der Konfiguration parallel aufgelöst und gecacht. Inline-`options` werden **nach** den geladenen Optionen angehängt.
+
+#### Unterstützte Antwortformate
+
+| Format | Erkennung | Beschreibung |
+|---|---|---|
+| Nativ | `[{value, label}]` | Direktes Format des Editors |
+| SKOS-lite | `[{uri, prefLabel}]` | URI als Wert, `prefLabel` als Sprachmap |
+| JSON-LD | `{"@graph": [...]}` | Objekte mit `@id` und `skos:prefLabel` |
+| SPARQL JSON | `{results: {bindings: [...]}}` | SPARQL-Ergebnis mit `concept`/`uri` und `label` |
+
+#### Lokale Vokabulardateien
+
+Lokale Dateien liegen unter `public/vocabularies/`. Beispiele:
+
+- `public/vocabularies/language.json` – Sprachvokabular (Fallback)
+- `public/vocabularies/data-theme.json` – Datenkategorien für `dcat:theme`
+
+---
+
+## Unterfelder (`subFields`)
+
+Für Felder vom Typ `object`:
+
+```json
+"dcat:contactPoint": {
+  "type": "object",
+  "subFields": [
+    { "id": "vcard:fn", "type": "text", "label": { "de": "Name", "en": "Name" }, "required": true },
+    { "id": "vcard:hasEmail", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } }
+  ]
 }
 ```
 
-Danach in der UI-Config:
+Unterfelder unterstützen `required` und `validate`, aber keine weiteren verschachtelten `subFields`.
+
+---
+
+## Beispiel: Vollständige Feldkonfiguration
+
 ```json
-"dct:identifier": { "type": "uri", "compute": "copyTitleToIdentifier" }
+"dct:language": {
+  "type": "select",
+  "label": { "de": "Sprache", "en": "Language" },
+  "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+  "optionsSourceFallback": "/vocabularies/language.json",
+  "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
+  "order": 10,
+  "visible": true
+}
 ```
 
-### Abhängigkeiten zwischen Feldern
-
-Da alle Compute-Funktionen `formData` (den gesamten aktuellen Formularstand) erhalten, können beliebige Feldabhängigkeiten abgebildet werden:
-
-```js
-setModifiedFromIssued: (data) => {
-  // Setzt modified auf issued, wenn modified noch leer
-  if (data['dct:modified']) return undefined
-  return data['dct:issued'] || undefined
+```json
+"dct:modified": {
+  "type": "date",
+  "compute": "setTodayIfTitleAndEmpty",
+  "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
+  "order": 5,
+  "visible": true
 }
 ```
 
 ---
 
-## Neuen Metadatenstandard hinzufügen
+## SHACL-Integration
 
-1. SHACL-Datei erstellen: `src/shacl/<standard>.ttl` und `public/shacl/<standard>.ttl`
-2. UI-Config erstellen: `src/config/ui-config.<standard>.json` und `public/config/ui-config.<standard>.json`
-3. Standard in `App.vue` registrieren:
-   ```js
-   const standards = [
-     { id: 'dcat-ap-at', label: 'DCAT-AP.at' },
-     { id: 'mein-standard', label: 'Mein Standard' }  // hinzufügen
-   ]
-   ```
+`SHACLParser` liest SHACL-Shapes aus Turtle-Dateien und extrahiert:
+
+- Feldtypen (Mapping: XSD-Datentypen → interne Typen)
+- Kardinalität (`sh:minCount`, `sh:maxCount`) → `required`, `multiple`
+- Fehlermeldungen (`sh:message`)
+
+UI-Config-Werte überschreiben SHACL-Werte bei Konflikten. Labels und Hints werden gemergt.

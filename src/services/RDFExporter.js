@@ -38,9 +38,10 @@ export class RDFExporter {
         })
         if (items.length > 0) doc[key] = items.length === 1 ? items[0] : items
       } else if (isSubObject(value)) {
-        // Sub-object field (publisher, contactPoint) with prefixed sub-keys
+        // Sub-object → blank node; skip rdf:type and non-prefixed keys
         const node = {}
         for (const [subKey, subVal] of Object.entries(value)) {
+          if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (subVal) node[subKey] = subVal
         }
         if (Object.keys(node).length > 0) doc[key] = node
@@ -90,9 +91,10 @@ export class RDFExporter {
           }
         }
       } else if (isSubObject(value)) {
-        // Sub-object → blank node
+        // Sub-object → blank node; skip rdf:type and non-prefixed keys
         const subLines = []
         for (const [subKey, subVal] of Object.entries(value)) {
+          if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        ${subKey} <${subVal}>`)
           else subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"`)

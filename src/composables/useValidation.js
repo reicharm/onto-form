@@ -40,8 +40,8 @@ export function validateField(field, value, lang) {
     return errors
   }
 
-  // Named validator from config
-  if (field.validate) {
+  // Named validator from config — only if field has a value
+  if (field.validate && hasValue(value, field)) {
     const fn = fieldValidators[field.validate]
     if (fn) {
       errors.push(...fn(value, lang))
@@ -50,8 +50,10 @@ export function validateField(field, value, lang) {
     }
   }
 
-  // Sub-object: validate each sub-field recursively
-  if (field.type === 'object' && field.subFields && value && typeof value === 'object') {
+  // Sub-object: validate sub-fields only if the user has started filling the object
+  const objectHasInput = typeof value === 'object' && value !== null && !Array.isArray(value)
+    && Object.values(value).some(v => v)
+  if (field.type === 'object' && field.subFields && objectHasInput) {
     for (const sf of field.subFields) {
       const sfErrors = validateField(sf, value[sf.id], lang)
       if (sfErrors.length) {
@@ -67,11 +69,22 @@ export function validateField(field, value, lang) {
 /**
  * Validate all fields in a config against formData.
  * Returns { [fieldId]: string[] } — only entries with errors are included.
+ * Only fields referenced in at least one group are validated — SHACL fields
+ * from other shapes (e.g. Distribution) that bleed into the merged config
+ * are excluded since they are never shown in the form.
  */
 export function validateForm(config, formData, lang) {
   const result = {}
   if (!config?.fields) return result
+
+  // Only validate fields that appear in the form (referenced by a group)
+  const groupedIds = new Set(
+    (config.groups || []).flatMap(g => g.fields || [])
+  )
+
   for (const [id, field] of Object.entries(config.fields)) {
+    if (field.visible === false) continue
+    if (!groupedIds.has(id)) continue
     const errors = validateField(field, formData?.[id], lang)
     if (errors.length) result[id] = errors
   }

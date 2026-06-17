@@ -1,92 +1,116 @@
-# Anwenderdokumentation
+# Benutzerhandbuch – DCAT-AP Metadata Editor
 
-## Übersicht
+## Überblick
 
-Der DCAT-AP Metadata Editor ermöglicht die Erfassung und den Export von Metadaten für offene Datensätze gemäß den DCAT-AP-Standards. Die Metadaten werden im Browser erfasst und können als RDF (JSON-LD oder Turtle) exportiert werden.
+Der DCAT-AP Metadata Editor ermöglicht die browserbasierte Erstellung und Bearbeitung von Metadaten nach den Standards DCAT-AP.at, GeoDCAT-AP und DCAT-AP 3.0. Die Metadaten können als JSON-LD oder Turtle exportiert und bestehende Dateien importiert werden.
 
 ---
 
-## Bedienung
+## Oberfläche
 
 ### Standard auswählen
 
-Oben rechts im Header kann zwischen drei Metadatenstandards gewählt werden:
+Über das Dropdown oben links wird der gewünschte Standard gewählt:
 
-| Standard | Beschreibung |
-|---|---|
-| **DCAT-AP.at** | Österreichisches DCAT-AP-Profil (Version 2.0) |
-| **DCAT-AP 3.0** | Europäisches DCAT-AP-Profil (Version 3.0) |
-| **GeoDCAT** | Geodaten-erweitertes DCAT-Profil (Version 2.0) |
+- **DCAT-AP.at** – österreichisches DCAT-AP-Profil
+- **GeoDCAT** – geografische Metadaten
+- **DCAT-AP 3.0** – aktueller europäischer Standard
 
-Beim Wechsel des Standards wird das Formular neu geladen. Eingegebene Daten gehen dabei verloren.
+Beim Wechsel des Standards werden die Felder zurückgesetzt und das passende Formular geladen.
 
-### Sprache wählen
+### Sprache
 
-Die Schaltflächen **DE** / **EN** im Header schalten die Formularbeschriftungen zwischen Deutsch und Englisch. Für sprachgebundene Felder (z.B. Titel, Beschreibung) werden beide Sprachen parallel angezeigt.
-
-### Felder ausfüllen
-
-Pflichtfelder sind mit einem roten Sternchen `*` markiert. Fehlerhafte oder fehlende Pflichtfelder werden rot umrandet und mit einer Fehlermeldung versehen.
-
-### Export
-
-Der Button **Export JSON-LD / Turtle** am Ende des Formulars ist erst aktiv, wenn alle Pflichtfelder korrekt ausgefüllt und keine Validierungsfehler vorhanden sind. Nach dem Klick öffnet sich ein Modal mit zwei Tabs:
-
-- **JSON-LD** — Maschinenlesbare Repräsentation im JSON-Format
-- **Turtle** — Kompakte RDF-Notation
-
-Beide Formate können kopiert oder als Datei heruntergeladen werden.
+Oben rechts kann zwischen **DE** (Deutsch) und **EN** (Englisch) gewechselt werden. Die Beschriftungen, Platzhalter und Fehlermeldungen wechseln sofort.
 
 ---
 
-## Feldtypen
+## Eingabemodi
 
-### `text` — Einzeiliges Textfeld
+### Schritt-Assistent (Wizard)
 
-Einfache Texteingabe für kurze Werte (Identifikatoren, Versionsnummern, etc.).
+Der Schritt-Assistent ist standardmäßig aktiv. Er führt durch die Felder Gruppe für Gruppe:
 
-### `textarea` — Mehrzeiliges Textfeld
+1. **Schrittanzeige** oben: zeigt alle Gruppen als nummerierte Schritte sowie einen Abschluss-Schritt (✓ Übersicht/Summary).
+2. **Navigation**: „Weiter" / „Next" geht zum nächsten Schritt, „Zurück" / „Back" zum vorherigen. Per Klick auf einen bereits abgeschlossenen Schritt kann direkt dorthin gesprungen werden.
+3. **Per-Schritt-Validierung**: „Weiter" prüft nur die Felder des aktuellen Schritts. Fehler werden direkt angezeigt, der Schritt kann erst verlassen werden, wenn alle Pflichtfelder korrekt ausgefüllt sind.
+4. **Übersicht/Summary** (letzter Schritt): Zeigt alle Gruppen als Lesekarten. Über „Bearbeiten / Edit" kann direkt zu einer Gruppe gesprungen werden. Der **Export-Button** ist nur hier verfügbar.
 
-Für längere Texte wie Beschreibungen. Die Höhe ist manuell anpassbar.
+### Einzel-Seite
 
-### `langstring` — Mehrsprachiger Text
+Alle Felder werden auf einer einzigen Seite angezeigt. Der Export-Button erscheint am Ende der Seite, sobald das Formular valide ist.
 
-Zeigt parallel Eingabefelder für Deutsch und Englisch. Beide Versionen werden beim RDF-Export als sprachgetaggte Literale exportiert (`"Titel"@de`, `"Title"@en`).
+### Umschalten
 
-### `uri` — URL/URI-Eingabe
+Der Button im Header wechselt zwischen beiden Modi:
 
-Eingabefeld für URIs mit automatischer URL-Validierung (sofern `"validate": "isURI"` in der Config gesetzt ist). Ungültige URLs werden sofort angezeigt.
-
-### `date` — Datumsauswahl
-
-HTML5-Datumsauswahl. Liefert Werte im Format `YYYY-MM-DD`, die beim Export als `xsd:date` typisiert werden.
-
-### `select` — Einzelauswahl
-
-Dropdown-Menü für Auswahl aus einem vordefinierten Vokabular. Liefert den `value` der gewählten Option.
-
-### `multiselect` — Mehrfachauswahl
-
-Checkbox-Liste für die gleichzeitige Auswahl mehrerer Vokabulareinträge (z.B. Themen). Jede Auswahl wird beim RDF-Export als eigenes Triple exportiert.
-
-### `object` — Unterobjekt
-
-Zeigt einen strukturierten Block mit mehreren Sub-Feldern (z.B. Herausgeber mit Name, Webseite und Typ). Wird beim RDF-Export als Blank Node mit Sub-Prädikaten ausgegeben.
-
-### Wiederholbare Felder
-
-Felder mit `"multiple": true` (z.B. Schlagwörter) werden mit **+ Hinzufügen**- und **×**-Buttons dargestellt. Jeder Eintrag kann einzeln entfernt werden. Mindestens ein leerer Eintrag bleibt immer bestehen.
-
-Für `langstring`-Felder mit `multiple: true` hat jeder Eintrag zusätzlich eine Sprachauswahl (`de`, `en`, `fr`, ...).
+- Im Wizard-Modus: **„Einzel-Seite"**
+- Im Einzel-Seiten-Modus: **„Schritt-Assistent"**
 
 ---
 
-## Automatisch befüllte Felder
+## Daten importieren
 
-Manche Felder werden automatisch befüllt, sobald bestimmte Bedingungen erfüllt sind:
+Über den Button **„Importieren / Import"** im Header öffnet sich ein Importdialog.
 
-| Feld | Verhalten |
+### Formate
+
+- **JSON-LD**: `.json`- oder `.jsonld`-Datei
+- **Turtle**: `.ttl`-Datei (Standard-`@prefix`- und SPARQL-`PREFIX`-Schreibweise werden beide unterstützt)
+
+### Vorgehensweise
+
+1. Format-Tab auswählen (JSON-LD oder Turtle).
+2. Datei über **„Datei öffnen…"** hochladen oder Text direkt in das Textfeld einfügen.
+3. **„Importieren"** klicken.
+
+Importierte Werte werden mit den aktuellen Formulardaten zusammengeführt. Felder, die nicht im Import enthalten sind, behalten ihre bisherigen Werte (z. B. automatisch berechnete Felder). Werte, die gegen Validierungsregeln verstoßen, werden stillschweigend verworfen – das Feld zeigt in diesem Fall einen Validierungsfehler.
+
+---
+
+## Daten exportieren
+
+Der Export-Button (**„Export JSON-LD / Turtle"**) öffnet das Export-Panel, in dem die Metadaten als JSON-LD und Turtle angezeigt und in die Zwischenablage kopiert werden können.
+
+Im Wizard-Modus ist der Export-Button nur auf der **Übersicht** (letzter Schritt) verfügbar.
+
+---
+
+## Felder
+
+### Feldtypen
+
+| Typ | Beschreibung |
 |---|---|
-| **Zuletzt geändert** (`dct:modified`) | Wird automatisch auf das heutige Datum gesetzt, sobald ein Titel eingegeben wird |
+| `text` | Einzeiliges Textfeld |
+| `textarea` | Mehrzeiliges Textfeld |
+| `langstring` | Sprachspezifischer Text (DE/EN oder weitere Sprachen) |
+| `uri` | URI-Eingabe mit Formatprüfung |
+| `date` | Datumsfeld (ISO 8601) |
+| `select` | Einzelauswahl aus einem Vokabular |
+| `multiselect` | Mehrfachauswahl aus einem Vokabular (Checkbox-Liste) |
+| `object` | Zusammengesetztes Feld (z. B. Kontaktpunkt mit Name, E-Mail, URL) |
 
-Dieses Verhalten ist über Compute-Funktionen konfigurierbar (siehe [Konfigurationsreferenz](configuration.md)).
+Felder mit `+`-Button können mehrfach ausgefüllt werden (wiederholbare Felder).
+
+### Validierung
+
+- **Pflichtfelder** sind mit einem Sternchen markiert. Leere Pflichtfelder verhindern den Export und (im Wizard) das Weitergehen zum nächsten Schritt.
+- **Optionale Felder** werden nur geprüft, wenn sie einen Wert enthalten (z. B. URI-Format, E-Mail-Format).
+- Fehlermeldungen erscheinen direkt unter dem jeweiligen Feld.
+
+### Automatisch befüllte Felder
+
+Manche Felder werden automatisch gesetzt:
+
+- **Zuletzt geändert** (`dct:modified`): wird auf das heutige Datum gesetzt, sobald ein Titel eingegeben wird. Importierte oder manuell eingegebene Werte bleiben erhalten.
+
+### Vokabular-Felder
+
+Select- und Multiselect-Felder mit externem Vokabular (z. B. Sprache, Thema) laden ihre Auswahloptionen beim Start automatisch. Ist die externe Quelle nicht erreichbar, wird eine lokale Fallback-Datei verwendet.
+
+---
+
+## Tastatur und Barrierefreiheit
+
+- Alle Felder und Buttons sind per Tab erreichbar.
+- Fehlermeldungen sind für Screenreader zugänglich.

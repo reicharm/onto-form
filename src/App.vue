@@ -4,6 +4,14 @@
       <h1>DCAT-AP Metadata Editor</h1>
       <div class="header-controls">
         <StandardSelector :standards="standards" v-model="selectedStandard" />
+        <button class="btn-import-header" @click="showImport = true">
+          {{ lang === 'de' ? 'Importieren' : 'Import' }}
+        </button>
+        <button class="btn-mode-toggle" @click="wizardMode = !wizardMode">
+          {{ wizardMode
+            ? (lang === 'de' ? 'Einzel-Seite' : 'Single page')
+            : (lang === 'de' ? 'Schritt-Assistent' : 'Wizard') }}
+        </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
           <button :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
@@ -16,6 +24,7 @@
         v-if="formConfig"
         :config="formConfig"
         :lang="lang"
+        :wizard="wizardMode"
         v-model="formData"
         @export="showExport = true"
       />
@@ -29,6 +38,14 @@
       :lang="lang"
       @close="showExport = false"
     />
+
+    <ImportPanel
+      v-if="showImport"
+      :config="formConfig"
+      :lang="lang"
+      @import="onImport"
+      @close="showImport = false"
+    />
   </div>
 </template>
 
@@ -37,6 +54,7 @@ import { ref, watch, onMounted } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import ExportPanel from './components/ExportPanel.vue'
+import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
 
@@ -51,6 +69,8 @@ const lang = ref('de')
 const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
+const showImport = ref(false)
+const wizardMode = ref(true)
 
 function buildDefaultFormData(config) {
   const data = {}
@@ -67,8 +87,13 @@ function buildDefaultFormData(config) {
       data[id] = field.defaultValue
     } else if (field.type === 'langstring') {
       data[id] = { de: '', en: '' }
+    } else if (field.type === 'multiselect') {
+      data[id] = []
     } else if (field.type === 'object') {
       data[id] = {}
+    } else {
+      // date, text, textarea, uri, select — also hidden fields
+      data[id] = ''
     }
   }
   return data
@@ -80,6 +105,7 @@ async function loadFormConfig(standard) {
   const resolver = new FormConfigResolver()
   const config = await resolver.resolve(standard)
   formConfig.value = config
+  wizardMode.value = config?.wizard !== false
   formData.value = buildDefaultFormData(config)
 }
 
@@ -88,6 +114,12 @@ watch([formData, lang], ([data, l]) => {
   const next = applyComputes(formConfig.value, data, l)
   if (next !== data) formData.value = next
 }, { deep: true })
+
+function onImport(importedData) {
+  // Merge imported values into current formData (keeps defaults for unimported fields)
+  formData.value = { ...formData.value, ...importedData }
+  showImport.value = false
+}
 
 watch(selectedStandard, (std) => loadFormConfig(std))
 onMounted(() => loadFormConfig(selectedStandard.value))
@@ -117,6 +149,28 @@ body {
 .app-header h1 { font-size: 1.4rem; font-weight: 600; }
 
 .header-controls { display: flex; align-items: center; gap: 1.5rem; }
+
+.btn-import-header {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 0.3rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.btn-import-header:hover { background: rgba(255,255,255,0.25); }
+
+.btn-mode-toggle {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 0.3rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.btn-mode-toggle:hover { background: rgba(255,255,255,0.25); }
 
 .lang-toggle { display: flex; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; overflow: hidden; }
 .lang-toggle button {

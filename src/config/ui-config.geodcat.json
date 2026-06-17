@@ -1,6 +1,7 @@
 {
   "standard": "geodcat",
   "version": "2.0",
+  "wizard": true,
   "groups": [
     {
       "id": "basic",
@@ -94,7 +95,7 @@
     },
     "dct:modified": {
       "type": "date",
-      "compute": "setTodayIfTitle",
+      "compute": "setTodayIfTitleAndEmpty",
       "label": { "de": "Änderungsdatum", "en": "Modification Date" },
       "order": 8,
       "visible": true
@@ -142,10 +143,10 @@
       ]
     },
     "dct:language": {
-      "type": "uri",
-      "validate": "isURI",
+      "type": "select",
       "label": { "de": "Sprache", "en": "Language" },
-      "placeholder": { "de": "http://publications.europa.eu/resource/authority/language/DEU", "en": "http://publications.europa.eu/resource/authority/language/ENG" },
+      "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+      "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 12,
       "visible": true

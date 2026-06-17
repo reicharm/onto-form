@@ -1,18 +1,27 @@
 # DCAT-AP Metadata Editor
 
-Ein konfigurierbarer, webbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibungen. Unterstützt mehrere Metadatenstandards, vollständige RDF-Exportfunktion und eine erweiterbare Konfigurationsarchitektur.
+Ein browserbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibungen. Unterstützt DCAT-AP.at, GeoDCAT und DCAT-AP 3.0.
 
 ## Features
 
-- **Mehrere Metadatenstandards:** DCAT-AP.at 2.0, DCAT-AP 3.0, GeoDCAT 2.0
-- **Dynamische Formularerstellung** aus SHACL-Shapes und UI-Konfigurationsdateien
-- **RDF-Export** als JSON-LD und Turtle
-- **Zweisprachige UI** (Deutsch/Englisch)
-- **Konfigurierbare Validierung** — `required` und `validate`-Funktionen pro Feld
-- **Konfigurierbare Compute-Funktionen** — automatisches Befüllen von Feldern auf Basis anderer Felder
-- **Wiederholbare Felder** mit +/×-Buttons
-- **Unterobjekte** (Publisher, Kontaktstelle) mit eigenen Sub-Feldern
-- **Multiselect** für Vokabular-Mehrfachauswahl
+- **Drei Standards**: DCAT-AP.at, GeoDCAT-AP, DCAT-AP 3.0 – umschaltbar über die Standard-Auswahl
+- **Schritt-Assistent (Wizard)**: geführte Eingabe Schritt für Schritt, mit Fortschrittsanzeige und Per-Schritt-Validierung
+- **Einzel-Seite**: alle Felder auf einer Seite – umschaltbar über den Header-Button „Einzel-Seite / Schritt-Assistent"
+- **Export JSON-LD / Turtle**: valide RDF-Ausgabe auf Basis von SHACL-Shapes
+- **Import JSON-LD / Turtle**: bestehende Metadaten per Datei-Upload oder Text-Einfügen in das Formular laden
+- **Externe Vokabulare**: Select-/Multiselect-Felder laden Optionen aus Web-APIs oder lokalen JSON-Dateien
+- **Vokabular-Fallback**: lokale Fallback-Datei wenn externe Quelle nicht erreichbar (z. B. CORS)
+- **Automatische Berechnungen**: Felder können per `compute`-Funktion automatisch befüllt werden (z. B. Datum)
+- **Versteckte Felder**: Felder mit `"visible": false` nehmen an Berechnungen und Export teil, ohne im Formular zu erscheinen
+- **Mehrsprachige Oberfläche**: Deutsch und Englisch
+- **Validierung**: Pflichtfelder, URI-Format, E-Mail-Format – schrittweise im Wizard oder gesamt auf der Einzel-Seite
+- **SHACL-gestützt**: Feldkonfiguration wird aus SHACL-Shapes und UI-Config zusammengeführt
+
+## Dokumentation
+
+- [Benutzerhandbuch](docs/user-guide.md)
+- [Konfigurationsreferenz](docs/configuration.md)
+- [Technische Dokumentation](docs/technical.md)
 
 ## Schnellstart
 
@@ -21,17 +30,11 @@ npm install
 npm run dev
 ```
 
-## Dokumentation
+Öffne `http://localhost:5173` im Browser.
 
-| Dokument | Inhalt |
-|---|---|
-| [Anwenderdokumentation](docs/user-guide.md) | Bedienung, Feldtypen, Export |
-| [Konfigurationsreferenz](docs/configuration.md) | UI-Config, Validierung, Compute-Funktionen |
-| [Technische Dokumentation](docs/technical.md) | Architektur, Komponenten, Services |
+## Technologie
 
-## Technologie-Stack
-
-- [Vue 3](https://vuejs.org/) — UI-Framework
-- [Vite](https://vitejs.dev/) — Build-Tool
-- [N3.js](https://github.com/rdfjs/N3.js) — RDF/Turtle-Parser
-- [SHACL](https://www.w3.org/TR/shacl/) — Metadaten-Constraints
+- Vue 3 (Composition API, `<script setup>`)
+- Vite
+- n3.js (Turtle/RDF-Parsing)
+- Kein Backend – rein clientseitig
