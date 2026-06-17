@@ -22,6 +22,7 @@ Ein browserbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibun
 - [Benutzerhandbuch](docs/user-guide.md)
 - [Konfigurationsreferenz](docs/configuration.md)
 - [Technische Dokumentation](docs/technical.md)
+- [Tests](docs/testing.md)
 
 ## Schnellstart
 
@@ -31,6 +32,22 @@ npm run dev
 ```
 
 Öffne `http://localhost:5173` im Browser.
+
+## Tests
+
+```bash
+# Unit-Tests (Vitest)
+npm test
+
+# Unit-Tests im Watch-Modus
+npm run test:watch
+
+# E2E-Tests (Playwright) — Browser muss einmalig installiert werden
+npx playwright install chromium
+npm run test:e2e
+```
+
+Alle Unit-Tests (218) laufen ohne Browser oder laufenden Dev-Server. Details: [docs/testing.md](docs/testing.md)
 
 ## Technologie
 
