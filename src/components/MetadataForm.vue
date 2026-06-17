@@ -44,17 +44,21 @@
                   v-if="field.multiple && field.type !== 'multiselect'"
                   :field="field"
                   :lang="lang"
-                  :modelValue="modelValue[field.id]"
-                  @update:modelValue="updateField(field.id, $event)"
+                  :modelValue="displayValue(field)"
+                  @update:modelValue="updateField(field, $event)"
                 />
                 <component
                   v-else
                   :is="fieldComponent(field)"
                   :field="field"
                   :lang="lang"
-                  :modelValue="modelValue[field.id]"
-                  @update:modelValue="updateField(field.id, $event)"
+                  :modelValue="displayValue(field)"
+                  @update:modelValue="updateField(field, $event)"
                 />
+                <div v-if="field.transform && displayValue(field)" class="transform-preview">
+                  {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
+                  <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
+                </div>
                 <ul v-if="showStepErrors && fieldErrors[field.id]?.length" class="field-errors">
                   <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
                 </ul>
@@ -135,17 +139,21 @@
                 v-if="field.multiple && field.type !== 'multiselect'"
                 :field="field"
                 :lang="lang"
-                :modelValue="modelValue[field.id]"
-                @update:modelValue="updateField(field.id, $event)"
+                :modelValue="displayValue(field)"
+                @update:modelValue="updateField(field, $event)"
               />
               <component
                 v-else
                 :is="fieldComponent(field)"
                 :field="field"
                 :lang="lang"
-                :modelValue="modelValue[field.id]"
-                @update:modelValue="updateField(field.id, $event)"
+                :modelValue="displayValue(field)"
+                @update:modelValue="updateField(field, $event)"
               />
+              <div v-if="field.transform && displayValue(field)" class="transform-preview">
+                {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
+                <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
+              </div>
               <ul v-if="fieldErrors[field.id]?.length" class="field-errors">
                 <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
               </ul>
@@ -181,6 +189,7 @@ import ObjectField from './fields/ObjectField.vue'
 import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
 import { validateForm } from '../composables/useValidation.js'
+import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 
 const props = defineProps({
   config: Object,
@@ -220,8 +229,31 @@ function groupFields(group) {
     .sort((a, b) => (a.order || 0) - (b.order || 0))
 }
 
-function updateField(id, value) {
-  emit('update:modelValue', { ...props.modelValue, [id]: value })
+// Returns the value to show in the form field (applies display transform if configured)
+function displayValue(field) {
+  const stored = props.modelValue?.[field.id]
+  if (!field.transform) return stored
+  return applyDisplay(field.transform, stored, field.transformOptions)
+}
+
+// Returns the encoded preview URI (shown as hint below the field)
+function encodedPreview(field, currentDisplayValue) {
+  if (!field.transform || !currentDisplayValue) return null
+  const stored = props.modelValue?.[field.id]
+  const encoded = applyEncode(field.transform, currentDisplayValue, field.transformOptions, stored)
+  // Only show preview when it differs from what the user typed
+  return encoded !== currentDisplayValue ? encoded : null
+}
+
+function updateField(field, value) {
+  const id = typeof field === 'string' ? field : field.id
+  if (typeof field === 'object' && field.transform) {
+    const stored = props.modelValue?.[id]
+    const encoded = applyEncode(field.transform, value, field.transformOptions, stored)
+    emit('update:modelValue', { ...props.modelValue, [id]: encoded })
+  } else {
+    emit('update:modelValue', { ...props.modelValue, [id]: value })
+  }
 }
 
 const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))
@@ -586,5 +618,20 @@ function formatValue(field) {
   font-size: 0.85rem;
   color: #999;
   font-style: italic;
+}
+
+.transform-preview {
+  font-size: 0.78rem;
+  color: #555;
+  margin-top: 0.15rem;
+}
+
+.transform-preview code {
+  font-size: 0.78rem;
+  background: #f0f4f8;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  color: #2c5f8a;
+  word-break: break-all;
 }
 </style>

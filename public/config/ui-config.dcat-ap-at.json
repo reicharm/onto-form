@@ -5,94 +5,219 @@
   "groups": [
     {
       "id": "basic",
-      "label": { "de": "Grundinformationen", "en": "Basic Information" },
-      "fields": ["dct:title", "dct:description", "dct:identifier"]
+      "label": {
+        "de": "Grundinformationen",
+        "en": "Basic Information"
+      },
+      "fields": [
+        "dct:title",
+        "dct:description",
+        "dct:identifier"
+      ]
     },
     {
       "id": "dates",
-      "label": { "de": "Datumsangaben", "en": "Dates" },
-      "fields": ["dct:issued", "dct:modified"]
+      "label": {
+        "de": "Datumsangaben",
+        "en": "Dates"
+      },
+      "fields": [
+        "dct:issued",
+        "dct:modified"
+      ]
     },
     {
       "id": "classification",
-      "label": { "de": "Klassifizierung", "en": "Classification" },
-      "fields": ["dcat:theme", "dcat:keyword", "dct:language"]
+      "label": {
+        "de": "Klassifizierung",
+        "en": "Classification"
+      },
+      "fields": [
+        "dcat:theme",
+        "dcat:keyword",
+        "dct:language"
+      ]
     },
     {
       "id": "coverage",
-      "label": { "de": "Abdeckung", "en": "Coverage" },
-      "fields": ["dct:spatial", "dct:temporal"]
+      "label": {
+        "de": "Abdeckung",
+        "en": "Coverage"
+      },
+      "fields": [
+        "dct:spatial",
+        "dct:temporal"
+      ]
     },
     {
       "id": "contact",
-      "label": { "de": "Kontakt & Herausgeber", "en": "Contact & Publisher" },
-      "fields": ["dct:publisher", "dcat:contactPoint"]
+      "label": {
+        "de": "Kontakt & Herausgeber",
+        "en": "Contact & Publisher"
+      },
+      "fields": [
+        "dct:publisher",
+        "dcat:contactPoint"
+      ]
     }
   ],
   "fields": {
     "dct:title": {
       "type": "langstring",
       "required": true,
-      "label": { "de": "Titel", "en": "Title" },
-      "placeholder": { "de": "Titel des Datensatzes eingeben", "en": "Enter dataset title" },
-      "errorMessages": {
-        "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
+      "label": {
+        "de": "Titel",
+        "en": "Title"
       },
-      "defaultValue": { "de": "", "en": "" },
+      "placeholder": {
+        "de": "Titel des Datensatzes eingeben",
+        "en": "Enter dataset title"
+      },
+      "errorMessages": {
+        "required": {
+          "de": "Titel ist erforderlich",
+          "en": "Title is required"
+        }
+      },
+      "defaultValue": {
+        "de": "",
+        "en": ""
+      },
       "order": 1,
       "visible": true
     },
     "dct:description": {
       "type": "textarea",
       "required": true,
-      "label": { "de": "Beschreibung", "en": "Description" },
-      "placeholder": { "de": "Beschreiben Sie den Datensatz...", "en": "Describe the dataset..." },
+      "label": {
+        "de": "Beschreibung",
+        "en": "Description"
+      },
+      "placeholder": {
+        "de": "Beschreiben Sie den Datensatz...",
+        "en": "Describe the dataset..."
+      },
       "errorMessages": {
-        "required": { "de": "Beschreibung ist erforderlich", "en": "Description is required" }
+        "required": {
+          "de": "Beschreibung ist erforderlich",
+          "en": "Description is required"
+        }
       },
       "order": 2,
       "visible": true
     },
     "dct:identifier": {
-      "type": "uri",
+      "type": "text",
       "required": true,
       "validate": "isURI",
-      "label": { "de": "Identifikator", "en": "Identifier" },
-      "placeholder": { "de": "z.B. https://data.gv.at/dataset/123", "en": "e.g. https://data.gv.at/dataset/123" },
+      "transform": "uriSuffix",
+      "transformOptions": {
+        "prefix": "https://data.gv.at/dataset/"
+      },
+      "label": {
+        "de": "Datensatz-ID",
+        "en": "Dataset ID"
+      },
+      "placeholder": {
+        "de": "z.B. mein-datensatz-2024",
+        "en": "e.g. my-dataset-2024"
+      },
+      "hint": {
+        "de": "Nur den letzten Teil der URI eingeben – die vollständige URI wird automatisch gebildet.",
+        "en": "Enter only the last part of the URI – the full URI is built automatically."
+      },
       "errorMessages": {
-        "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" }
+        "required": {
+          "de": "Identifikator ist erforderlich",
+          "en": "Identifier is required"
+        }
       },
       "order": 3,
       "visible": true
     },
     "dct:issued": {
       "type": "date",
-      "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
+      "label": {
+        "de": "Veröffentlichungsdatum",
+        "en": "Publication Date"
+      },
       "order": 4,
       "visible": true
     },
     "dct:modified": {
       "type": "date",
       "compute": "setTodayIfTitleAndEmpty",
-      "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
+      "label": {
+        "de": "Zuletzt geändert",
+        "en": "Last Modified"
+      },
       "order": 5,
       "visible": true
     },
     "dct:publisher": {
       "type": "object",
       "multiple": false,
-      "label": { "de": "Herausgeber", "en": "Publisher" },
+      "label": {
+        "de": "Herausgeber",
+        "en": "Publisher"
+      },
       "order": 6,
       "visible": true,
       "subFields": [
-        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
-        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Homepage" } },
-        { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
+        {
+          "id": "foaf:name",
+          "type": "text",
+          "required": true,
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          }
+        },
+        {
+          "id": "foaf:homepage",
+          "type": "uri",
+          "validate": "isURI",
+          "label": {
+            "de": "Webseite",
+            "en": "Homepage"
+          }
+        },
+        {
+          "id": "dct:type",
+          "type": "select",
+          "label": {
+            "de": "Typ",
+            "en": "Type"
+          },
           "options": [
-            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
-            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
-            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
-            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } }
+            {
+              "value": "http://purl.org/adms/publishertype/LocalAuthority",
+              "label": {
+                "de": "Lokale Behörde",
+                "en": "Local Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/NationalAuthority",
+              "label": {
+                "de": "Nationale Behörde",
+                "en": "National Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Company",
+              "label": {
+                "de": "Unternehmen",
+                "en": "Company"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Academia",
+              "label": {
+                "de": "Forschungseinrichtung",
+                "en": "Academia/Scientific organisation"
+              }
+            }
           ]
         }
       ]
@@ -100,52 +225,108 @@
     "dcat:keyword": {
       "type": "langstring",
       "multiple": true,
-      "label": { "de": "Schlagwörter", "en": "Keywords" },
-      "placeholder": { "de": "Schlagwort eingeben", "en": "Enter keyword" },
+      "label": {
+        "de": "Schlagwörter",
+        "en": "Keywords"
+      },
+      "placeholder": {
+        "de": "Schlagwort eingeben",
+        "en": "Enter keyword"
+      },
       "order": 7,
       "visible": true
     },
     "dcat:theme": {
       "type": "multiselect",
-      "label": { "de": "Thema", "en": "Theme" },
+      "label": {
+        "de": "Thema",
+        "en": "Theme"
+      },
       "optionsSource": "/vocabularies/data-theme.json",
       "order": 8,
       "visible": true
     },
     "dct:language": {
       "type": "select",
-      "label": { "de": "Sprache", "en": "Language" },
+      "label": {
+        "de": "Sprache",
+        "en": "Language"
+      },
       "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
       "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
       "order": 9,
-      "visible": true
+      "visible": true,
+      "multiple": false
     },
     "dct:spatial": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
-      "placeholder": { "de": "URI der geografischen Region", "en": "URI of geographic region" },
+      "label": {
+        "de": "Räumliche Abdeckung",
+        "en": "Spatial Coverage"
+      },
+      "placeholder": {
+        "de": "URI der geografischen Region",
+        "en": "URI of geographic region"
+      },
       "order": 10,
       "visible": true
     },
     "dct:temporal": {
       "type": "text",
-      "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
+      "label": {
+        "de": "Zeitliche Abdeckung",
+        "en": "Temporal Coverage"
+      },
       "order": 11,
       "visible": true
     },
     "dcat:contactPoint": {
       "type": "object",
       "multiple": false,
-      "label": { "de": "Kontaktstelle", "en": "Contact Point" },
+      "label": {
+        "de": "Kontaktstelle",
+        "en": "Contact Point"
+      },
       "order": 12,
       "visible": true,
       "subFields": [
-        { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
-        { "id": "vcard:hasEmail", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
-        { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
-        { "id": "vcard:hasURL", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } }
+        {
+          "id": "vcard:fn",
+          "type": "text",
+          "required": true,
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          }
+        },
+        {
+          "id": "vcard:hasEmail",
+          "type": "text",
+          "validate": "isEmail",
+          "label": {
+            "de": "E-Mail",
+            "en": "Email"
+          }
+        },
+        {
+          "id": "vcard:hasTelephone",
+          "type": "text",
+          "label": {
+            "de": "Telefon",
+            "en": "Telephone"
+          }
+        },
+        {
+          "id": "vcard:hasURL",
+          "type": "uri",
+          "validate": "isURI",
+          "label": {
+            "de": "Webseite",
+            "en": "Website"
+          }
+        }
       ]
     }
   }

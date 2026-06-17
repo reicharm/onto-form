@@ -5,59 +5,126 @@
   "groups": [
     {
       "id": "basic",
-      "label": { "de": "Grundinformationen", "en": "Basic Information" },
-      "fields": ["dct:title", "dct:description", "dct:identifier", "dcat:version"]
+      "label": {
+        "de": "Grundinformationen",
+        "en": "Basic Information"
+      },
+      "fields": [
+        "dct:title",
+        "dct:description",
+        "dct:identifier",
+        "dcat:version"
+      ]
     },
     {
       "id": "temporal",
-      "label": { "de": "Zeitangaben", "en": "Temporal Information" },
-      "fields": ["dct:issued", "dct:modified", "dct:accrualPeriodicity"]
+      "label": {
+        "de": "Zeitangaben",
+        "en": "Temporal Information"
+      },
+      "fields": [
+        "dct:issued",
+        "dct:modified",
+        "dct:accrualPeriodicity"
+      ]
     },
     {
       "id": "responsible",
-      "label": { "de": "Verantwortliche", "en": "Responsible Parties" },
-      "fields": ["dct:publisher", "dcat:contactPoint"]
+      "label": {
+        "de": "Verantwortliche",
+        "en": "Responsible Parties"
+      },
+      "fields": [
+        "dct:publisher",
+        "dcat:contactPoint"
+      ]
     },
     {
       "id": "classification",
-      "label": { "de": "Klassifizierung", "en": "Classification" },
-      "fields": ["dcat:theme", "dcat:keyword", "dct:language"]
+      "label": {
+        "de": "Klassifizierung",
+        "en": "Classification"
+      },
+      "fields": [
+        "dcat:theme",
+        "dcat:keyword",
+        "dct:language"
+      ]
     },
     {
       "id": "coverage",
-      "label": { "de": "Abdeckung", "en": "Coverage" },
-      "fields": ["dct:spatial", "dct:temporal"]
+      "label": {
+        "de": "Abdeckung",
+        "en": "Coverage"
+      },
+      "fields": [
+        "dct:spatial",
+        "dct:temporal"
+      ]
     },
     {
       "id": "legal",
-      "label": { "de": "Rechtliches", "en": "Legal" },
-      "fields": ["dct:license", "odrl:hasPolicy"]
+      "label": {
+        "de": "Rechtliches",
+        "en": "Legal"
+      },
+      "fields": [
+        "dct:license",
+        "odrl:hasPolicy"
+      ]
     },
     {
       "id": "relations",
-      "label": { "de": "Beziehungen", "en": "Relations" },
-      "fields": ["dcat:qualifiedRelation", "dcat:distribution"]
+      "label": {
+        "de": "Beziehungen",
+        "en": "Relations"
+      },
+      "fields": [
+        "dcat:qualifiedRelation",
+        "dcat:distribution"
+      ]
     }
   ],
   "fields": {
     "dct:title": {
       "type": "langstring",
       "required": true,
-      "label": { "de": "Titel", "en": "Title" },
-      "placeholder": { "de": "Titel des Datensatzes", "en": "Dataset title" },
-      "errorMessages": {
-        "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
+      "label": {
+        "de": "Titel",
+        "en": "Title"
       },
-      "defaultValue": { "de": "", "en": "" },
+      "placeholder": {
+        "de": "Titel des Datensatzes",
+        "en": "Dataset title"
+      },
+      "errorMessages": {
+        "required": {
+          "de": "Titel ist erforderlich",
+          "en": "Title is required"
+        }
+      },
+      "defaultValue": {
+        "de": "",
+        "en": ""
+      },
       "order": 1
     },
     "dct:description": {
       "type": "textarea",
       "required": true,
-      "label": { "de": "Beschreibung", "en": "Description" },
-      "placeholder": { "de": "Kurze Beschreibung des Inhalts", "en": "Brief description of the content" },
+      "label": {
+        "de": "Beschreibung",
+        "en": "Description"
+      },
+      "placeholder": {
+        "de": "Kurze Beschreibung des Inhalts",
+        "en": "Brief description of the content"
+      },
       "errorMessages": {
-        "required": { "de": "Beschreibung ist erforderlich", "en": "Description is required" }
+        "required": {
+          "de": "Beschreibung ist erforderlich",
+          "en": "Description is required"
+        }
       },
       "order": 2
     },
@@ -65,41 +132,104 @@
       "type": "uri",
       "required": true,
       "validate": "isURI",
-      "label": { "de": "Identifikator", "en": "Identifier" },
-      "placeholder": { "de": "https://...", "en": "https://..." },
+      "label": {
+        "de": "Identifikator",
+        "en": "Identifier"
+      },
+      "placeholder": {
+        "de": "https://...",
+        "en": "https://..."
+      },
       "errorMessages": {
-        "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" }
+        "required": {
+          "de": "Identifikator ist erforderlich",
+          "en": "Identifier is required"
+        }
       },
       "order": 3
     },
     "dcat:version": {
       "type": "text",
-      "label": { "de": "Version", "en": "Version" },
-      "placeholder": { "de": "1.0.0", "en": "1.0.0" },
-      "hint": { "de": "Versionsnummer des Datensatzes", "en": "Version number of the dataset" },
+      "label": {
+        "de": "Version",
+        "en": "Version"
+      },
+      "placeholder": {
+        "de": "1.0.0",
+        "en": "1.0.0"
+      },
+      "hint": {
+        "de": "Versionsnummer des Datensatzes",
+        "en": "Version number of the dataset"
+      },
       "order": 4
     },
     "dct:issued": {
       "type": "date",
-      "label": { "de": "Veröffentlichungsdatum", "en": "Issued Date" },
+      "label": {
+        "de": "Veröffentlichungsdatum",
+        "en": "Issued Date"
+      },
       "order": 5
     },
     "dct:modified": {
       "type": "date",
       "compute": "setTodayIfTitleAndEmpty",
-      "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
+      "label": {
+        "de": "Zuletzt geändert",
+        "en": "Last Modified"
+      },
       "order": 6
     },
     "dct:accrualPeriodicity": {
       "type": "select",
-      "label": { "de": "Aktualisierungsfrequenz", "en": "Update Frequency" },
+      "label": {
+        "de": "Aktualisierungsfrequenz",
+        "en": "Update Frequency"
+      },
       "options": [
-        { "value": "http://publications.europa.eu/resource/authority/frequency/DAILY", "label": { "de": "Täglich", "en": "Daily" } },
-        { "value": "http://publications.europa.eu/resource/authority/frequency/WEEKLY", "label": { "de": "Wöchentlich", "en": "Weekly" } },
-        { "value": "http://publications.europa.eu/resource/authority/frequency/MONTHLY", "label": { "de": "Monatlich", "en": "Monthly" } },
-        { "value": "http://publications.europa.eu/resource/authority/frequency/QUARTERLY", "label": { "de": "Vierteljährlich", "en": "Quarterly" } },
-        { "value": "http://publications.europa.eu/resource/authority/frequency/ANNUAL", "label": { "de": "Jährlich", "en": "Annual" } },
-        { "value": "http://publications.europa.eu/resource/authority/frequency/IRREG", "label": { "de": "Unregelmäßig", "en": "Irregular" } }
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/DAILY",
+          "label": {
+            "de": "Täglich",
+            "en": "Daily"
+          }
+        },
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/WEEKLY",
+          "label": {
+            "de": "Wöchentlich",
+            "en": "Weekly"
+          }
+        },
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/MONTHLY",
+          "label": {
+            "de": "Monatlich",
+            "en": "Monthly"
+          }
+        },
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/QUARTERLY",
+          "label": {
+            "de": "Vierteljährlich",
+            "en": "Quarterly"
+          }
+        },
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/ANNUAL",
+          "label": {
+            "de": "Jährlich",
+            "en": "Annual"
+          }
+        },
+        {
+          "value": "http://publications.europa.eu/resource/authority/frequency/IRREG",
+          "label": {
+            "de": "Unregelmäßig",
+            "en": "Irregular"
+          }
+        }
       ],
       "order": 7
     },
@@ -107,20 +237,72 @@
       "type": "object",
       "multiple": false,
       "required": true,
-      "label": { "de": "Herausgeber", "en": "Publisher" },
+      "label": {
+        "de": "Herausgeber",
+        "en": "Publisher"
+      },
       "errorMessages": {
-        "required": { "de": "Herausgeber ist erforderlich", "en": "Publisher is required" }
+        "required": {
+          "de": "Herausgeber ist erforderlich",
+          "en": "Publisher is required"
+        }
       },
       "order": 8,
       "subFields": [
-        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
-        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Homepage" } },
-        { "id": "dct:type", "type": "select", "label": { "de": "Typ", "en": "Type" },
+        {
+          "id": "foaf:name",
+          "type": "text",
+          "required": true,
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          }
+        },
+        {
+          "id": "foaf:homepage",
+          "type": "uri",
+          "validate": "isURI",
+          "label": {
+            "de": "Webseite",
+            "en": "Homepage"
+          }
+        },
+        {
+          "id": "dct:type",
+          "type": "select",
+          "label": {
+            "de": "Typ",
+            "en": "Type"
+          },
           "options": [
-            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
-            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
-            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
-            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } }
+            {
+              "value": "http://purl.org/adms/publishertype/LocalAuthority",
+              "label": {
+                "de": "Lokale Behörde",
+                "en": "Local Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/NationalAuthority",
+              "label": {
+                "de": "Nationale Behörde",
+                "en": "National Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Company",
+              "label": {
+                "de": "Unternehmen",
+                "en": "Company"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Academia",
+              "label": {
+                "de": "Forschungseinrichtung",
+                "en": "Academia/Scientific organisation"
+              }
+            }
           ]
         }
       ]
@@ -128,79 +310,162 @@
     "dcat:contactPoint": {
       "type": "object",
       "multiple": false,
-      "label": { "de": "Kontaktstelle", "en": "Contact Point" },
+      "label": {
+        "de": "Kontaktstelle",
+        "en": "Contact Point"
+      },
       "order": 9,
       "subFields": [
-        { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
-        { "id": "vcard:hasEmail", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
-        { "id": "vcard:hasTelephone", "type": "text", "label": { "de": "Telefon", "en": "Telephone" } },
-        { "id": "vcard:hasURL", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } }
+        {
+          "id": "vcard:fn",
+          "type": "text",
+          "required": true,
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          }
+        },
+        {
+          "id": "vcard:hasEmail",
+          "type": "text",
+          "validate": "isEmail",
+          "label": {
+            "de": "E-Mail",
+            "en": "Email"
+          }
+        },
+        {
+          "id": "vcard:hasTelephone",
+          "type": "text",
+          "label": {
+            "de": "Telefon",
+            "en": "Telephone"
+          }
+        },
+        {
+          "id": "vcard:hasURL",
+          "type": "uri",
+          "validate": "isURI",
+          "label": {
+            "de": "Webseite",
+            "en": "Website"
+          }
+        }
       ]
     },
     "dcat:theme": {
       "type": "multiselect",
       "required": true,
-      "label": { "de": "Thema", "en": "Theme" },
+      "label": {
+        "de": "Thema",
+        "en": "Theme"
+      },
       "optionsSource": "/vocabularies/data-theme.json",
       "errorMessages": {
-        "required": { "de": "Thema ist erforderlich", "en": "Theme is required" }
+        "required": {
+          "de": "Thema ist erforderlich",
+          "en": "Theme is required"
+        }
       },
       "order": 10
     },
     "dcat:keyword": {
       "type": "langstring",
       "multiple": true,
-      "label": { "de": "Schlagwörter", "en": "Keywords" },
-      "placeholder": { "de": "Schlagwort eingeben...", "en": "Enter keyword..." },
+      "label": {
+        "de": "Schlagwörter",
+        "en": "Keywords"
+      },
+      "placeholder": {
+        "de": "Schlagwort eingeben...",
+        "en": "Enter keyword..."
+      },
       "order": 11
     },
     "dct:language": {
       "type": "select",
       "required": true,
-      "label": { "de": "Sprache", "en": "Language" },
+      "label": {
+        "de": "Sprache",
+        "en": "Language"
+      },
       "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
       "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
-      "order": 12
+      "order": 12,
+      "multiple": false
     },
     "dct:spatial": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Räumliche Abdeckung (URI)", "en": "Spatial Coverage (URI)" },
-      "placeholder": { "de": "https://sws.geonames.org/...", "en": "https://sws.geonames.org/..." },
+      "label": {
+        "de": "Räumliche Abdeckung (URI)",
+        "en": "Spatial Coverage (URI)"
+      },
+      "placeholder": {
+        "de": "https://sws.geonames.org/...",
+        "en": "https://sws.geonames.org/..."
+      },
       "order": 13
     },
     "dct:temporal": {
       "type": "text",
-      "label": { "de": "Zeitliche Abdeckung (URI)", "en": "Temporal Coverage (URI)" },
+      "label": {
+        "de": "Zeitliche Abdeckung (URI)",
+        "en": "Temporal Coverage (URI)"
+      },
       "order": 14
     },
     "dct:license": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Lizenz (URI)", "en": "License (URI)" },
-      "placeholder": { "de": "https://creativecommons.org/licenses/by/4.0/", "en": "https://creativecommons.org/licenses/by/4.0/" },
+      "label": {
+        "de": "Lizenz (URI)",
+        "en": "License (URI)"
+      },
+      "placeholder": {
+        "de": "https://creativecommons.org/licenses/by/4.0/",
+        "en": "https://creativecommons.org/licenses/by/4.0/"
+      },
       "order": 15
     },
     "odrl:hasPolicy": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Nutzungsrichtlinie (URI)", "en": "Usage Policy (URI)" },
-      "placeholder": { "de": "https://...", "en": "https://..." },
-      "hint": { "de": "ODRL Policy URI", "en": "ODRL Policy URI" },
+      "label": {
+        "de": "Nutzungsrichtlinie (URI)",
+        "en": "Usage Policy (URI)"
+      },
+      "placeholder": {
+        "de": "https://...",
+        "en": "https://..."
+      },
+      "hint": {
+        "de": "ODRL Policy URI",
+        "en": "ODRL Policy URI"
+      },
       "order": 16
     },
     "dcat:qualifiedRelation": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Qualifizierte Beziehung (URI)", "en": "Qualified Relation (URI)" },
+      "label": {
+        "de": "Qualifizierte Beziehung (URI)",
+        "en": "Qualified Relation (URI)"
+      },
       "order": 17
     },
     "dcat:distribution": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Distribution (URI)", "en": "Distribution (URI)" },
-      "placeholder": { "de": "https://...", "en": "https://..." },
+      "label": {
+        "de": "Distribution (URI)",
+        "en": "Distribution (URI)"
+      },
+      "placeholder": {
+        "de": "https://...",
+        "en": "https://..."
+      },
       "order": 18
     }
   }
