@@ -85,7 +85,7 @@
     },
     "dct:modified": {
       "type": "date",
-      "compute": "setTodayIfTitle",
+      "compute": "setTodayIfTitleAndEmpty",
       "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
       "order": 6
     },

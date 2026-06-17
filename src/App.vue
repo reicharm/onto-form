@@ -84,6 +84,9 @@ function buildDefaultFormData(config) {
       data[id] = []
     } else if (field.type === 'object') {
       data[id] = {}
+    } else {
+      // date, text, textarea, uri, select — also hidden fields
+      data[id] = ''
     }
   }
   return data
