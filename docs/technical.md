@@ -31,7 +31,8 @@ Ergänzende Module:
 src/config/
 ├── fieldComputes.js            Benannte Compute-Funktionen für automatische Feldwerte
 ├── fieldValidators.js          Benannte Validatoren (isURI, isEmail, …)
-└── fieldTransforms.js          Benannte Transforms (display ↔ encode, z.B. uriSuffix)
+├── fieldTransforms.js          Benannte Transforms (display ↔ encode, z.B. uriSuffix)
+└── fieldVisibility.js          Benannte Visibility-Funktionen (dynamische Feldsichtbarkeit)
 src/composables/
 └── useValidation.js            Formular- und Einzelfeld-Validierung
 src/styles/
@@ -173,6 +174,30 @@ Gespeichert: "https://data.gv.at/dataset/my-id"
 `MetadataForm.vue` wendet `display()` an bevor der Wert an das Feld-Komponent übergeben wird, und `encode()` bevor der neue Wert in `formData` geschrieben wird. Die Feld-Komponenten selbst wissen nichts von Transforms.
 
 Neue Transforms: Eintrag in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }`, Referenz per Name in der UI-Config.
+
+---
+
+## Bedingte Feldsichtbarkeit
+
+`src/config/fieldVisibility.js` exportiert:
+
+- `fieldVisibilityFns`: benannte Funktionen `(formData) => boolean`
+- `evaluateVisibleIf(fnName, formData)`: wertet eine Funktion aus; gibt `true` zurück bei unbekanntem Namen
+
+`MetadataForm.vue` ruft `evaluateVisibleIf` in `groupFields()` auf — bei jedem Render reaktiv. Felder mit nicht erfüllter Bedingung werden aus dem DOM entfernt und überspringen die Validierung.
+
+```js
+// fieldVisibility.js
+ifHVDLegislation: (formData) =>
+  formData?.['dcatap:applicableLegislation'] === 'http://data.europa.eu/eli/reg_impl/2023/138/oj'
+```
+
+```json
+// ui-config
+"dcatap:hvdCategory": { "visibleIf": "ifHVDLegislation", ... }
+```
+
+Neue Funktion: Eintrag in `fieldVisibilityFns` — kein weiterer Code notwendig.
 
 ---
 

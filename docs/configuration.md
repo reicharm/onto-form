@@ -152,6 +152,32 @@ Vordefinierte Transforms (`src/config/fieldTransforms.js`):
 
 Eigene Transforms: neue Einträge in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }` — kein weiterer Code notwendig.
 
+### Bedingte Sichtbarkeit: `visibleIf`
+
+Referenziert eine benannte Funktion aus `fieldVisibility.js`. Das Feld wird nur angezeigt, wenn die Funktion `true` zurückgibt — sie wird bei jedem Render reaktiv gegen den aktuellen `formData`-Stand ausgewertet.
+
+```json
+"dcatap:hvdCategory": {
+  "visibleIf": "ifHVDLegislation",
+  "type": "select",
+  "label": { "de": "HVD-Kategorie", "en": "HVD Category" }
+}
+```
+
+Vordefinierte Visibility-Funktionen:
+
+| Name | Bedingung |
+|---|---|
+| `ifHVDLegislation` | Wahr, wenn `dcatap:applicableLegislation` die URI der EU-HVD-Durchführungsverordnung (`2023/138`) enthält |
+
+Neue Funktion hinzufügen: Eintrag in `src/config/fieldVisibility.js` unter `fieldVisibilityFns`:
+
+```js
+meineBedingung: (formData) => formData['dct:type'] === 'http://...'
+```
+
+Im Unterschied zu `"visible": false` (statisch, konfigurationszeit) ist `visibleIf` dynamisch und reagiert auf Nutzereingaben. Felder mit `visibleIf` werden bei nicht erfüllter Bedingung vollständig ausgeblendet — sie nehmen nicht an Validierung, aber weiterhin am Export teil, solange `formData` einen Wert enthält.
+
 ### Versteckte Felder: `"visible": false`
 
 Felder mit `"visible": false` erscheinen nicht im Formular, werden aber weiterhin:
