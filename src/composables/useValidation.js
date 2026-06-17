@@ -50,8 +50,10 @@ export function validateField(field, value, lang) {
     }
   }
 
-  // Sub-object: validate each sub-field recursively
-  if (field.type === 'object' && field.subFields && value && typeof value === 'object') {
+  // Sub-object: validate sub-fields only if the user has started filling the object
+  const objectHasInput = typeof value === 'object' && value !== null && !Array.isArray(value)
+    && Object.values(value).some(v => v)
+  if (field.type === 'object' && field.subFields && objectHasInput) {
     for (const sf of field.subFields) {
       const sfErrors = validateField(sf, value[sf.id], lang)
       if (sfErrors.length) {
