@@ -110,6 +110,9 @@ Vordefinierte Validatoren:
 |---|---|
 | `isURI` | Gültige URI |
 | `isEmail` | Gültige E-Mail-Adresse |
+| `isDate` | Datum im Format YYYY-MM-DD |
+| `isURIList` | Array von URIs (für mehrwertige URI-Felder) |
+| `isWKTorGeoJSON` | WKT- oder GeoJSON-Geometrie |
 
 ### Berechnungen: `compute`
 
@@ -123,6 +126,31 @@ Vordefinierte Compute-Funktionen:
 | `setTodayIfTitleAndEmpty` | Setzt heute's Datum nur wenn das Feld noch leer ist. Importierte/manuelle Werte bleiben erhalten. |
 | `setToday` | Setzt immer das heutige Datum. |
 | `setLanguageFromUI` | Setzt Sprach-URI aus der aktuellen UI-Sprache, wenn Feld leer. |
+
+### Transforms: `transform` / `transformOptions`
+
+Ein Transform trennt den **angezeigten Wert** vom **gespeicherten Wert**. Das Feld-Komponent sieht nur den Anzeigewert; `encode()` wandelt ihn vor dem Speichern automatisch um.
+
+```json
+"dct:identifier": {
+  "type": "text",
+  "transform": "uriSuffix",
+  "transformOptions": { "prefix": "https://data.gv.at/dataset/" },
+  "label": { "de": "Datensatz-ID", "en": "Dataset ID" },
+  "placeholder": { "de": "mein-datensatz-2024", "en": "my-dataset-2024" }
+}
+```
+
+Der Nutzer tippt nur `mein-datensatz-2024`; gespeichert und exportiert wird `https://data.gv.at/dataset/mein-datensatz-2024`. Unter dem Feld erscheint eine Vorschau des gespeicherten Werts.
+
+Vordefinierte Transforms (`src/config/fieldTransforms.js`):
+
+| Name | Anzeige | Gespeichert |
+|---|---|---|
+| `uriSuffix` | Letztes Pfadsegment der URI | Vollständige URI (Prefix aus `transformOptions.prefix` oder aus bestehendem Wert) |
+| `stripPrefix` | Wert ohne konfigurierten Prefix | Wert mit Prefix |
+
+Eigene Transforms: neue Einträge in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }` — kein weiterer Code notwendig.
 
 ### Versteckte Felder: `"visible": false`
 
