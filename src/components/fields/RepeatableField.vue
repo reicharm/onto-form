@@ -92,9 +92,9 @@ label.required::after { content: ' *'; color: #c0392b; }
 /* Hide label and hint rendered by the inner field component — RepeatableField shows them once */
 .item-row :deep(.field > label) { display: none; }
 .item-row :deep(.field > .hint) { display: none; }
-/* Full-width for regular inputs and selects, but NOT the protocol-select inside URIField */
+/* Full-width for regular inputs and selects, but NOT the protocol-select (URIField) or lang-select (LangStringItem) */
 .item-row :deep(input) { width: 100%; }
-.item-row :deep(select:not(.protocol-select)) { width: 100%; }
+.item-row :deep(select:not(.protocol-select):not(.lang-select)) { width: 100%; }
 .btn-remove {
   background: #c0392b;
   color: white;

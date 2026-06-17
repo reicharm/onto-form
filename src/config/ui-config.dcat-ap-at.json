@@ -117,6 +117,7 @@
     },
     "dct:language": {
       "type": "select",
+      "multiple": false,
       "label": { "de": "Sprache", "en": "Language" },
       "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
       "optionsSourceFallback": "/vocabularies/language.json",
