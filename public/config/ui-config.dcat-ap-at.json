@@ -54,11 +54,14 @@
       "visible": true
     },
     "dct:identifier": {
-      "type": "uri",
+      "type": "text",
       "required": true,
       "validate": "isURI",
-      "label": { "de": "Identifikator", "en": "Identifier" },
-      "placeholder": { "de": "z.B. https://data.gv.at/dataset/123", "en": "e.g. https://data.gv.at/dataset/123" },
+      "transform": "uriSuffix",
+      "transformOptions": { "prefix": "https://data.gv.at/dataset/" },
+      "label": { "de": "Datensatz-ID", "en": "Dataset ID" },
+      "placeholder": { "de": "z.B. mein-datensatz-2024", "en": "e.g. my-dataset-2024" },
+      "hint": { "de": "Nur den letzten Teil der URI eingeben – die vollständige URI wird automatisch gebildet.", "en": "Enter only the last part of the URI – the full URI is built automatically." },
       "errorMessages": {
         "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" }
       },
