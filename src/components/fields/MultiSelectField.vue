@@ -46,13 +46,13 @@ function toggle(value) {
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: 0.85rem; font-weight: 500; color: #555; }
-label.required::after { content: ' *'; color: #c0392b; }
+label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
+label.required::after { content: ' *'; color: var(--color-error); }
 
 .multiselect-box {
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
   max-height: 12rem;
   overflow-y: auto;
   padding: 0.25rem 0;
@@ -66,18 +66,18 @@ label.required::after { content: ' *'; color: #c0392b; }
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 400;
-  color: #333;
+  color: var(--color-text);
   transition: background 0.1s;
 }
-.option-row:hover { background: #f0f4f8; }
+.option-row:hover { background: var(--color-surface-alt); }
 .option-row input[type="checkbox"] {
-  accent-color: #2c5f8a;
+  accent-color: var(--color-primary);
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
 }
 
-.empty { padding: 0.5rem 0.75rem; font-size: 0.85rem; color: #aaa; }
-.hint { font-size: 0.78rem; color: #888; }
+.empty { padding: 0.5rem 0.75rem; font-size: var(--font-size-label); color: #aaa; }
+.hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

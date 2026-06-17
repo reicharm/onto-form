@@ -110,6 +110,9 @@ Vordefinierte Validatoren:
 |---|---|
 | `isURI` | Gültige URI |
 | `isEmail` | Gültige E-Mail-Adresse |
+| `isDate` | Datum im Format YYYY-MM-DD |
+| `isURIList` | Array von URIs (für mehrwertige URI-Felder) |
+| `isWKTorGeoJSON` | WKT- oder GeoJSON-Geometrie |
 
 ### Berechnungen: `compute`
 
@@ -123,6 +126,57 @@ Vordefinierte Compute-Funktionen:
 | `setTodayIfTitleAndEmpty` | Setzt heute's Datum nur wenn das Feld noch leer ist. Importierte/manuelle Werte bleiben erhalten. |
 | `setToday` | Setzt immer das heutige Datum. |
 | `setLanguageFromUI` | Setzt Sprach-URI aus der aktuellen UI-Sprache, wenn Feld leer. |
+
+### Transforms: `transform` / `transformOptions`
+
+Ein Transform trennt den **angezeigten Wert** vom **gespeicherten Wert**. Das Feld-Komponent sieht nur den Anzeigewert; `encode()` wandelt ihn vor dem Speichern automatisch um.
+
+```json
+"dct:identifier": {
+  "type": "text",
+  "transform": "uriSuffix",
+  "transformOptions": { "prefix": "https://data.gv.at/dataset/" },
+  "label": { "de": "Datensatz-ID", "en": "Dataset ID" },
+  "placeholder": { "de": "mein-datensatz-2024", "en": "my-dataset-2024" }
+}
+```
+
+Der Nutzer tippt nur `mein-datensatz-2024`; gespeichert und exportiert wird `https://data.gv.at/dataset/mein-datensatz-2024`. Unter dem Feld erscheint eine Vorschau des gespeicherten Werts.
+
+Vordefinierte Transforms (`src/config/fieldTransforms.js`):
+
+| Name | Anzeige | Gespeichert |
+|---|---|---|
+| `uriSuffix` | Letztes Pfadsegment der URI | Vollständige URI (Prefix aus `transformOptions.prefix` oder aus bestehendem Wert) |
+| `stripPrefix` | Wert ohne konfigurierten Prefix | Wert mit Prefix |
+
+Eigene Transforms: neue Einträge in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }` — kein weiterer Code notwendig.
+
+### Bedingte Sichtbarkeit: `visibleIf`
+
+Referenziert eine benannte Funktion aus `fieldVisibility.js`. Das Feld wird nur angezeigt, wenn die Funktion `true` zurückgibt — sie wird bei jedem Render reaktiv gegen den aktuellen `formData`-Stand ausgewertet.
+
+```json
+"dcatap:hvdCategory": {
+  "visibleIf": "ifHVDLegislation",
+  "type": "select",
+  "label": { "de": "HVD-Kategorie", "en": "HVD Category" }
+}
+```
+
+Vordefinierte Visibility-Funktionen:
+
+| Name | Bedingung |
+|---|---|
+| `ifHVDLegislation` | Wahr, wenn `dcatap:applicableLegislation` die URI der EU-HVD-Durchführungsverordnung (`2023/138`) enthält |
+
+Neue Funktion hinzufügen: Eintrag in `src/config/fieldVisibility.js` unter `fieldVisibilityFns`:
+
+```js
+meineBedingung: (formData) => formData['dct:type'] === 'http://...'
+```
+
+Im Unterschied zu `"visible": false` (statisch, konfigurationszeit) ist `visibleIf` dynamisch und reagiert auf Nutzereingaben. Felder mit `visibleIf` werden bei nicht erfüllter Bedingung vollständig ausgeblendet — sie nehmen nicht an Validierung, aber weiterhin am Export teil, solange `formData` einen Wert enthält.
 
 ### Versteckte Felder: `"visible": false`
 

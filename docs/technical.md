@@ -30,9 +30,14 @@ Ergänzende Module:
 ```
 src/config/
 ├── fieldComputes.js            Benannte Compute-Funktionen für automatische Feldwerte
-└── fieldValidators.js          Benannte Validatoren (isURI, isEmail, …)
+├── fieldValidators.js          Benannte Validatoren (isURI, isEmail, …)
+├── fieldTransforms.js          Benannte Transforms (display ↔ encode, z.B. uriSuffix)
+└── fieldVisibility.js          Benannte Visibility-Funktionen (dynamische Feldsichtbarkeit)
 src/composables/
 └── useValidation.js            Formular- und Einzelfeld-Validierung
+src/styles/
+├── theme.css                   CSS Design-Tokens (Farben, Radien, Schriftgrößen)
+└── base.css                    Globaler Reset und Body-Basis
 public/
 ├── config/
 │   ├── ui-config.dcat-ap-at.json
@@ -151,6 +156,71 @@ Ungültige Werte (scheitern am Validator) werden **stillschweigend verworfen**. 
 ### RDFExporter.js
 
 Wandelt `formData` in JSON-LD und Turtle um. Unterstützt alle Feldtypen; nutzt konfigurierte RDF-Prädikate aus der SHACL-Shape.
+
+---
+
+## Field Transforms
+
+`src/config/fieldTransforms.js` trennt Anzeigewert und gespeicherten Wert:
+
+```
+Gespeichert: "https://data.gv.at/dataset/my-id"
+                       ▼ display()
+Angezeigt:   "my-id"
+                       ▼ encode()
+Gespeichert: "https://data.gv.at/dataset/my-id"
+```
+
+`MetadataForm.vue` wendet `display()` an bevor der Wert an das Feld-Komponent übergeben wird, und `encode()` bevor der neue Wert in `formData` geschrieben wird. Die Feld-Komponenten selbst wissen nichts von Transforms.
+
+Neue Transforms: Eintrag in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }`, Referenz per Name in der UI-Config.
+
+---
+
+## Bedingte Feldsichtbarkeit
+
+`src/config/fieldVisibility.js` exportiert:
+
+- `fieldVisibilityFns`: benannte Funktionen `(formData) => boolean`
+- `evaluateVisibleIf(fnName, formData)`: wertet eine Funktion aus; gibt `true` zurück bei unbekanntem Namen
+
+`MetadataForm.vue` ruft `evaluateVisibleIf` in `groupFields()` auf — bei jedem Render reaktiv. Felder mit nicht erfüllter Bedingung werden aus dem DOM entfernt und überspringen die Validierung.
+
+```js
+// fieldVisibility.js
+ifHVDLegislation: (formData) =>
+  formData?.['dcatap:applicableLegislation'] === 'http://data.europa.eu/eli/reg_impl/2023/138/oj'
+```
+
+```json
+// ui-config
+"dcatap:hvdCategory": { "visibleIf": "ifHVDLegislation", ... }
+```
+
+Neue Funktion: Eintrag in `fieldVisibilityFns` — kein weiterer Code notwendig.
+
+---
+
+## Theming
+
+`src/styles/theme.css` definiert alle Design-Token als CSS Custom Properties auf `:root`:
+
+```css
+:root {
+  --color-primary:   #2878a8;   /* data.gv.at Blau */
+  --color-error:     #c0392b;
+  --color-border:    #dde4ea;
+  --radius-sm:       4px;
+  --font-size-base:  0.95rem;
+  /* … */
+}
+```
+
+Alle Komponenten verwenden ausschließlich diese Variablen — keine hardcodierten Farben oder Größen. Um das gesamte Theme anzupassen, genügt es, Werte in `theme.css` zu ändern.
+
+`src/styles/base.css` enthält globalen Box-Sizing-Reset und Body-Basis.
+
+---
 
 ### SHACLParser.js
 

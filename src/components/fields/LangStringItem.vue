@@ -40,19 +40,19 @@ function updateValue(v) {
 .lang-select {
   width: 3.5rem;
   padding: 0.4rem 0.3rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: 0.8rem;
-  background: white;
+  background: var(--color-surface);
   cursor: pointer;
 }
-.lang-select:focus { outline: none; border-color: #2c5f8a; }
+.lang-select:focus { outline: none; border-color: var(--color-primary); }
 input {
   flex: 1;
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
 }
-input:focus { outline: none; border-color: #2c5f8a; box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
+input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 </style>

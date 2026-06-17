@@ -101,8 +101,8 @@ async function doImport() {
 }
 
 .import-panel {
-  background: white;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   width: 90%;
   max-width: 700px;
   max-height: 85vh;
@@ -118,20 +118,20 @@ async function doImport() {
   padding: 1rem 1.5rem;
   border-bottom: 1px solid #eee;
 }
-.import-header h2 { font-size: 1.1rem; color: #2c5f8a; }
+.import-header h2 { font-size: var(--font-size-heading); color: var(--color-primary); }
 
 .close-btn {
   background: none; border: none; font-size: 1.2rem;
-  cursor: pointer; color: #888; line-height: 1;
+  cursor: pointer; color: var(--color-text-subtle); line-height: 1;
 }
 
 .import-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid #eee; }
 .import-tabs button {
   background: none; border: none; border-bottom: 3px solid transparent;
-  padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: #666;
+  padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: var(--color-text-muted);
   margin-bottom: -1px;
 }
-.import-tabs button.active { border-bottom-color: #2c5f8a; color: #2c5f8a; font-weight: 600; }
+.import-tabs button.active { border-bottom-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
 
 .import-body {
   flex: 1;
@@ -151,16 +151,16 @@ async function doImport() {
 .btn-file {
   display: inline-block;
   padding: 0.4rem 0.9rem;
-  background: #e8f0f7;
-  color: #2c5f8a;
-  border-radius: 4px;
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
   font-weight: 500;
   white-space: nowrap;
 }
 .btn-file input { display: none; }
-.filename { font-size: 0.82rem; color: #555; }
+.filename { font-size: 0.82rem; color: var(--color-text-muted); }
 
 .import-textarea {
   flex: 1;
@@ -170,20 +170,20 @@ async function doImport() {
   font-size: 0.82rem;
   line-height: 1.5;
   padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   background: #f8f9fa;
-  color: #333;
+  color: var(--color-text);
   outline: none;
 }
-.import-textarea:focus { border-color: #2c5f8a; }
+.import-textarea:focus { border-color: var(--color-primary); }
 
 .import-error {
   font-size: 0.82rem;
-  color: #c0392b;
+  color: var(--color-error);
   background: #fdf0f0;
   border: 1px solid #f5c6cb;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
 }
 
@@ -197,12 +197,12 @@ async function doImport() {
 
 .btn-cancel, .btn-import {
   padding: 0.5rem 1.1rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   font-size: 0.9rem;
   border: none;
 }
-.btn-cancel { background: #e8f0f7; color: #2c5f8a; }
-.btn-import { background: #2c5f8a; color: white; }
+.btn-cancel { background: var(--color-primary-bg); color: var(--color-primary); }
+.btn-import { background: var(--color-primary); color: white; }
 .btn-import:disabled { background: #a0b4c5; cursor: not-allowed; opacity: 0.7; }
 </style>

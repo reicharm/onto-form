@@ -80,8 +80,8 @@ function removeItem(index) {
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: 0.85rem; font-weight: 500; color: #555; }
-label.required::after { content: ' *'; color: #c0392b; }
+label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
+label.required::after { content: ' *'; color: var(--color-error); }
 .items { display: flex; flex-direction: column; gap: 0.4rem; }
 .item-row {
   display: flex;
@@ -96,10 +96,10 @@ label.required::after { content: ' *'; color: #c0392b; }
 .item-row :deep(input) { width: 100%; }
 .item-row :deep(select:not(.protocol-select):not(.lang-select)) { width: 100%; }
 .btn-remove {
-  background: #c0392b;
+  background: var(--color-error);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   width: 1.6rem;
   height: 1.6rem;
   font-size: 1.1rem;
@@ -110,18 +110,18 @@ label.required::after { content: ' *'; color: #c0392b; }
   align-items: center;
   justify-content: center;
 }
-.btn-remove:hover { background: #a93226; }
+.btn-remove:hover { background: var(--color-error-dark); }
 .btn-add {
-  background: #2c5f8a;
+  background: var(--color-primary);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 0.35rem 0.8rem;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
   cursor: pointer;
   align-self: flex-start;
   margin-top: 0.2rem;
 }
-.btn-add:hover { background: #1e4468; }
-.hint { font-size: 0.78rem; color: #888; }
+.btn-add:hover { background: var(--color-primary-dark); }
+.hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

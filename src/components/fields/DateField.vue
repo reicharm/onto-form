@@ -25,14 +25,14 @@ const label = computed(() => props.field.label?.[props.lang] || props.field.labe
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: 0.85rem; font-weight: 500; color: #555; }
-label.required::after { content: ' *'; color: #c0392b; }
+label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
+label.required::after { content: ' *'; color: var(--color-error); }
 input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
 }
-input:focus { outline: none; border-color: #2c5f8a; }
-.hint { font-size: 0.78rem; color: #888; }
+input:focus { outline: none; border-color: var(--color-primary); }
+.hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

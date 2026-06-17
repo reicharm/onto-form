@@ -72,8 +72,8 @@ function download() {
 }
 
 .export-panel {
-  background: white;
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
   width: 90%;
   max-width: 800px;
   max-height: 85vh;
@@ -90,26 +90,26 @@ function download() {
   border-bottom: 1px solid #eee;
 }
 
-.export-header h2 { font-size: 1.1rem; color: #2c5f8a; }
+.export-header h2 { font-size: var(--font-size-heading); color: var(--color-primary); }
 
 .close-btn {
   background: none; border: none; font-size: 1.2rem;
-  cursor: pointer; color: #888; line-height: 1;
+  cursor: pointer; color: var(--color-text-subtle); line-height: 1;
 }
 
 .export-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid #eee; }
 .export-tabs button {
   background: none; border: none; border-bottom: 3px solid transparent;
-  padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: #666;
+  padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: var(--color-text-muted);
   margin-bottom: -1px;
 }
-.export-tabs button.active { border-bottom-color: #2c5f8a; color: #2c5f8a; font-weight: 600; }
+.export-tabs button.active { border-bottom-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
 
 .export-content { flex: 1; overflow: auto; padding: 1rem 1.5rem; }
 pre {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 1rem;
   font-size: 0.82rem;
   line-height: 1.5;
@@ -124,8 +124,8 @@ pre {
 }
 
 .btn-copy, .btn-download {
-  padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; border: none;
+  padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; border: none;
 }
-.btn-copy { background: #e8f0f7; color: #2c5f8a; }
-.btn-download { background: #2c5f8a; color: white; }
+.btn-copy { background: var(--color-primary-bg); color: var(--color-primary); }
+.btn-download { background: var(--color-primary); color: white; }
 </style>
