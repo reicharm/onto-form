@@ -5,55 +5,119 @@
   "groups": [
     {
       "id": "basic",
-      "label": { "de": "Grundinformationen", "en": "Basic Information" },
-      "fields": ["dct:title", "dct:description", "dct:identifier", "dct:type"]
+      "label": {
+        "de": "Grundinformationen",
+        "en": "Basic Information"
+      },
+      "fields": [
+        "dct:title",
+        "dct:description",
+        "dct:identifier",
+        "dct:type"
+      ]
     },
     {
       "id": "classification",
-      "label": { "de": "Klassifizierung", "en": "Classification" },
-      "fields": ["dcat:theme", "dcat:keyword", "dct:language", "dct:accessRights"]
+      "label": {
+        "de": "Klassifizierung",
+        "en": "Classification"
+      },
+      "fields": [
+        "dcat:theme",
+        "dcat:keyword",
+        "dct:language",
+        "dct:accessRights"
+      ]
     },
     {
       "id": "dates",
-      "label": { "de": "Zeitangaben", "en": "Dates & Frequency" },
-      "fields": ["dct:issued", "dct:modified", "dct:accrualPeriodicity"]
+      "label": {
+        "de": "Zeitangaben",
+        "en": "Dates & Frequency"
+      },
+      "fields": [
+        "dct:issued",
+        "dct:modified",
+        "dct:accrualPeriodicity"
+      ]
     },
     {
       "id": "coverage",
-      "label": { "de": "Abdeckung", "en": "Coverage" },
-      "fields": ["dct:spatial", "dct:temporal"]
+      "label": {
+        "de": "Abdeckung",
+        "en": "Coverage"
+      },
+      "fields": [
+        "dct:spatial",
+        "dct:temporal"
+      ]
     },
     {
       "id": "contact",
-      "label": { "de": "Kontakt & Herausgeber", "en": "Contact & Publisher" },
-      "fields": ["dct:publisher", "dcat:contactPoint"]
+      "label": {
+        "de": "Kontakt & Herausgeber",
+        "en": "Contact & Publisher"
+      },
+      "fields": [
+        "dct:publisher",
+        "dcat:contactPoint"
+      ]
     },
     {
       "id": "access",
-      "label": { "de": "Zugang & Rechtliches", "en": "Access & Legal" },
-      "fields": ["dcatap:availability", "dcat:landingPage", "dcatap:applicableLegislation", "dcatap:hvdCategory"]
+      "label": {
+        "de": "Zugang & Rechtliches",
+        "en": "Access & Legal"
+      },
+      "fields": [
+        "dcatap:availability",
+        "dcat:landingPage",
+        "dcatap:applicableLegislation",
+        "dcatap:hvdCategory"
+      ]
     }
   ],
   "fields": {
     "dct:title": {
       "type": "langstring",
       "required": true,
-      "label": { "de": "Titel", "en": "Title" },
-      "placeholder": { "de": "Titel des Datensatzes", "en": "Dataset title" },
-      "errorMessages": {
-        "required": { "de": "Titel ist erforderlich", "en": "Title is required" }
+      "label": {
+        "de": "Titel",
+        "en": "Title"
       },
-      "defaultValue": { "de": "", "en": "" },
+      "placeholder": {
+        "de": "Titel des Datensatzes",
+        "en": "Dataset title"
+      },
+      "errorMessages": {
+        "required": {
+          "de": "Titel ist erforderlich",
+          "en": "Title is required"
+        }
+      },
+      "defaultValue": {
+        "de": "",
+        "en": ""
+      },
       "order": 1,
       "visible": true
     },
     "dct:description": {
       "type": "textarea",
       "required": true,
-      "label": { "de": "Beschreibung", "en": "Description" },
-      "placeholder": { "de": "Beschreibung des Datensatzes, seines Inhalts und Verwendungszwecks …", "en": "Description of the dataset, its content and intended use …" },
+      "label": {
+        "de": "Beschreibung",
+        "en": "Description"
+      },
+      "placeholder": {
+        "de": "Beschreibung des Datensatzes, seines Inhalts und Verwendungszwecks …",
+        "en": "Description of the dataset, its content and intended use …"
+      },
       "errorMessages": {
-        "required": { "de": "Beschreibung ist erforderlich", "en": "Description is required" }
+        "required": {
+          "de": "Beschreibung ist erforderlich",
+          "en": "Description is required"
+        }
       },
       "order": 2,
       "visible": true
@@ -63,29 +127,58 @@
       "required": true,
       "validate": "isURI",
       "transform": "uriSuffix",
-      "transformOptions": { "prefix": "https://data.gv.at/dataset/" },
-      "label": { "de": "Datensatz-ID", "en": "Dataset ID" },
-      "hint": { "de": "Eindeutige URI des Datensatzes", "en": "Unique URI of the dataset" },
-      "placeholder": { "de": "z.B. mein-datensatz-2024", "en": "e.g. my-dataset-2024" },
+      "transformOptions": {
+        "prefix": "https://data.gv.at/dataset/"
+      },
+      "label": {
+        "de": "Datensatz-ID",
+        "en": "Dataset ID"
+      },
+      "hint": {
+        "de": "Eindeutige URI des Datensatzes",
+        "en": "Unique URI of the dataset"
+      },
+      "placeholder": {
+        "de": "z.B. mein-datensatz-2024",
+        "en": "e.g. my-dataset-2024"
+      },
       "errorMessages": {
-        "required": { "de": "Identifikator ist erforderlich", "en": "Identifier is required" },
-        "isURI": { "de": "Kein gültiger URI", "en": "Not a valid URI" }
+        "required": {
+          "de": "Identifikator ist erforderlich",
+          "en": "Identifier is required"
+        },
+        "isURI": {
+          "de": "Kein gültiger URI",
+          "en": "Not a valid URI"
+        }
       },
       "order": 3,
       "visible": true
     },
     "dct:type": {
       "type": "select",
-      "label": { "de": "Datensatztyp", "en": "Dataset Type" },
-      "hint": { "de": "Art des Datensatzes", "en": "Type of the dataset" },
+      "label": {
+        "de": "Datensatztyp",
+        "en": "Dataset Type"
+      },
+      "hint": {
+        "de": "Art des Datensatzes",
+        "en": "Type of the dataset"
+      },
       "optionsSource": "/vocabularies/dataset-type.json",
       "order": 4,
       "visible": true
     },
     "dcat:theme": {
       "type": "multiselect",
-      "label": { "de": "Thema", "en": "Theme" },
-      "hint": { "de": "Thematische Kategorie(n) des Datensatzes", "en": "Thematic category or categories of the dataset" },
+      "label": {
+        "de": "Thema",
+        "en": "Theme"
+      },
+      "hint": {
+        "de": "Thematische Kategorie(n) des Datensatzes",
+        "en": "Thematic category or categories of the dataset"
+      },
       "optionsSource": "/vocabularies/data-theme.json",
       "order": 5,
       "visible": true
@@ -93,16 +186,28 @@
     "dcat:keyword": {
       "type": "langstring",
       "multiple": true,
-      "label": { "de": "Schlagwörter", "en": "Keywords" },
-      "placeholder": { "de": "Schlagwort eingeben", "en": "Enter keyword" },
+      "label": {
+        "de": "Schlagwörter",
+        "en": "Keywords"
+      },
+      "placeholder": {
+        "de": "Schlagwort eingeben",
+        "en": "Enter keyword"
+      },
       "order": 6,
       "visible": true
     },
     "dct:language": {
       "type": "select",
       "multiple": false,
-      "label": { "de": "Sprache", "en": "Language" },
-      "hint": { "de": "Sprache des Datensatzes", "en": "Language of the dataset content" },
+      "label": {
+        "de": "Sprache",
+        "en": "Language"
+      },
+      "hint": {
+        "de": "Sprache des Datensatzes",
+        "en": "Language of the dataset content"
+      },
       "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
       "optionsSourceFallback": "/vocabularies/language.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU",
@@ -111,8 +216,14 @@
     },
     "dct:accessRights": {
       "type": "select",
-      "label": { "de": "Zugangsbeschränkung", "en": "Access Rights" },
-      "hint": { "de": "Gibt an, ob der Datensatz öffentlich zugänglich ist", "en": "Indicates whether the dataset is publicly accessible" },
+      "label": {
+        "de": "Zugangsbeschränkung",
+        "en": "Access Rights"
+      },
+      "hint": {
+        "de": "Gibt an, ob der Datensatz öffentlich zugänglich ist",
+        "en": "Indicates whether the dataset is publicly accessible"
+      },
       "optionsSource": "/vocabularies/access-right.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
       "order": 8,
@@ -120,23 +231,41 @@
     },
     "dct:issued": {
       "type": "date",
-      "label": { "de": "Veröffentlichungsdatum", "en": "Publication Date" },
-      "hint": { "de": "Datum der Erstveröffentlichung", "en": "Date of first publication" },
+      "label": {
+        "de": "Veröffentlichungsdatum",
+        "en": "Publication Date"
+      },
+      "hint": {
+        "de": "Datum der Erstveröffentlichung",
+        "en": "Date of first publication"
+      },
       "order": 9,
       "visible": true
     },
     "dct:modified": {
       "type": "date",
       "compute": "setTodayIfTitleAndEmpty",
-      "label": { "de": "Zuletzt geändert", "en": "Last Modified" },
-      "hint": { "de": "Datum der letzten Änderung", "en": "Date of last modification" },
+      "label": {
+        "de": "Zuletzt geändert",
+        "en": "Last Modified"
+      },
+      "hint": {
+        "de": "Datum der letzten Änderung",
+        "en": "Date of last modification"
+      },
       "order": 10,
       "visible": true
     },
     "dct:accrualPeriodicity": {
       "type": "select",
-      "label": { "de": "Aktualisierungsfrequenz", "en": "Update Frequency" },
-      "hint": { "de": "Wie oft wird der Datensatz aktualisiert?", "en": "How often is the dataset updated?" },
+      "label": {
+        "de": "Aktualisierungsfrequenz",
+        "en": "Update Frequency"
+      },
+      "hint": {
+        "de": "Wie oft wird der Datensatz aktualisiert?",
+        "en": "How often is the dataset updated?"
+      },
       "optionsSource": "/vocabularies/frequency.json",
       "order": 11,
       "visible": true
@@ -144,25 +273,49 @@
     "dct:spatial": {
       "type": "uri",
       "validate": "isURI",
-      "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
-      "hint": { "de": "URI einer geografischen Region (z.B. aus GeoNames oder EU-Vokabular)", "en": "URI of a geographic region (e.g. from GeoNames or EU vocabulary)" },
-      "placeholder": { "de": "https://www.geonames.org/2782113", "en": "https://www.geonames.org/2782113" },
+      "label": {
+        "de": "Räumliche Abdeckung",
+        "en": "Spatial Coverage"
+      },
+      "hint": {
+        "de": "URI einer geografischen Region (z.B. aus GeoNames oder EU-Vokabular)",
+        "en": "URI of a geographic region (e.g. from GeoNames or EU vocabulary)"
+      },
+      "placeholder": {
+        "de": "https://www.geonames.org/2782113",
+        "en": "https://www.geonames.org/2782113"
+      },
       "order": 12,
       "visible": true
     },
     "dct:temporal": {
       "type": "text",
-      "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
-      "hint": { "de": "Zeitraum, den der Datensatz abdeckt (z.B. 2020/2024)", "en": "Time period covered by the dataset (e.g. 2020/2024)" },
-      "placeholder": { "de": "z.B. 2020/2024", "en": "e.g. 2020/2024" },
+      "label": {
+        "de": "Zeitliche Abdeckung",
+        "en": "Temporal Coverage"
+      },
+      "hint": {
+        "de": "Zeitraum, den der Datensatz abdeckt (z.B. 2020/2024)",
+        "en": "Time period covered by the dataset (e.g. 2020/2024)"
+      },
+      "placeholder": {
+        "de": "z.B. 2020/2024",
+        "en": "e.g. 2020/2024"
+      },
       "order": 13,
       "visible": true
     },
     "dct:publisher": {
       "type": "object",
       "multiple": false,
-      "label": { "de": "Herausgeber", "en": "Publisher" },
-      "hint": { "de": "Organisation oder Person, die den Datensatz veröffentlicht", "en": "Organisation or person publishing the dataset" },
+      "label": {
+        "de": "Herausgeber",
+        "en": "Publisher"
+      },
+      "hint": {
+        "de": "Organisation oder Person, die den Datensatz veröffentlicht",
+        "en": "Organisation or person publishing the dataset"
+      },
       "order": 14,
       "visible": true,
       "subFields": [
@@ -170,34 +323,91 @@
           "id": "foaf:name",
           "type": "text",
           "required": true,
-          "label": { "de": "Name", "en": "Name" },
-          "placeholder": { "de": "z.B. Stadt Wien", "en": "e.g. City of Vienna" }
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          },
+          "placeholder": {
+            "de": "z.B. Stadt Wien",
+            "en": "e.g. City of Vienna"
+          }
         },
         {
           "id": "foaf:homepage",
           "type": "uri",
           "validate": "isURI",
-          "label": { "de": "Webseite", "en": "Homepage" },
-          "placeholder": { "de": "https://…", "en": "https://…" }
+          "label": {
+            "de": "Webseite",
+            "en": "Homepage"
+          },
+          "placeholder": {
+            "de": "https://…",
+            "en": "https://…"
+          }
         },
         {
           "id": "foaf:mbox",
           "type": "text",
           "validate": "isEmail",
-          "label": { "de": "E-Mail", "en": "Email" },
-          "placeholder": { "de": "kontakt@beispiel.at", "en": "contact@example.at" }
+          "label": {
+            "de": "E-Mail",
+            "en": "Email"
+          },
+          "placeholder": {
+            "de": "kontakt@beispiel.at",
+            "en": "contact@example.at"
+          }
         },
         {
           "id": "dct:type",
           "type": "select",
-          "label": { "de": "Typ", "en": "Type" },
+          "label": {
+            "de": "Typ",
+            "en": "Type"
+          },
           "options": [
-            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
-            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
-            { "value": "http://purl.org/adms/publishertype/RegionalAuthority", "label": { "de": "Regionale Behörde", "en": "Regional Authority" } },
-            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
-            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } },
-            { "value": "http://purl.org/adms/publishertype/NonProfitOrganisation", "label": { "de": "Non-Profit-Organisation", "en": "Non-Profit Organisation" } }
+            {
+              "value": "http://purl.org/adms/publishertype/LocalAuthority",
+              "label": {
+                "de": "Lokale Behörde",
+                "en": "Local Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/NationalAuthority",
+              "label": {
+                "de": "Nationale Behörde",
+                "en": "National Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/RegionalAuthority",
+              "label": {
+                "de": "Regionale Behörde",
+                "en": "Regional Authority"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Company",
+              "label": {
+                "de": "Unternehmen",
+                "en": "Company"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/Academia",
+              "label": {
+                "de": "Forschungseinrichtung",
+                "en": "Academia/Scientific organisation"
+              }
+            },
+            {
+              "value": "http://purl.org/adms/publishertype/NonProfitOrganisation",
+              "label": {
+                "de": "Non-Profit-Organisation",
+                "en": "Non-Profit Organisation"
+              }
+            }
           ]
         }
       ]
@@ -205,8 +415,14 @@
     "dcat:contactPoint": {
       "type": "object",
       "multiple": false,
-      "label": { "de": "Kontaktstelle", "en": "Contact Point" },
-      "hint": { "de": "Ansprechperson oder -stelle für Rückfragen zum Datensatz", "en": "Person or team to contact about this dataset" },
+      "label": {
+        "de": "Kontaktstelle",
+        "en": "Contact Point"
+      },
+      "hint": {
+        "de": "Ansprechperson oder -stelle für Rückfragen zum Datensatz",
+        "en": "Person or team to contact about this dataset"
+      },
       "order": 15,
       "visible": true,
       "subFields": [
@@ -214,35 +430,65 @@
           "id": "vcard:fn",
           "type": "text",
           "required": true,
-          "label": { "de": "Name", "en": "Name" },
-          "placeholder": { "de": "Vor- und Nachname oder Teambezeichnung", "en": "Full name or team name" }
+          "label": {
+            "de": "Name",
+            "en": "Name"
+          },
+          "placeholder": {
+            "de": "Vor- und Nachname oder Teambezeichnung",
+            "en": "Full name or team name"
+          }
         },
         {
           "id": "vcard:hasEmail",
           "type": "text",
           "validate": "isEmail",
-          "label": { "de": "E-Mail", "en": "Email" },
-          "placeholder": { "de": "opendata@beispiel.at", "en": "opendata@example.at" }
+          "label": {
+            "de": "E-Mail",
+            "en": "Email"
+          },
+          "placeholder": {
+            "de": "opendata@beispiel.at",
+            "en": "opendata@example.at"
+          }
         },
         {
           "id": "vcard:hasTelephone",
           "type": "text",
-          "label": { "de": "Telefon", "en": "Telephone" },
-          "placeholder": { "de": "+43 1 …", "en": "+43 1 …" }
+          "label": {
+            "de": "Telefon",
+            "en": "Telephone"
+          },
+          "placeholder": {
+            "de": "+43 1 …",
+            "en": "+43 1 …"
+          }
         },
         {
           "id": "vcard:hasURL",
           "type": "uri",
           "validate": "isURI",
-          "label": { "de": "Webseite", "en": "Website" },
-          "placeholder": { "de": "https://…", "en": "https://…" }
+          "label": {
+            "de": "Webseite",
+            "en": "Website"
+          },
+          "placeholder": {
+            "de": "https://…",
+            "en": "https://…"
+          }
         }
       ]
     },
     "dcatap:availability": {
       "type": "select",
-      "label": { "de": "Verfügbarkeit", "en": "Availability" },
-      "hint": { "de": "Wie lange wird dieser Datensatz verfügbar bleiben?", "en": "How long will this dataset remain available?" },
+      "label": {
+        "de": "Verfügbarkeit",
+        "en": "Availability"
+      },
+      "hint": {
+        "de": "Wie lange wird dieser Datensatz verfügbar bleiben?",
+        "en": "How long will this dataset remain available?"
+      },
       "optionsSource": "/vocabularies/availability.json",
       "defaultValue": "http://data.europa.eu/r5r/availability/stable",
       "order": 16,
@@ -252,36 +498,114 @@
       "type": "uri",
       "validate": "isURI",
       "multiple": false,
-      "label": { "de": "Webseite zum Datensatz", "en": "Landing Page" },
-      "hint": { "de": "URL der Datensatz-Seite im Webauftritt des Herausgebers", "en": "URL of the dataset page on the publisher's website" },
-      "placeholder": { "de": "https://…", "en": "https://…" },
+      "label": {
+        "de": "Webseite zum Datensatz",
+        "en": "Landing Page"
+      },
+      "hint": {
+        "de": "URL der Datensatz-Seite im Webauftritt des Herausgebers",
+        "en": "URL of the dataset page on the publisher's website"
+      },
+      "placeholder": {
+        "de": "https://…",
+        "en": "https://…"
+      },
       "order": 17,
       "visible": true
     },
     "dcatap:applicableLegislation": {
-      "type": "uri",
-      "validate": "isURI",
-      "multiple": false,
-      "label": { "de": "Rechtsgrundlage", "en": "Applicable Legislation" },
-      "hint": { "de": "URI der Rechtsvorschrift, die die Veröffentlichung vorschreibt", "en": "URI of the legislation mandating publication" },
-      "placeholder": { "de": "https://eur-lex.europa.eu/…", "en": "https://eur-lex.europa.eu/…" },
+      "type": "select",
+      "label": {
+        "de": "Rechtsgrundlage",
+        "en": "Applicable Legislation"
+      },
+      "hint": {
+        "de": "Rechtsvorschrift, die die Veröffentlichung vorschreibt (HVD-Verordnung aktiviert die HVD-Kategorie)",
+        "en": "Legislation mandating publication (selecting the HVD regulation unlocks the HVD category field)"
+      },
+      "options": [
+        {
+          "value": "http://data.europa.eu/eli/reg_impl/2023/138/oj",
+          "label": {
+            "de": "EU-Durchführungsverordnung zu HVD (2023/138)",
+            "en": "EU HVD Implementing Regulation (2023/138)"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/eli/dir/2019/1024/oj",
+          "label": {
+            "de": "EU Open-Data-Richtlinie (2019/1024)",
+            "en": "EU Open Data Directive (2019/1024)"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/eli/dir/2007/2/oj",
+          "label": {
+            "de": "INSPIRE-Richtlinie (2007/2)",
+            "en": "INSPIRE Directive (2007/2)"
+          }
+        }
+      ],
       "order": 18,
       "visible": true
     },
     "dcatap:hvdCategory": {
       "type": "select",
-      "label": { "de": "HVD-Kategorie", "en": "HVD Category" },
-      "hint": { "de": "Kategorie als High-Value Dataset (HVD) gemäß EU-Durchführungsverordnung", "en": "High-value dataset category under the EU Implementing Regulation" },
+      "label": {
+        "de": "HVD-Kategorie",
+        "en": "HVD Category"
+      },
+      "hint": {
+        "de": "Kategorie als High-Value Dataset (HVD) gemäß EU-Durchführungsverordnung",
+        "en": "High-value dataset category under the EU Implementing Regulation"
+      },
       "options": [
-        { "value": "http://data.europa.eu/bna/c_164e0bf5", "label": { "de": "Georaum", "en": "Geospatial" } },
-        { "value": "http://data.europa.eu/bna/c_a9135398", "label": { "de": "Erdbeobachtung und Umwelt", "en": "Earth observation and environment" } },
-        { "value": "http://data.europa.eu/bna/c_dd313021", "label": { "de": "Meteorologie", "en": "Meteorological" } },
-        { "value": "http://data.europa.eu/bna/c_b6d8765e", "label": { "de": "Statistik", "en": "Statistics" } },
-        { "value": "http://data.europa.eu/bna/c_7afce8d0", "label": { "de": "Unternehmen und Eigentümerschaft", "en": "Companies and company ownership" } },
-        { "value": "http://data.europa.eu/bna/c_ac64a52d", "label": { "de": "Mobilität", "en": "Mobility" } }
+        {
+          "value": "http://data.europa.eu/bna/c_164e0bf5",
+          "label": {
+            "de": "Georaum",
+            "en": "Geospatial"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/bna/c_a9135398",
+          "label": {
+            "de": "Erdbeobachtung und Umwelt",
+            "en": "Earth observation and environment"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/bna/c_dd313021",
+          "label": {
+            "de": "Meteorologie",
+            "en": "Meteorological"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/bna/c_b6d8765e",
+          "label": {
+            "de": "Statistik",
+            "en": "Statistics"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/bna/c_7afce8d0",
+          "label": {
+            "de": "Unternehmen und Eigentümerschaft",
+            "en": "Companies and company ownership"
+          }
+        },
+        {
+          "value": "http://data.europa.eu/bna/c_ac64a52d",
+          "label": {
+            "de": "Mobilität",
+            "en": "Mobility"
+          }
+        }
       ],
       "order": 19,
-      "visible": true
+      "visible": true,
+      "visibleIf": "ifHVDLegislation"
     }
   }
 }

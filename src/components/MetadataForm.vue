@@ -190,6 +190,7 @@ import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
 import { validateForm } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
+import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 
 const props = defineProps({
   config: Object,
@@ -225,7 +226,7 @@ const visibleGroups = computed(() => {
 function groupFields(group) {
   return (group.fields || [])
     .map(id => props.config.fields[id])
-    .filter(f => f && f.visible !== false)
+    .filter(f => f && f.visible !== false && evaluateVisibleIf(f.visibleIf, props.modelValue))
     .sort((a, b) => (a.order || 0) - (b.order || 0))
 }
 
