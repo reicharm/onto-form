@@ -1,0 +1,40 @@
+# DCAT-AP Metadata Editor
+
+Ein browserbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibungen. Unterstützt DCAT-AP.at, GeoDCAT und DCAT-AP 3.0.
+
+## Features
+
+- **Drei Standards**: DCAT-AP.at, GeoDCAT-AP, DCAT-AP 3.0 – umschaltbar über die Standard-Auswahl
+- **Schritt-Assistent (Wizard)**: geführte Eingabe Schritt für Schritt, mit Fortschrittsanzeige und Per-Schritt-Validierung
+- **Einzel-Seite**: alle Felder auf einer Seite – umschaltbar über den Header-Button „Einzel-Seite / Schritt-Assistent"
+- **Export JSON-LD / Turtle**: valide RDF-Ausgabe auf Basis von SHACL-Shapes
+- **Import JSON-LD / Turtle**: bestehende Metadaten per Datei-Upload oder Text-Einfügen in das Formular laden
+- **Externe Vokabulare**: Select-/Multiselect-Felder laden Optionen aus Web-APIs oder lokalen JSON-Dateien
+- **Vokabular-Fallback**: lokale Fallback-Datei wenn externe Quelle nicht erreichbar (z. B. CORS)
+- **Automatische Berechnungen**: Felder können per `compute`-Funktion automatisch befüllt werden (z. B. Datum)
+- **Versteckte Felder**: Felder mit `"visible": false` nehmen an Berechnungen und Export teil, ohne im Formular zu erscheinen
+- **Mehrsprachige Oberfläche**: Deutsch und Englisch
+- **Validierung**: Pflichtfelder, URI-Format, E-Mail-Format – schrittweise im Wizard oder gesamt auf der Einzel-Seite
+- **SHACL-gestützt**: Feldkonfiguration wird aus SHACL-Shapes und UI-Config zusammengeführt
+
+## Dokumentation
+
+- [Benutzerhandbuch](docs/user-guide.md)
+- [Konfigurationsreferenz](docs/configuration.md)
+- [Technische Dokumentation](docs/technical.md)
+
+## Schnellstart
+
+```bash
+npm install
+npm run dev
+```
+
+Öffne `http://localhost:5173` im Browser.
+
+## Technologie
+
+- Vue 3 (Composition API, `<script setup>`)
+- Vite
+- n3.js (Turtle/RDF-Parsing)
+- Kein Backend – rein clientseitig
