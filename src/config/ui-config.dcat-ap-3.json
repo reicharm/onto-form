@@ -1,6 +1,7 @@
 {
   "standard": "dcat-ap-3",
   "version": "3.0",
+  "wizard": true,
   "groups": [
     {
       "id": "basic",

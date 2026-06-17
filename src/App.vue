@@ -7,6 +7,11 @@
         <button class="btn-import-header" @click="showImport = true">
           {{ lang === 'de' ? 'Importieren' : 'Import' }}
         </button>
+        <button class="btn-mode-toggle" @click="wizardMode = !wizardMode">
+          {{ wizardMode
+            ? (lang === 'de' ? 'Einzel-Seite' : 'Single page')
+            : (lang === 'de' ? 'Schritt-Assistent' : 'Wizard') }}
+        </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
           <button :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
@@ -19,6 +24,7 @@
         v-if="formConfig"
         :config="formConfig"
         :lang="lang"
+        :wizard="wizardMode"
         v-model="formData"
         @export="showExport = true"
       />
@@ -64,6 +70,7 @@ const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
 const showImport = ref(false)
+const wizardMode = ref(true)
 
 function buildDefaultFormData(config) {
   const data = {}
@@ -98,6 +105,7 @@ async function loadFormConfig(standard) {
   const resolver = new FormConfigResolver()
   const config = await resolver.resolve(standard)
   formConfig.value = config
+  wizardMode.value = config?.wizard !== false
   formData.value = buildDefaultFormData(config)
 }
 
@@ -152,6 +160,17 @@ body {
   font-size: 0.85rem;
 }
 .btn-import-header:hover { background: rgba(255,255,255,0.25); }
+
+.btn-mode-toggle {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 0.3rem 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.btn-mode-toggle:hover { background: rgba(255,255,255,0.25); }
 
 .lang-toggle { display: flex; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; overflow: hidden; }
 .lang-toggle button {
