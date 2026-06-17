@@ -29,15 +29,15 @@ const placeholder = computed(() => props.field.placeholder?.[props.lang] || prop
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: 0.85rem; font-weight: 500; color: #555; }
-label.required::after { content: ' *'; color: #c0392b; }
+label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
+label.required::after { content: ' *'; color: var(--color-error); }
 input {
   padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
   transition: border-color 0.2s;
 }
-input:focus { outline: none; border-color: #2c5f8a; box-shadow: 0 0 0 2px rgba(44,95,138,0.15); }
-.hint { font-size: 0.78rem; color: #888; }
+input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+.hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

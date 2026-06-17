@@ -381,19 +381,19 @@ function formatValue(field) {
 .metadata-form { display: flex; flex-direction: column; gap: 2rem; }
 
 .form-group {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   padding: 1.5rem;
 }
 
 .group-title {
-  font-size: 1.1rem;
+  font-size: var(--font-size-heading);
   font-weight: 600;
-  color: #2c5f8a;
+  color: var(--color-primary);
   margin-bottom: 1.2rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e8f0f7;
+  border-bottom: 2px solid var(--color-primary-bg);
 }
 
 .group-fields { display: flex; flex-direction: column; gap: 1rem; }
@@ -403,12 +403,12 @@ function formatValue(field) {
 .field-wrapper.has-error :deep(input),
 .field-wrapper.has-error :deep(textarea),
 .field-wrapper.has-error :deep(select) {
-  border-color: #c0392b !important;
+  border-color: var(--color-error) !important;
 }
 
 .field-wrapper.has-error :deep(.uri-input),
 .field-wrapper.has-error :deep(.object-fieldset) {
-  border-color: #c0392b !important;
+  border-color: var(--color-error) !important;
 }
 
 .field-errors {
@@ -421,8 +421,8 @@ function formatValue(field) {
 }
 
 .field-errors li {
-  font-size: 0.78rem;
-  color: #c0392b;
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
   padding-left: 0.1rem;
 }
 
@@ -437,21 +437,21 @@ function formatValue(field) {
 }
 
 .validation-hint {
-  font-size: 0.85rem;
-  color: #c0392b;
+  font-size: var(--font-size-label);
+  color: var(--color-error);
 }
 
 .btn-export {
-  background: #2c5f8a;
+  background: var(--color-primary);
   color: white;
   border: none;
   padding: 0.7rem 1.5rem;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
   cursor: pointer;
   font-weight: 500;
 }
-.btn-export:hover:not(.disabled) { background: #1e4468; }
+.btn-export:hover:not(.disabled) { background: var(--color-primary-dark); }
 .btn-export.disabled {
   background: #a0b4c5;
   cursor: not-allowed;
@@ -483,30 +483,30 @@ function formatValue(field) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   z-index: 1;
-  background: white;
+  background: var(--color-surface);
   border: 2px solid #ccc;
   color: #ccc;
 }
 
 .step-item.completed .step-circle {
-  background: #2c5f8a;
-  border-color: #2c5f8a;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   color: white;
 }
 
 .step-item.active .step-circle {
-  background: white;
-  border-color: #2c5f8a;
-  color: #2c5f8a;
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .step-item.future .step-circle {
-  background: white;
+  background: var(--color-surface);
   border-color: #ccc;
   color: #ccc;
   cursor: default;
@@ -514,15 +514,15 @@ function formatValue(field) {
 
 .step-label {
   font-size: 0.7rem;
-  color: #666;
+  color: var(--color-text-muted);
   margin-top: 0.3rem;
   text-align: center;
   max-width: 80px;
   word-wrap: break-word;
 }
 
-.step-item.active .step-label { color: #2c5f8a; font-weight: 600; }
-.step-item.completed .step-label { color: #2c5f8a; }
+.step-item.active .step-label { color: var(--color-primary); font-weight: 600; }
+.step-item.completed .step-label { color: var(--color-primary); }
 
 .step-connector {
   position: absolute;
@@ -534,7 +534,7 @@ function formatValue(field) {
 }
 .step-connector.left { left: 0; }
 .step-connector.right { right: 0; }
-.step-connector.done { background: #2c5f8a; }
+.step-connector.done { background: var(--color-primary); }
 
 /* Wizard navigation */
 .wizard-nav {
@@ -546,15 +546,15 @@ function formatValue(field) {
 
 .btn-back {
   background: transparent;
-  color: #2c5f8a;
-  border: 2px solid #2c5f8a;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
   padding: 0.65rem 1.4rem;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
   cursor: pointer;
   font-weight: 500;
 }
-.btn-back:hover { background: #e8f0f7; }
+.btn-back:hover { background: var(--color-primary-bg); }
 
 /* Summary */
 .summary-view { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -565,7 +565,7 @@ function formatValue(field) {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #e8f0f7;
+  border-bottom: 2px solid var(--color-primary-bg);
 }
 
 .summary-group-header .group-title {
@@ -576,14 +576,14 @@ function formatValue(field) {
 
 .btn-edit {
   background: transparent;
-  color: #2c5f8a;
-  border: 1px solid #2c5f8a;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
   padding: 0.3rem 0.8rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.82rem;
   cursor: pointer;
 }
-.btn-edit:hover { background: #e8f0f7; }
+.btn-edit:hover { background: var(--color-primary-bg); }
 
 .summary-fields { display: flex; flex-direction: column; gap: 0.6rem; }
 
@@ -595,19 +595,19 @@ function formatValue(field) {
 }
 
 .summary-field-label {
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
   font-weight: 600;
-  color: #555;
+  color: var(--color-text-muted);
 }
 
 .summary-field-value {
   font-size: 0.9rem;
-  color: #333;
+  color: var(--color-text);
   word-break: break-word;
 }
 
 .summary-field-value :deep(a) {
-  color: #2c5f8a;
+  color: var(--color-primary);
 }
 
 .summary-field-value :deep(.sub-field) {
@@ -615,23 +615,23 @@ function formatValue(field) {
 }
 
 .no-data {
-  font-size: 0.85rem;
-  color: #999;
+  font-size: var(--font-size-label);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
 .transform-preview {
-  font-size: 0.78rem;
-  color: #555;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
   margin-top: 0.15rem;
 }
 
 .transform-preview code {
-  font-size: 0.78rem;
-  background: #f0f4f8;
+  font-size: var(--font-size-sm);
+  background: var(--color-surface-alt);
   padding: 0.05rem 0.3rem;
   border-radius: 3px;
-  color: #2c5f8a;
+  color: var(--color-primary);
   word-break: break-all;
 }
 </style>

@@ -131,13 +131,13 @@ onMounted(() => loadFormConfig(selectedStandard.value))
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #f5f7fa;
-  color: #333;
+  color: var(--color-text);
 }
 
 .app { min-height: 100vh; display: flex; flex-direction: column; }
 
 .app-header {
-  background: #2c5f8a;
+  background: var(--color-primary);
   color: white;
   padding: 1rem 2rem;
   display: flex;
@@ -155,9 +155,9 @@ body {
   border: 1px solid rgba(255,255,255,0.4);
   color: white;
   padding: 0.3rem 0.9rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
 }
 .btn-import-header:hover { background: rgba(255,255,255,0.25); }
 
@@ -166,24 +166,24 @@ body {
   border: 1px solid rgba(255,255,255,0.4);
   color: white;
   padding: 0.3rem 0.9rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
 }
 .btn-mode-toggle:hover { background: rgba(255,255,255,0.25); }
 
-.lang-toggle { display: flex; border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; overflow: hidden; }
+.lang-toggle { display: flex; border: 1px solid rgba(255,255,255,0.4); border-radius: var(--radius-sm); overflow: hidden; }
 .lang-toggle button {
   background: transparent;
   border: none;
   color: rgba(255,255,255,0.7);
   padding: 0.3rem 0.7rem;
   cursor: pointer;
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
 }
 .lang-toggle button.active { background: rgba(255,255,255,0.2); color: white; font-weight: 600; }
 
 .app-main { flex: 1; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
 
-.loading { text-align: center; padding: 2rem; color: #666; }
+.loading { text-align: center; padding: 2rem; color: var(--color-text-muted); }
 </style>

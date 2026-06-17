@@ -52,14 +52,14 @@ function updateSubField(id, value) {
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
 .object-label {
-  font-size: 0.85rem;
+  font-size: var(--font-size-label);
   font-weight: 600;
-  color: #555;
+  color: var(--color-text-muted);
 }
 .object-fieldset {
   border: 1px solid #d0d7de;
-  border-radius: 6px;
-  background: #f0f4f8;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-alt);
   padding: 1rem;
   display: flex;
   flex-direction: column;

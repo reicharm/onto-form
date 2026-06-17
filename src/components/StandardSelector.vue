@@ -20,12 +20,12 @@ defineEmits(['update:modelValue'])
 label { font-size: 0.9rem; }
 select {
   padding: 0.3rem 0.6rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   border: 1px solid rgba(255,255,255,0.4);
   background: rgba(255,255,255,0.15);
   color: white;
   font-size: 0.9rem;
   cursor: pointer;
 }
-select option { background: #2c5f8a; }
+select option { background: var(--color-primary); }
 </style>

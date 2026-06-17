@@ -111,30 +111,30 @@ const bodyPlaceholder = computed(() => {
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
 
-label { font-size: 0.85rem; font-weight: 500; color: #555; }
-label.required::after { content: ' *'; color: #c0392b; }
+label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
+label.required::after { content: ' *'; color: var(--color-error); }
 
 .uri-input {
   display: flex;
   align-items: stretch;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .uri-input.focused {
-  border-color: #2c5f8a;
-  box-shadow: 0 0 0 2px rgba(44,95,138,0.15);
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
 }
 
 .protocol-select {
   padding: 0.5rem 0.4rem;
   border: none;
-  border-right: 1px solid #ddd;
-  background: #f0f4f8;
-  color: #2c5f8a;
-  font-size: 0.85rem;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+  font-size: var(--font-size-label);
   font-weight: 600;
   cursor: pointer;
   appearance: none;
@@ -149,10 +149,10 @@ label.required::after { content: ' *'; color: #c0392b; }
   padding: 0 0.1rem 0 0.2rem;
   display: flex;
   align-items: center;
-  font-size: 0.85rem;
-  color: #999;
-  background: #f0f4f8;
-  border-right: 1px solid #ddd;
+  font-size: var(--font-size-label);
+  color: var(--color-text-subtle);
+  background: var(--color-surface-alt);
+  border-right: 1px solid var(--color-border);
   user-select: none;
 }
 
@@ -160,11 +160,11 @@ input {
   flex: 1;
   padding: 0.5rem 0.75rem;
   border: none;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   min-width: 0;
 }
 
 input:focus { outline: none; }
 
-.hint { font-size: 0.78rem; color: #888; }
+.hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>
