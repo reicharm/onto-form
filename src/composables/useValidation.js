@@ -69,11 +69,22 @@ export function validateField(field, value, lang) {
 /**
  * Validate all fields in a config against formData.
  * Returns { [fieldId]: string[] } — only entries with errors are included.
+ * Only fields referenced in at least one group are validated — SHACL fields
+ * from other shapes (e.g. Distribution) that bleed into the merged config
+ * are excluded since they are never shown in the form.
  */
 export function validateForm(config, formData, lang) {
   const result = {}
   if (!config?.fields) return result
+
+  // Only validate fields that appear in the form (referenced by a group)
+  const groupedIds = new Set(
+    (config.groups || []).flatMap(g => g.fields || [])
+  )
+
   for (const [id, field] of Object.entries(config.fields)) {
+    if (field.visible === false) continue
+    if (!groupedIds.has(id)) continue
     const errors = validateField(field, formData?.[id], lang)
     if (errors.length) result[id] = errors
   }
