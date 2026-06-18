@@ -18,12 +18,15 @@ npm run test:watch
 
 | Datei | Getestetes Modul |
 |-------|-----------------|
-| `src/__tests__/fieldValidators.test.js` | `src/config/fieldValidators.js` — `isURI`, `isURIList`, `isEmail`, `isDate`, `isWKTorGeoJSON` |
-| `src/__tests__/fieldComputes.test.js` | `src/config/fieldComputes.js` — `setTodayIfTitle`, `setTodayIfTitleAndEmpty`, `setToday`, `setLanguageFromUI`, `applyComputes` |
-| `src/__tests__/useValidation.test.js` | `src/composables/useValidation.js` — `validateField`, `validateForm` |
-| `src/__tests__/RDFExporter.test.js` | `src/services/RDFExporter.js` — `toJSONLD`, `toTurtle` |
-| `src/__tests__/RDFImporter.test.js` | `src/services/RDFImporter.js` — `fromJSONLD`, `fromTurtle` |
-| `src/__tests__/VocabularyLoader.test.js` | `src/services/VocabularyLoader.js` — `load`, `_normalize`, `_normalizeSparql` |
+| `tests/unit/fieldValidators.test.js` | `src/config/fieldValidators.js` — `isURI`, `isURIList`, `isEmail`, `isDate`, `isWKTorGeoJSON` |
+| `tests/unit/fieldComputes.test.js` | `src/config/fieldComputes.js` — `setTodayIfTitle`, `setTodayIfTitleAndEmpty`, `setToday`, `setLanguageFromUI`, `applyComputes` |
+| `tests/unit/useValidation.test.js` | `src/composables/useValidation.js` — `validateField`, `validateForm` |
+| `tests/unit/RDFExporter.test.js` | `src/services/RDFExporter.js` — `toJSONLD`, `toTurtle` |
+| `tests/unit/RDFImporter.test.js` | `src/services/RDFImporter.js` — `fromJSONLD`, `fromTurtle` |
+| `tests/unit/VocabularyLoader.test.js` | `src/services/VocabularyLoader.js` — `load`, `_normalize`, `_normalizeSparql` |
+| `tests/unit/fieldVisibility.test.js` | `src/config/fieldVisibility.js` — `ifHVDLegislation`, `evaluateVisibleIf` |
+| `tests/unit/fieldTransforms.test.js` | `src/config/fieldTransforms.js` — `uriSuffix`, `stripPrefix`, `applyDisplay`, `applyEncode` |
+| `tests/unit/SHACLParser.test.js` | `src/services/SHACLParser.js` — `multiple`/`required`-Feld-Mapping aus `sh:maxCount`/`sh:minCount` |
 
 ### Konfiguration
 
@@ -38,14 +41,15 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    exclude: ['**/node_modules/**', '**/e2e/**'],
+    include: ['tests/unit/**/*.test.js'],
+    exclude: ['**/node_modules/**'],
   },
 })
 ```
 
 ### Neue Tests schreiben
 
-Tests liegen unter `src/__tests__/`. Dateiname-Konvention: `<ModulName>.test.js`.
+Tests liegen unter `tests/unit/`. Dateiname-Konvention: `<ModulName>.test.js`.
 
 ```js
 import { describe, it, expect } from 'vitest'
@@ -107,7 +111,7 @@ Playwright startet den Dev-Server automatisch (konfiguriert in `playwright.confi
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
-  testDir: './e2e',
+  testDir: './tests/e2e',
   use: {
     baseURL: 'http://localhost:5173',
     headless: true,
@@ -123,7 +127,7 @@ export default defineConfig({
 
 ### Neue E2E-Tests schreiben
 
-Tests liegen unter `e2e/`. Dateiname-Konvention: `<Feature>.spec.js`.
+Tests liegen unter `tests/e2e/`. Dateiname-Konvention: `<Feature>.spec.js`.
 
 ```js
 import { test, expect } from '@playwright/test'
