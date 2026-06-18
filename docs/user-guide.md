@@ -46,6 +46,8 @@ Der Button im Header wechselt zwischen beiden Modi:
 - Im Wizard-Modus: **„Einzel-Seite"**
 - Im Einzel-Seiten-Modus: **„Schritt-Assistent"**
 
+Zusätzlich gibt es — sofern der aktive Standard Distributionen unterstützt — einen zweiten Umschalter für den Distributions-Bearbeitungsmodus (siehe Abschnitt [Distributionen](#distributionen)).
+
 ---
 
 ## Daten importieren
@@ -72,6 +74,31 @@ Importierte Werte werden mit den aktuellen Formulardaten zusammengeführt. Felde
 Der Export-Button (**„Export JSON-LD / Turtle"**) öffnet das Export-Panel, in dem die Metadaten als JSON-LD und Turtle angezeigt und in die Zwischenablage kopiert werden können.
 
 Im Wizard-Modus ist der Export-Button nur auf der **Übersicht** (letzter Schritt) verfügbar.
+
+---
+
+## Distributionen
+
+Distributionen sind komplexe Unterobjekte eines Datensatzes, die beschreiben, in welcher Form und über welche URL die eigentlichen Daten verfügbar sind (z. B. als CSV-Download oder als WMS-Dienst). Ein Datensatz kann mehrere Distributionen enthalten.
+
+### Bearbeitungsmodi
+
+Der Editor unterstützt zwei Bearbeitungsmodi:
+
+**Inline-Modus**
+
+Die Distributionen werden als aufklappbare Karten direkt in der Seite angezeigt. Ein Klick auf eine Karte klappt das Formular auf und zeigt alle Felder (accessURL, downloadURL, Titel, Beschreibung, Format, Medientyp, Lizenz, Verfügbarkeit, Veröffentlichungs- und Änderungsdatum) direkt an der Stelle auf.
+
+**Modal-Modus** (Standard)
+
+Die Distributionen werden als kompakte Liste angezeigt. Über den Button **„Bearbeiten"** öffnet sich ein Modal-Overlay mit dem vollständigen Distributions-Formular. Der Modal-Modus hält die Seite übersichtlich, besonders bei vielen Distributionen.
+
+### Modus umschalten
+
+Im Header erscheint — sofern der aktive Standard Distributionen unterstützt — ein Umschalter:
+
+- Im Modal-Modus zeigt der Button **„Dist.: Inline"** (Klick wechselt in den Inline-Modus)
+- Im Inline-Modus zeigt der Button **„Dist.: Modal"** (Klick wechselt in den Modal-Modus)
 
 ---
 

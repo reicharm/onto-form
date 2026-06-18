@@ -188,6 +188,7 @@ import LangStringField from './fields/LangStringField.vue'
 import ObjectField from './fields/ObjectField.vue'
 import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
+import DistributionEditor from './fields/DistributionEditor.vue'
 import { validateForm } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
@@ -212,7 +213,8 @@ const componentMap = {
   langstring: LangStringField,
   text: TextField,
   object: ObjectField,
-  multiselect: MultiSelectField
+  multiselect: MultiSelectField,
+  'distribution-editor': DistributionEditor
 }
 
 function fieldComponent(field) {

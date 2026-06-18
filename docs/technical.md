@@ -14,7 +14,10 @@ App.vue
 │   ├── fields/DateField.vue
 │   ├── fields/URIField.vue
 │   ├── fields/ObjectField.vue
-│   └── fields/RepeatableField.vue
+│   ├── fields/RepeatableField.vue
+│   ├── fields/DistributionEditor.vue  Distributions-Editor (Inline- und Modal-Modus)
+│   └── fields/DistributionForm.vue    Gemeinsames Formular für eine einzelne Distribution
+├── DistributionModal.vue       Modal-Overlay für Distribution-Bearbeitung
 ├── ExportPanel.vue             Export-Dialog (JSON-LD / Turtle)
 ├── ImportPanel.vue             Import-Dialog (JSON-LD / Turtle)
 └── services/
@@ -58,8 +61,17 @@ Wurzelkomponente. Verwaltet:
 - `selectedStandard` – aktiver Standard
 - `lang` – Anzeigesprache (`de` / `en`)
 - `wizardMode` – Wizard (`true`) oder Einzel-Seite (`false`); Standard: `true`
+- `distributionMode` – aktiver Bearbeitungsmodus für Distributionen (`"modal"` oder `"inline"`); initialisiert aus dem `distributionMode`-Feld des Config-Feldes `dcat:distribution`
 - `formData` – reaktives Datenobjekt für alle Felder
 - `showExport` / `showImport` – Steuerung der Overlays
+
+Computed:
+
+- `hasDistributionEditor` – `true`, wenn der aktive Standard ein Feld vom Typ `distribution-editor` enthält; steuert die Sichtbarkeit des Modus-Umschalters im Header
+
+Methoden:
+
+- `toggleDistributionMode()` – wechselt `distributionMode` zwischen `"inline"` und `"modal"` und schreibt den neuen Wert in `formConfig.fields['dcat:distribution'].distributionMode`
 
 Beim Standardwechsel wird `FormConfigResolver.resolve(standard)` aufgerufen, danach `buildDefaultFormData` und `applyComputes`. Compute-Funktionen laufen außerdem bei jeder Änderung von `formData` (Watcher).
 
@@ -228,8 +240,31 @@ Parst Turtle-SHACL-Shapes (via n3.js) und extrahiert Felddefinitionen:
 
 - `sh:datatype` → Feldtyp-Mapping (XSD → intern)
 - `sh:minCount 1` → `required: true`
-- `sh:maxCount` > 1 oder kein `maxCount` → `multiple: true`
+- `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 → `multiple: true`; kein `sh:maxCount` → `multiple: false` (unbegrenzte Felder werden nur durch explizites `"multiple": true` in der UI-Config wiederholbar)
 - `sh:message` → Fehlermeldungen
+
+---
+
+## Distributionen / DistributionEditor
+
+`DistributionEditor.vue` ist die zentrale Komponente für die Bearbeitung von `dcat:distribution`-Feldern. Sie unterstützt zwei Modi, die über `field.distributionMode` gesteuert werden:
+
+| Modus | Wert | Verhalten |
+|---|---|---|
+| Modal | `"modal"` (Standard) | Kompakte Kartenliste; Klick auf „Bearbeiten" öffnet ein Modal-Overlay (`DistributionModal.vue`) |
+| Inline | `"inline"` | Aufklappbare Karten; das Formular wird direkt in der Seite angezeigt |
+
+`DistributionForm.vue` enthält die eigentlichen Formularfelder einer Distribution (accessURL, downloadURL, title, description, format, mediaType, license, availability, issued, modified) und wird von beiden Modi genutzt — entweder direkt in den Inline-Karten oder über `DistributionModal.vue`.
+
+Props von `DistributionEditor.vue`:
+
+- `field` – Feldkonfiguration (inkl. `field.distributionMode`)
+- `modelValue` – Array von Distribution-Objekten
+- `lang` – Anzeigesprache
+
+`DistributionEditor.vue` lädt Formatoptionen selbst aus `/vocabularies/file-format.json`.
+
+Der aktive Modus kann zur Laufzeit über den Toggle-Button im Header umgeschaltet werden (siehe `toggleDistributionMode()` in App.vue).
 
 ---
 
