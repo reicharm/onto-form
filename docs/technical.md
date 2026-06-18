@@ -1,4 +1,4 @@
-# Technische Dokumentation – DCAT-AP Metadata Editor
+# Technische Dokumentation – OntoForm
 
 ## Architektur
 

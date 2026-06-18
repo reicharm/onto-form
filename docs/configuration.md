@@ -1,4 +1,4 @@
-# Konfigurationsreferenz – DCAT-AP Metadata Editor
+# Konfigurationsreferenz – OntoForm
 
 Die Formularkonfiguration setzt sich aus zwei Quellen zusammen:
 

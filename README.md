@@ -1,4 +1,4 @@
-# DCAT-AP Metadata Editor
+# OntoForm
 
 Ein browserbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibungen. Unterstützt DCAT-AP.at, GeoDCAT und DCAT-AP 3.0.
 

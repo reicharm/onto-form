@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>DCAT-AP Metadata Editor</h1>
+      <h1>OntoForm</h1>
       <div class="header-controls">
         <StandardSelector :standards="standards" v-model="selectedStandard" />
         <button class="btn-import-header" @click="showImport = true">

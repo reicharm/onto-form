@@ -1,8 +1,8 @@
-# Benutzerhandbuch – DCAT-AP Metadata Editor
+# Benutzerhandbuch – OntoForm
 
 ## Überblick
 
-Der DCAT-AP Metadata Editor ermöglicht die browserbasierte Erstellung und Bearbeitung von Metadaten nach den Standards DCAT-AP.at, GeoDCAT-AP und DCAT-AP 3.0. Die Metadaten können als JSON-LD oder Turtle exportiert und bestehende Dateien importiert werden.
+OntoForm ermöglicht die browserbasierte Erstellung und Bearbeitung von Metadaten nach den Standards DCAT-AP.at, GeoDCAT-AP und DCAT-AP 3.0. Die Metadaten können als JSON-LD oder Turtle exportiert und bestehende Dateien importiert werden.
 
 ---
 
