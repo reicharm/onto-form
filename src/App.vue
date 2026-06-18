@@ -12,6 +12,11 @@
             ? (lang === 'de' ? 'Einzel-Seite' : 'Single page')
             : (lang === 'de' ? 'Schritt-Assistent' : 'Wizard') }}
         </button>
+        <button v-if="hasDistributionEditor" class="btn-mode-toggle" @click="toggleDistributionMode">
+          {{ distributionMode === 'modal'
+            ? (lang === 'de' ? 'Dist.: Inline' : 'Dist.: Inline')
+            : (lang === 'de' ? 'Dist.: Modal' : 'Dist.: Modal') }}
+        </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
           <button :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
@@ -71,6 +76,7 @@ const formData = ref({})
 const showExport = ref(false)
 const showImport = ref(false)
 const wizardMode = ref(true)
+const distributionMode = ref('modal')
 
 function buildDefaultFormData(config) {
   const data = {}
@@ -99,6 +105,8 @@ function buildDefaultFormData(config) {
   return data
 }
 
+const hasDistributionEditor = ref(false)
+
 async function loadFormConfig(standard) {
   formConfig.value = null
   formData.value = {}
@@ -106,7 +114,17 @@ async function loadFormConfig(standard) {
   const config = await resolver.resolve(standard)
   formConfig.value = config
   wizardMode.value = config?.wizard !== false
+  const distField = config?.fields?.['dcat:distribution']
+  hasDistributionEditor.value = distField?.type === 'distribution-editor'
+  if (distField) distributionMode.value = distField.distributionMode || 'modal'
   formData.value = buildDefaultFormData(config)
+}
+
+function toggleDistributionMode() {
+  distributionMode.value = distributionMode.value === 'modal' ? 'inline' : 'modal'
+  if (formConfig.value?.fields?.['dcat:distribution']) {
+    formConfig.value.fields['dcat:distribution'].distributionMode = distributionMode.value
+  }
 }
 
 // Run compute functions declared in the config whenever formData or lang changes
