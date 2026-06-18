@@ -2,18 +2,27 @@ import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
 
 const PREFIXES = {
-  rdf:   'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-  dct:   'http://purl.org/dc/terms/',
-  dcat:  'http://www.w3.org/ns/dcat#',
-  foaf:  'http://xmlns.com/foaf/0.1/',
-  vcard: 'http://www.w3.org/2006/vcard/ns#',
-  skos:  'http://www.w3.org/2004/02/skos/core#',
-  xsd:   'http://www.w3.org/2001/XMLSchema#',
-  rdfs:  'http://www.w3.org/2000/01/rdf-schema#',
-  geo:   'http://www.opengis.net/ont/geosparql#',
-  locn:  'http://www.w3.org/ns/locn#',
-  odrl:  'http://www.w3.org/ns/odrl/2/',
+  rdf:    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+  dct:    'http://purl.org/dc/terms/',
+  dcat:   'http://www.w3.org/ns/dcat#',
+  dcatap: 'http://data.europa.eu/r5r/',
+  foaf:   'http://xmlns.com/foaf/0.1/',
+  vcard:  'http://www.w3.org/2006/vcard/ns#',
+  skos:   'http://www.w3.org/2004/02/skos/core#',
+  xsd:    'http://www.w3.org/2001/XMLSchema#',
+  rdfs:   'http://www.w3.org/2000/01/rdf-schema#',
+  geo:    'http://www.opengis.net/ont/geosparql#',
+  locn:   'http://www.w3.org/ns/locn#',
+  odrl:   'http://www.w3.org/ns/odrl/2/',
 }
+
+const DISTRIBUTION_FIELDS = [
+  'dcat:accessURL', 'dcat:downloadURL',
+  'dct:title', 'dct:description',
+  'dct:format', 'dcat:mediaType',
+  'dct:license', 'dcatap:availability',
+  'dct:issued', 'dct:modified',
+]
 
 // Normalize sub-field values that use special URI schemes
 const SUBFIELD_CLEAN = {
@@ -76,6 +85,11 @@ export class RDFImporter {
     if (type === 'multiselect') {
       const arr = Array.isArray(raw) ? raw : [raw]
       return arr.map(item => (typeof item === 'string' ? item : item?.['@id'] || String(item)))
+    }
+
+    if (type === 'distribution-editor') {
+      const arr = Array.isArray(raw) ? raw : [raw]
+      return arr.map(item => this._importDistributionJSONLD(item)).filter(d => d['dcat:accessURL'])
     }
 
     if (type === 'object') {
@@ -168,6 +182,13 @@ export class RDFImporter {
       return objects.map(o => o.value)
     }
 
+    if (type === 'distribution-editor') {
+      return objects
+        .filter(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
+        .map(o => this._importDistributionTurtle(bySubject.get(o.value) || []))
+        .filter(d => d['dcat:accessURL'])
+    }
+
     if (type === 'object') {
       const node = objects.find(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
       if (!node) return {}
@@ -228,6 +249,10 @@ export class RDFImporter {
       return val
     }
 
+    if (type === 'distribution-editor') {
+      return Array.isArray(val) ? val : []
+    }
+
     if (type === 'object') {
       if (typeof val !== 'object' || Array.isArray(val)) return {}
       return val
@@ -240,6 +265,34 @@ export class RDFImporter {
     }
 
     return val != null ? String(val) : ''
+  }
+
+  _importDistributionJSONLD(item) {
+    if (!item || typeof item !== 'object') return {}
+    const result = {}
+    for (const key of DISTRIBUTION_FIELDS) {
+      const raw = item[key]
+      if (raw == null) continue
+      if (typeof raw === 'string') { result[key] = raw; continue }
+      if (typeof raw === 'object' && '@id' in raw) { result[key] = raw['@id']; continue }
+      if (typeof raw === 'object' && '@value' in raw) { result[key] = raw['@value']; continue }
+      const first = Array.isArray(raw) ? raw[0] : null
+      if (first == null) continue
+      result[key] = typeof first === 'string' ? first : (first['@id'] || first['@value'] || '')
+    }
+    return result
+  }
+
+  _importDistributionTurtle(subQuads) {
+    const result = {}
+    for (const q of subQuads) {
+      const pred = this._toPrefixed(q.predicate.value)
+      if (!DISTRIBUTION_FIELDS.includes(pred)) continue
+      let val = q.object.value
+      if ((pred === 'dct:issued' || pred === 'dct:modified') && val.length > 10) val = val.slice(0, 10)
+      result[pred] = val
+    }
+    return result
   }
 
   // Returns true if the value should be discarded (fails validation)

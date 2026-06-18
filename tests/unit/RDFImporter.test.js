@@ -3,6 +3,13 @@ import { RDFImporter } from '../../src/services/RDFImporter.js'
 
 const importer = new RDFImporter()
 
+const distConfig = {
+  fields: {
+    'dct:title': { type: 'langstring' },
+    'dcat:distribution': { type: 'distribution-editor' }
+  }
+}
+
 const basicConfig = {
   fields: {
     'dct:title': { type: 'langstring' },
@@ -162,6 +169,118 @@ PREFIX dcat: <http://www.w3.org/ns/dcat#>
     it('returns URI unchanged when prefix not known', () => {
       const uri = 'http://unknown.org/ns/thing'
       expect(importer._toPrefixed(uri)).toBe(uri)
+    })
+  })
+
+  describe('distributions (JSON-LD)', () => {
+    it('imports a single distribution from compact JSON-LD', () => {
+      const jsonld = JSON.stringify({
+        'dcat:distribution': [
+          { 'dcat:accessURL': 'https://example.com/file.csv', 'dct:format': 'http://publications.europa.eu/resource/authority/file-type/CSV' }
+        ]
+      })
+      const result = importer.fromJSONLD(jsonld, distConfig)
+      expect(result['dcat:distribution']).toHaveLength(1)
+      expect(result['dcat:distribution'][0]['dcat:accessURL']).toBe('https://example.com/file.csv')
+      expect(result['dcat:distribution'][0]['dct:format']).toBe('http://publications.europa.eu/resource/authority/file-type/CSV')
+    })
+
+    it('imports multiple distributions', () => {
+      const jsonld = JSON.stringify({
+        'dcat:distribution': [
+          { 'dcat:accessURL': 'https://example.com/a.csv', 'dct:title': 'CSV' },
+          { 'dcat:accessURL': 'https://example.com/b.json', 'dct:title': 'JSON' }
+        ]
+      })
+      const result = importer.fromJSONLD(jsonld, distConfig)
+      expect(result['dcat:distribution']).toHaveLength(2)
+      expect(result['dcat:distribution'][1]['dcat:accessURL']).toBe('https://example.com/b.json')
+    })
+
+    it('accepts @id objects for URI fields', () => {
+      const jsonld = JSON.stringify({
+        'dcat:distribution': [
+          { 'dcat:accessURL': { '@id': 'https://example.com/data.csv' } }
+        ]
+      })
+      const result = importer.fromJSONLD(jsonld, distConfig)
+      expect(result['dcat:distribution'][0]['dcat:accessURL']).toBe('https://example.com/data.csv')
+    })
+
+    it('filters out distributions without accessURL', () => {
+      const jsonld = JSON.stringify({
+        'dcat:distribution': [
+          { 'dct:title': 'No URL' },
+          { 'dcat:accessURL': 'https://example.com/ok.csv' }
+        ]
+      })
+      const result = importer.fromJSONLD(jsonld, distConfig)
+      expect(result['dcat:distribution']).toHaveLength(1)
+    })
+  })
+
+  describe('distributions (Turtle)', () => {
+    it('imports a blank-node distribution from Turtle', async () => {
+      const turtle = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+
+<https://example.com/ds/1> a dcat:Dataset ;
+    dcat:distribution [
+        dcat:accessURL <https://example.com/file.csv> ;
+        dct:format <http://publications.europa.eu/resource/authority/file-type/CSV>
+    ] .
+`
+      const result = await importer.fromTurtle(turtle, distConfig)
+      expect(result['dcat:distribution']).toHaveLength(1)
+      expect(result['dcat:distribution'][0]['dcat:accessURL']).toBe('https://example.com/file.csv')
+      expect(result['dcat:distribution'][0]['dct:format']).toBe('http://publications.europa.eu/resource/authority/file-type/CSV')
+    })
+
+    it('imports multiple distributions from Turtle', async () => {
+      const turtle = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+
+<https://example.com/ds/2> a dcat:Dataset ;
+    dcat:distribution
+        [ dcat:accessURL <https://example.com/a.csv> ; dct:title "CSV"@de ],
+        [ dcat:accessURL <https://example.com/b.json> ; dct:title "JSON"@de ] .
+`
+      const result = await importer.fromTurtle(turtle, distConfig)
+      expect(result['dcat:distribution']).toHaveLength(2)
+    })
+
+    it('truncates datetime to date in distribution date fields', async () => {
+      const turtle = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.com/ds/3> a dcat:Dataset ;
+    dcat:distribution [
+        dcat:accessURL <https://example.com/f.csv> ;
+        dct:issued "2024-03-15T00:00:00"^^xsd:dateTime
+    ] .
+`
+      const result = await importer.fromTurtle(turtle, distConfig)
+      expect(result['dcat:distribution'][0]['dct:issued']).toBe('2024-03-15')
+    })
+
+    it('imports dcatap:availability using dcatap prefix', async () => {
+      const turtle = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+
+<https://example.com/ds/4> a dcat:Dataset ;
+    dcat:distribution [
+        dcat:accessURL <https://example.com/f.csv> ;
+        dcatap:availability <http://data.europa.eu/r5r/availability/stable>
+    ] .
+`
+      const result = await importer.fromTurtle(turtle, distConfig)
+      expect(result['dcat:distribution'][0]['dcatap:availability'])
+        .toBe('http://data.europa.eu/r5r/availability/stable')
     })
   })
 
