@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RDFExporter } from '../services/RDFExporter.js'
+import { RDFExporter } from '../../src/services/RDFExporter.js'
 
 const exporter = new RDFExporter()
 

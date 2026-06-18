@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fieldVisibilityFns, evaluateVisibleIf } from '../config/fieldVisibility.js'
+import { fieldVisibilityFns, evaluateVisibleIf } from '../../src/config/fieldVisibility.js'
 
 const HVD_URI = 'http://data.europa.eu/eli/reg_impl/2023/138/oj'
 

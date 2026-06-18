@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { fieldComputeFns, applyComputes } from '../config/fieldComputes.js'
+import { fieldComputeFns, applyComputes } from '../../src/config/fieldComputes.js'
 
 const TODAY = '2024-06-15'
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fieldValidators } from '../config/fieldValidators.js'
+import { fieldValidators } from '../../src/config/fieldValidators.js'
 
 describe('fieldValidators', () => {
   describe('isURI', () => {

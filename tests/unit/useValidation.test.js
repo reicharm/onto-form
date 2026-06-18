@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { validateField, validateForm } from '../composables/useValidation.js'
+import { validateField, validateForm } from '../../src/composables/useValidation.js'
 
 describe('validateField', () => {
   describe('required check', () => {

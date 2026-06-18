@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { VocabularyLoader } from '../services/VocabularyLoader.js'
+import { VocabularyLoader } from '../../src/services/VocabularyLoader.js'
 
 function makeLoader() {
   return new VocabularyLoader()

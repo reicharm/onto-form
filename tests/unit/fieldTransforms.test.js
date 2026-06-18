@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { fieldTransforms, applyDisplay, applyEncode } from '../config/fieldTransforms.js'
+import { fieldTransforms, applyDisplay, applyEncode } from '../../src/config/fieldTransforms.js'
 
 describe('uriSuffix.display', () => {
   const { display } = fieldTransforms.uriSuffix
