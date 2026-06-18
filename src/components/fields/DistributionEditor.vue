@@ -1,272 +1,205 @@
 <template>
   <div class="dist-editor">
-    <label class="dist-editor-label">{{ field?.label?.[lang] || field?.label?.en || (lang === 'de' ? 'Distributionen' : 'Distributions') }}</label>
+    <label class="dist-label">{{ field.label?.[lang] || field.label?.en || field.id }}</label>
 
     <!-- Empty state -->
-    <div v-if="!distributions.length" class="dist-empty">
+    <div v-if="!modelValue || modelValue.length === 0" class="dist-empty">
       <p class="dist-empty-hint">
-        {{ lang === 'de'
-          ? 'Noch keine Distributionen vorhanden. Fügen Sie die erste hinzu.'
-          : 'No distributions yet. Add the first one.' }}
+        {{ lang === 'de' ? 'Noch keine Distributionen vorhanden.' : 'No distributions yet.' }}
       </p>
-      <button class="btn-add-first" @click="openNew">
-        {{ lang === 'de' ? '+ Erste Distribution hinzufügen' : '+ Add First Distribution' }}
+      <button class="btn-add-first" @click="addNew">
+        {{ lang === 'de' ? 'Erste Distribution hinzufügen' : 'Add first distribution' }}
       </button>
     </div>
 
-    <!-- List -->
-    <template v-else>
-      <ul class="dist-list">
-        <li v-for="(dist, idx) in distributions" :key="idx" class="dist-item">
-          <div class="dist-item-info">
-            <span class="dist-item-title">{{ dist['dct:title'] || dist['dcat:accessURL'] || (lang === 'de' ? 'Unbenannte Distribution' : 'Unnamed Distribution') }}</span>
-            <span v-if="dist['dct:format']" class="dist-item-format">{{ formatLabel(dist['dct:format']) }}</span>
+    <!-- Distribution cards -->
+    <div v-else class="dist-list">
+      <div v-for="(dist, idx) in modelValue" :key="idx" class="dist-card">
+        <div class="dist-card-body">
+          <div class="dist-card-title">
+            {{ dist['dct:title'] || dist['dcat:accessURL'] || (lang === 'de' ? 'Distribution ' + (idx + 1) : 'Distribution ' + (idx + 1)) }}
           </div>
-          <div class="dist-item-actions">
-            <button class="btn-edit-dist" @click="openEdit(idx)">
-              {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
-            </button>
-            <button class="btn-remove-dist" @click="remove(idx)" :title="lang === 'de' ? 'Entfernen' : 'Remove'">&#x2715;</button>
-          </div>
-        </li>
-      </ul>
-      <button class="btn-add" @click="openNew">
-        {{ lang === 'de' ? '+ Distribution hinzufügen' : '+ Add Distribution' }}
-      </button>
-    </template>
+          <div v-if="dist['dcat:accessURL']" class="dist-card-url">{{ dist['dcat:accessURL'] }}</div>
+          <div v-if="dist['dct:format']" class="dist-card-format">{{ dist['dct:format'] }}</div>
+        </div>
+        <div class="dist-card-actions">
+          <button class="btn-edit" @click="editDist(idx)">
+            {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
+          </button>
+          <button class="btn-remove" @click="removeDist(idx)">
+            {{ lang === 'de' ? 'Entfernen' : 'Remove' }}
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-add" @click="addNew">+ {{ lang === 'de' ? 'Distribution hinzufügen' : 'Add distribution' }}</button>
+    </div>
 
     <!-- Modal -->
     <DistributionModal
-      v-if="modalOpen"
+      v-if="editingDraft !== null"
+      :show="editingDraft !== null"
+      :modelValue="editingDraft"
       :lang="lang"
-      :distribution="editingDist"
-      :isNew="editingIdx === -1"
       @save="onSave"
-      @cancel="modalOpen = false"
+      @cancel="editingDraft = null"
     />
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import DistributionModal from '../DistributionModal.vue'
 
 const props = defineProps({
   field: Object,
-  lang: { type: String, default: 'en' },
-  modelValue: { type: Array, default: () => [] }
+  lang: String,
+  modelValue: {
+    type: Array,
+    default: () => []
+  }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
-const distributions = computed(() => Array.isArray(props.modelValue) ? props.modelValue : [])
+const editingDraft = ref(null)
+const editingIndex = ref(-1)
 
-const modalOpen = ref(false)
-const editingIdx = ref(-1)
-const editingDist = ref({})
-
-const formatCache = ref({})
-
-async function loadFormats() {
-  if (Object.keys(formatCache.value).length) return
-  try {
-    const res = await fetch('/vocabularies/file-format.json')
-    if (res.ok) {
-      const opts = await res.json()
-      for (const o of opts) {
-        formatCache.value[o.value] = o.label
-      }
-    }
-  } catch {}
+function addNew() {
+  editingIndex.value = -1
+  editingDraft.value = {}
 }
 
-loadFormats()
-
-function formatLabel(value) {
-  const label = formatCache.value[value]
-  if (!label) return value
-  return label[props.lang] || label.en || value
+function editDist(idx) {
+  editingIndex.value = idx
+  editingDraft.value = { ...(props.modelValue[idx] || {}) }
 }
 
-function openNew() {
-  editingIdx.value = -1
-  editingDist.value = {}
-  modalOpen.value = true
+function removeDist(idx) {
+  const updated = [...(props.modelValue || [])]
+  updated.splice(idx, 1)
+  emit('update:modelValue', updated)
 }
 
-function openEdit(idx) {
-  editingIdx.value = idx
-  editingDist.value = { ...distributions.value[idx] }
-  modalOpen.value = true
-}
-
-function onSave(dist) {
-  const list = [...distributions.value]
-  if (editingIdx.value === -1) {
-    list.push(dist)
+function onSave(saved) {
+  const updated = [...(props.modelValue || [])]
+  if (editingIndex.value === -1) {
+    updated.push(saved)
   } else {
-    list[editingIdx.value] = dist
+    updated[editingIndex.value] = saved
   }
-  emit('update:modelValue', list)
-  modalOpen.value = false
-}
-
-function remove(idx) {
-  const list = [...distributions.value]
-  list.splice(idx, 1)
-  emit('update:modelValue', list)
+  emit('update:modelValue', updated)
+  editingDraft.value = null
 }
 </script>
 
 <style scoped>
-.dist-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+.dist-editor { display: flex; flex-direction: column; gap: 0.5rem; }
 
-.dist-editor-label {
+.dist-label {
   font-size: var(--font-size-label);
   font-weight: 500;
   color: var(--color-text-muted);
 }
 
 .dist-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 2rem 1rem;
   border: 2px dashed var(--color-border);
   border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
   background: var(--color-surface-alt);
 }
 
 .dist-empty-hint {
-  margin: 0;
-  font-size: var(--font-size-base);
   color: var(--color-text-subtle);
-  text-align: center;
+  font-size: var(--font-size-label);
+  margin: 0 0 0.75rem;
 }
 
 .btn-add-first {
   background: var(--color-primary);
   color: white;
   border: none;
-  padding: 0.55rem 1.2rem;
   border-radius: var(--radius-md);
+  padding: 0.5rem 1.1rem;
   font-size: var(--font-size-base);
   cursor: pointer;
   font-weight: 500;
 }
+.btn-add-first:hover { background: var(--color-primary-dark); }
 
-.btn-add-first:hover {
-  background: var(--color-primary-dark);
-}
+.dist-list { display: flex; flex-direction: column; gap: 0.6rem; }
 
-.dist-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.dist-card {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.dist-item {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  align-items: center;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface-alt);
+  box-shadow: var(--shadow-card);
+  padding: 0.75rem 1rem;
+  gap: 1rem;
 }
 
-.dist-item-info {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  min-width: 0;
-  flex: 1;
-}
+.dist-card-body { flex: 1; min-width: 0; }
 
-.dist-item-title {
+.dist-card-title {
+  font-weight: 600;
   font-size: var(--font-size-base);
   color: var(--color-text);
-  font-weight: 500;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.dist-item-format {
+.dist-card-url {
   font-size: var(--font-size-sm);
   color: var(--color-primary);
-  background: var(--color-primary-bg);
-  border-radius: var(--radius-sm);
-  padding: 0.1rem 0.4rem;
   white-space: nowrap;
-  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.15rem;
 }
 
-.dist-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-shrink: 0;
-}
-
-.btn-edit-dist {
-  background: transparent;
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-sm);
+.dist-card-format {
   font-size: var(--font-size-sm);
-  cursor: pointer;
-}
-
-.btn-edit-dist:hover {
-  background: var(--color-primary-bg);
-}
-
-.btn-remove-dist {
-  background: transparent;
   color: var(--color-text-subtle);
-  border: 1px solid var(--color-border);
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
+  margin-top: 0.1rem;
 }
 
-.btn-remove-dist:hover {
-  background: var(--color-error-bg);
-  border-color: var(--color-error);
+.dist-card-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+
+.btn-edit, .btn-remove {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.7rem;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.btn-edit {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+.btn-edit:hover { background: var(--color-primary); color: white; }
+
+.btn-remove {
+  background: #fdf0f0;
   color: var(--color-error);
 }
+.btn-remove:hover { background: var(--color-error); color: white; }
 
 .btn-add {
-  align-self: flex-start;
-  background: var(--color-primary-bg);
-  color: var(--color-primary);
-  border: 1px solid var(--color-primary);
-  padding: 0.4rem 1rem;
+  background: none;
+  border: 2px dashed var(--color-border);
   border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
   font-size: var(--font-size-base);
+  color: var(--color-primary);
   cursor: pointer;
-  font-weight: 500;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
 }
-
-.btn-add:hover {
-  background: var(--color-primary);
-  color: white;
-}
+.btn-add:hover { border-color: var(--color-primary); background: var(--color-primary-bg); }
 </style>

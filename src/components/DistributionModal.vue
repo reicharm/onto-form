@@ -1,57 +1,61 @@
 <template>
-  <div class="dist-overlay" @click.self="$emit('cancel')">
-    <div class="dist-modal">
-      <div class="dist-modal-header">
-        <h2>{{ isNew ? (lang === 'de' ? 'Neue Distribution' : 'New Distribution') : (lang === 'de' ? 'Distribution bearbeiten' : 'Edit Distribution') }}</h2>
-        <button class="close-btn" @click="$emit('cancel')">&#x2715;</button>
-      </div>
-
-      <div class="dist-modal-body">
-        <!-- Access URL (required) -->
-        <div class="dist-field">
-          <label class="required">{{ lang === 'de' ? 'Zugriffs-URL' : 'Access URL' }}</label>
-          <input
-            type="url"
-            v-model="local['dcat:accessURL']"
-            placeholder="https://example.com/data"
-          />
+  <Teleport to="body">
+    <div v-if="show" class="dist-overlay" @click.self="$emit('cancel')">
+      <div class="dist-panel">
+        <div class="dist-header">
+          <h2>{{ lang === 'de' ? 'Distribution bearbeiten' : 'Edit Distribution' }}</h2>
+          <button class="close-btn" @click="$emit('cancel')">✕</button>
         </div>
 
-        <!-- Download URL -->
-        <div class="dist-field">
-          <label>{{ lang === 'de' ? 'Download-URL' : 'Download URL' }}</label>
-          <input
-            type="url"
-            v-model="local['dcat:downloadURL']"
-            placeholder="https://example.com/data/download"
-          />
-        </div>
+        <div class="dist-body">
+          <!-- dcat:accessURL (required) -->
+          <div class="field">
+            <label class="required">{{ lang === 'de' ? 'Zugangs-URL' : 'Access URL' }}</label>
+            <input
+              type="url"
+              :value="draft['dcat:accessURL'] || ''"
+              placeholder="https://…"
+              @input="draft['dcat:accessURL'] = $event.target.value"
+            />
+          </div>
 
-        <!-- Title -->
-        <div class="dist-field">
-          <label>{{ lang === 'de' ? 'Titel' : 'Title' }}</label>
-          <input
-            type="text"
-            v-model="local['dct:title']"
-            :placeholder="lang === 'de' ? 'Titel der Distribution' : 'Distribution title'"
-          />
-        </div>
+          <!-- dcat:downloadURL -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Download-URL' : 'Download URL' }}</label>
+            <input
+              type="url"
+              :value="draft['dcat:downloadURL'] || ''"
+              placeholder="https://…"
+              @input="draft['dcat:downloadURL'] = $event.target.value"
+            />
+          </div>
 
-        <!-- Description -->
-        <div class="dist-field">
-          <label>{{ lang === 'de' ? 'Beschreibung' : 'Description' }}</label>
-          <textarea
-            v-model="local['dct:description']"
-            rows="3"
-            :placeholder="lang === 'de' ? 'Beschreibung der Distribution …' : 'Description of the distribution …'"
-          />
-        </div>
+          <!-- dct:title -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Titel' : 'Title' }}</label>
+            <input
+              type="text"
+              :value="draft['dct:title'] || ''"
+              :placeholder="lang === 'de' ? 'Titel der Distribution' : 'Distribution title'"
+              @input="draft['dct:title'] = $event.target.value"
+            />
+          </div>
 
-        <div class="dist-field-row">
-          <!-- Format -->
-          <div class="dist-field">
+          <!-- dct:description -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Beschreibung' : 'Description' }}</label>
+            <textarea
+              :value="draft['dct:description'] || ''"
+              :placeholder="lang === 'de' ? 'Beschreibung …' : 'Description …'"
+              @input="draft['dct:description'] = $event.target.value"
+              rows="3"
+            />
+          </div>
+
+          <!-- dct:format -->
+          <div class="field">
             <label>{{ lang === 'de' ? 'Format' : 'Format' }}</label>
-            <select v-model="local['dct:format']">
+            <select :value="draft['dct:format'] || ''" @change="draft['dct:format'] = $event.target.value">
               <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
               <option v-for="opt in formatOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label?.[lang] || opt.label?.en || opt.value }}
@@ -59,130 +63,136 @@
             </select>
           </div>
 
-          <!-- Media Type -->
-          <div class="dist-field">
-            <label>{{ lang === 'de' ? 'MIME-Typ' : 'Media Type' }}</label>
+          <!-- dcat:mediaType -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Medientyp' : 'Media Type' }}</label>
             <input
               type="text"
-              v-model="local['dcat:mediaType']"
+              :value="draft['dcat:mediaType'] || ''"
               placeholder="text/csv"
+              @input="draft['dcat:mediaType'] = $event.target.value"
+            />
+          </div>
+
+          <!-- dct:license -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Lizenz' : 'License' }}</label>
+            <input
+              type="url"
+              :value="draft['dct:license'] || ''"
+              placeholder="https://creativecommons.org/licenses/by/4.0/"
+              @input="draft['dct:license'] = $event.target.value"
+            />
+          </div>
+
+          <!-- dcatap:availability -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Verfügbarkeit' : 'Availability' }}</label>
+            <select :value="draft['dcatap:availability'] || ''" @change="draft['dcatap:availability'] = $event.target.value">
+              <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
+              <option v-for="opt in availabilityOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label?.[lang] || opt.label?.en || opt.value }}
+              </option>
+            </select>
+          </div>
+
+          <!-- dct:issued -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Veröffentlichungsdatum' : 'Issued' }}</label>
+            <input
+              type="date"
+              :value="draft['dct:issued'] || ''"
+              @input="draft['dct:issued'] = $event.target.value"
+            />
+          </div>
+
+          <!-- dct:modified -->
+          <div class="field">
+            <label>{{ lang === 'de' ? 'Zuletzt geändert' : 'Modified' }}</label>
+            <input
+              type="date"
+              :value="draft['dct:modified'] || ''"
+              @input="draft['dct:modified'] = $event.target.value"
             />
           </div>
         </div>
 
-        <!-- License -->
-        <div class="dist-field">
-          <label>{{ lang === 'de' ? 'Lizenz-URI' : 'License URI' }}</label>
-          <input
-            type="url"
-            v-model="local['dct:license']"
-            placeholder="https://creativecommons.org/licenses/by/4.0/"
-          />
+        <div class="dist-actions">
+          <button class="btn-cancel" @click="$emit('cancel')">
+            {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
+          </button>
+          <button class="btn-save" :disabled="!draft['dcat:accessURL']" @click="save">
+            {{ lang === 'de' ? 'Speichern' : 'Save' }}
+          </button>
         </div>
-
-        <!-- Availability -->
-        <div class="dist-field">
-          <label>{{ lang === 'de' ? 'Verfügbarkeit' : 'Availability' }}</label>
-          <select v-model="local['dcatap:availability']">
-            <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
-            <option v-for="opt in availabilityOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label?.[lang] || opt.label?.en || opt.value }}
-            </option>
-          </select>
-        </div>
-
-        <div class="dist-field-row">
-          <!-- Issued -->
-          <div class="dist-field">
-            <label>{{ lang === 'de' ? 'Veröffentlichungsdatum' : 'Publication Date' }}</label>
-            <input type="date" v-model="local['dct:issued']" />
-          </div>
-
-          <!-- Modified -->
-          <div class="dist-field">
-            <label>{{ lang === 'de' ? 'Änderungsdatum' : 'Modification Date' }}</label>
-            <input type="date" v-model="local['dct:modified']" />
-          </div>
-        </div>
-
-        <div v-if="accessURLError" class="dist-error">
-          {{ lang === 'de' ? 'Zugriffs-URL ist erforderlich.' : 'Access URL is required.' }}
-        </div>
-      </div>
-
-      <div class="dist-modal-actions">
-        <button class="btn-cancel" @click="$emit('cancel')">
-          {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
-        </button>
-        <button class="btn-save" @click="save">
-          {{ lang === 'de' ? 'Speichern' : 'Save' }}
-        </button>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 
 const props = defineProps({
-  lang: { type: String, default: 'en' },
-  distribution: { type: Object, default: () => ({}) },
-  isNew: { type: Boolean, default: false }
+  modelValue: {
+    type: Object,
+    default: () => ({})
+  },
+  lang: String,
+  show: Boolean
 })
 
 const emit = defineEmits(['save', 'cancel'])
 
-const local = reactive({ ...props.distribution })
-const accessURLError = ref(false)
+const draft = ref({ ...(props.modelValue || {}) })
+
+watch(() => props.modelValue, (val) => {
+  draft.value = { ...(val || {}) }
+}, { deep: true })
 
 const formatOptions = ref([])
-const availabilityOptions = ref([])
 
 onMounted(async () => {
   try {
-    const fmtRes = await fetch('/vocabularies/file-format.json')
-    if (fmtRes.ok) formatOptions.value = await fmtRes.json()
-  } catch {}
-  try {
-    const avRes = await fetch('/vocabularies/availability.json')
-    if (avRes.ok) availabilityOptions.value = await avRes.json()
-  } catch {}
+    const res = await fetch('/vocabularies/file-format.json')
+    if (res.ok) formatOptions.value = await res.json()
+  } catch {
+    // fallback: empty list
+  }
 })
 
+const availabilityOptions = [
+  { value: 'http://data.europa.eu/r5r/availability/stable', label: { de: 'Stabil', en: 'Stable' } },
+  { value: 'http://data.europa.eu/r5r/availability/available', label: { de: 'Verfügbar', en: 'Available' } },
+  { value: 'http://data.europa.eu/r5r/availability/experimental', label: { de: 'Experimentell', en: 'Experimental' } },
+  { value: 'http://data.europa.eu/r5r/availability/temporary', label: { de: 'Vorübergehend', en: 'Temporary' } }
+]
+
 function save() {
-  if (!local['dcat:accessURL']) {
-    accessURLError.value = true
-    return
-  }
-  accessURLError.value = false
-  emit('save', { ...local })
+  emit('save', { ...draft.value })
 }
 </script>
 
 <style scoped>
 .dist-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
 }
 
-.dist-modal {
+.dist-panel {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   width: 90%;
-  max-width: 680px;
-  max-height: 90vh;
+  max-width: 640px;
+  max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
-.dist-modal-header {
+.dist-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -190,42 +200,27 @@ function save() {
   border-bottom: 1px solid var(--color-border);
 }
 
-.dist-modal-header h2 {
+.dist-header h2 {
   font-size: var(--font-size-heading);
   color: var(--color-primary);
   margin: 0;
 }
 
 .close-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  color: var(--color-text-subtle);
-  line-height: 1;
-  padding: 0.2rem;
+  background: none; border: none; font-size: 1.2rem;
+  cursor: pointer; color: var(--color-text-subtle); line-height: 1;
 }
 
-.dist-modal-body {
+.dist-body {
   flex: 1;
   overflow-y: auto;
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
 }
 
-.dist-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-  flex: 1;
-}
-
-.dist-field-row {
-  display: flex;
-  gap: 1rem;
-}
+.field { display: flex; flex-direction: column; gap: 0.3rem; }
 
 label {
   font-size: var(--font-size-label);
@@ -233,47 +228,34 @@ label {
   color: var(--color-text-muted);
 }
 
-label.required::after {
-  content: ' *';
-  color: var(--color-error);
-}
+label.required::after { content: ' *'; color: var(--color-error); }
 
 input[type="text"],
 input[type="url"],
 input[type="date"],
-select,
-textarea {
+textarea,
+select {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
   background: var(--color-surface);
-  font-family: inherit;
+  color: var(--color-text);
   transition: border-color 0.2s;
+  font-family: inherit;
 }
 
-input:focus,
-select:focus,
-textarea:focus {
+input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--color-primary);
   box-shadow: var(--focus-ring);
 }
 
-textarea {
-  resize: vertical;
-}
+textarea { resize: vertical; }
 
-.dist-error {
-  font-size: var(--font-size-sm);
-  color: var(--color-error);
-  background: var(--color-error-bg);
-  border: 1px solid #f5c6cb;
-  border-radius: var(--radius-sm);
-  padding: 0.4rem 0.75rem;
-}
+select { cursor: pointer; }
 
-.dist-modal-actions {
+.dist-actions {
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
@@ -281,14 +263,12 @@ textarea {
   border-top: 1px solid var(--color-border);
 }
 
-.btn-cancel,
-.btn-save {
+.btn-cancel, .btn-save {
   padding: 0.5rem 1.1rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  font-size: var(--font-size-base);
+  font-size: 0.9rem;
   border: none;
-  font-weight: 500;
 }
 
 .btn-cancel {
@@ -299,9 +279,14 @@ textarea {
 .btn-save {
   background: var(--color-primary);
   color: white;
+  font-weight: 500;
 }
 
-.btn-save:hover {
-  background: var(--color-primary-dark);
+.btn-save:disabled {
+  background: #a0b4c5;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
+
+.btn-save:not(:disabled):hover { background: var(--color-primary-dark); }
 </style>
