@@ -620,6 +620,7 @@
     "dcat:distribution": {
       "id": "dcat:distribution",
       "type": "distribution-editor",
+      "distributionMode": "modal",
       "label": {
         "de": "Distributionen",
         "en": "Distributions"

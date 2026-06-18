@@ -8,113 +8,13 @@
         </div>
 
         <div class="dist-body">
-          <!-- dcat:accessURL (required) -->
-          <div class="field">
-            <label class="required">{{ lang === 'de' ? 'Zugangs-URL' : 'Access URL' }}</label>
-            <input
-              type="url"
-              :value="draft['dcat:accessURL'] || ''"
-              placeholder="https://…"
-              @input="draft['dcat:accessURL'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dcat:downloadURL -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Download-URL' : 'Download URL' }}</label>
-            <input
-              type="url"
-              :value="draft['dcat:downloadURL'] || ''"
-              placeholder="https://…"
-              @input="draft['dcat:downloadURL'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dct:title -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Titel' : 'Title' }}</label>
-            <input
-              type="text"
-              :value="draft['dct:title'] || ''"
-              :placeholder="lang === 'de' ? 'Titel der Distribution' : 'Distribution title'"
-              @input="draft['dct:title'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dct:description -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Beschreibung' : 'Description' }}</label>
-            <textarea
-              :value="draft['dct:description'] || ''"
-              :placeholder="lang === 'de' ? 'Beschreibung …' : 'Description …'"
-              @input="draft['dct:description'] = $event.target.value"
-              rows="3"
-            />
-          </div>
-
-          <!-- dct:format -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Format' : 'Format' }}</label>
-            <select :value="draft['dct:format'] || ''" @change="draft['dct:format'] = $event.target.value">
-              <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
-              <option v-for="opt in formatOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label?.[lang] || opt.label?.en || opt.value }}
-              </option>
-            </select>
-          </div>
-
-          <!-- dcat:mediaType -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Medientyp' : 'Media Type' }}</label>
-            <input
-              type="text"
-              :value="draft['dcat:mediaType'] || ''"
-              placeholder="text/csv"
-              @input="draft['dcat:mediaType'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dct:license -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Lizenz' : 'License' }}</label>
-            <input
-              type="url"
-              :value="draft['dct:license'] || ''"
-              placeholder="https://creativecommons.org/licenses/by/4.0/"
-              @input="draft['dct:license'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dcatap:availability -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Verfügbarkeit' : 'Availability' }}</label>
-            <select :value="draft['dcatap:availability'] || ''" @change="draft['dcatap:availability'] = $event.target.value">
-              <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
-              <option v-for="opt in availabilityOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label?.[lang] || opt.label?.en || opt.value }}
-              </option>
-            </select>
-          </div>
-
-          <!-- dct:issued -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Veröffentlichungsdatum' : 'Issued' }}</label>
-            <input
-              type="date"
-              :value="draft['dct:issued'] || ''"
-              @input="draft['dct:issued'] = $event.target.value"
-            />
-          </div>
-
-          <!-- dct:modified -->
-          <div class="field">
-            <label>{{ lang === 'de' ? 'Zuletzt geändert' : 'Modified' }}</label>
-            <input
-              type="date"
-              :value="draft['dct:modified'] || ''"
-              @input="draft['dct:modified'] = $event.target.value"
-            />
-          </div>
+          <DistributionForm
+            :modelValue="draft"
+            :lang="lang"
+            :formatOptions="formatOptions"
+            :availabilityOptions="availabilityOptions"
+            @update:modelValue="draft = $event"
+          />
         </div>
 
         <div class="dist-actions">
@@ -131,15 +31,15 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
+import DistributionForm from './fields/DistributionForm.vue'
 
 const props = defineProps({
-  modelValue: {
-    type: Object,
-    default: () => ({})
-  },
+  modelValue: { type: Object, default: () => ({}) },
   lang: String,
-  show: Boolean
+  show: Boolean,
+  formatOptions: { type: Array, default: () => [] },
+  availabilityOptions: { type: Array, default: () => [] }
 })
 
 const emit = defineEmits(['save', 'cancel'])
@@ -149,24 +49,6 @@ const draft = ref({ ...(props.modelValue || {}) })
 watch(() => props.modelValue, (val) => {
   draft.value = { ...(val || {}) }
 }, { deep: true })
-
-const formatOptions = ref([])
-
-onMounted(async () => {
-  try {
-    const res = await fetch('/vocabularies/file-format.json')
-    if (res.ok) formatOptions.value = await res.json()
-  } catch {
-    // fallback: empty list
-  }
-})
-
-const availabilityOptions = [
-  { value: 'http://data.europa.eu/r5r/availability/stable', label: { de: 'Stabil', en: 'Stable' } },
-  { value: 'http://data.europa.eu/r5r/availability/available', label: { de: 'Verfügbar', en: 'Available' } },
-  { value: 'http://data.europa.eu/r5r/availability/experimental', label: { de: 'Experimentell', en: 'Experimental' } },
-  { value: 'http://data.europa.eu/r5r/availability/temporary', label: { de: 'Vorübergehend', en: 'Temporary' } }
-]
 
 function save() {
   emit('save', { ...draft.value })
@@ -185,7 +67,7 @@ function save() {
   background: var(--color-surface);
   border-radius: var(--radius-lg);
   width: 90%;
-  max-width: 640px;
+  max-width: 680px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
@@ -198,6 +80,7 @@ function save() {
   align-items: center;
   padding: 1rem 1.5rem;
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .dist-header h2 {
@@ -210,50 +93,13 @@ function save() {
   background: none; border: none; font-size: 1.2rem;
   cursor: pointer; color: var(--color-text-subtle); line-height: 1;
 }
+.close-btn:hover { color: var(--color-error); }
 
 .dist-body {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
+  padding: 1.25rem 1.5rem;
 }
-
-.field { display: flex; flex-direction: column; gap: 0.3rem; }
-
-label {
-  font-size: var(--font-size-label);
-  font-weight: 500;
-  color: var(--color-text-muted);
-}
-
-label.required::after { content: ' *'; color: var(--color-error); }
-
-input[type="text"],
-input[type="url"],
-input[type="date"],
-textarea,
-select {
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  background: var(--color-surface);
-  color: var(--color-text);
-  transition: border-color 0.2s;
-  font-family: inherit;
-}
-
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: var(--focus-ring);
-}
-
-textarea { resize: vertical; }
-
-select { cursor: pointer; }
 
 .dist-actions {
   display: flex;
@@ -261,6 +107,7 @@ select { cursor: pointer; }
   justify-content: flex-end;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .btn-cancel, .btn-save {
@@ -269,6 +116,7 @@ select { cursor: pointer; }
   cursor: pointer;
   font-size: 0.9rem;
   border: none;
+  font-weight: 500;
 }
 
 .btn-cancel {
@@ -279,7 +127,6 @@ select { cursor: pointer; }
 .btn-save {
   background: var(--color-primary);
   color: white;
-  font-weight: 500;
 }
 
 .btn-save:disabled {
