@@ -75,6 +75,16 @@
         "dcatap:applicableLegislation",
         "dcatap:hvdCategory"
       ]
+    },
+    {
+      "id": "distributions",
+      "label": {
+        "de": "Distributionen",
+        "en": "Distributions"
+      },
+      "fields": [
+        "dcat:distribution"
+      ]
     }
   ],
   "fields": {
@@ -606,6 +616,20 @@
       "order": 19,
       "visible": true,
       "visibleIf": "ifHVDLegislation"
+    },
+    "dcat:distribution": {
+      "id": "dcat:distribution",
+      "type": "distribution-editor",
+      "label": {
+        "de": "Distributionen",
+        "en": "Distributions"
+      },
+      "hint": {
+        "de": "Dateien, Endpunkte oder andere Zugangsmöglichkeiten zu diesem Datensatz",
+        "en": "Files, endpoints or other access options for this dataset"
+      },
+      "order": 20,
+      "visible": true
     }
   }
 }

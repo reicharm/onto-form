@@ -1,0 +1,9 @@
+[
+  { "value": "http://publications.europa.eu/resource/authority/file-type/CSV", "label": { "de": "CSV", "en": "CSV" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/JSON", "label": { "de": "JSON", "en": "JSON" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/XML", "label": { "de": "XML", "en": "XML" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/PDF", "label": { "de": "PDF", "en": "PDF" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/GEOJSON", "label": { "de": "GeoJSON", "en": "GeoJSON" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/RDF_TURTLE", "label": { "de": "Turtle (RDF)", "en": "Turtle (RDF)" } },
+  { "value": "http://publications.europa.eu/resource/authority/file-type/OP_DATPRO", "label": { "de": "Sonstige", "en": "Other" } }
+]
