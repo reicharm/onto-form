@@ -118,7 +118,7 @@ function parsePropertyShape(triples, store) {
     },
     type,
     required: minCount > 0,
-    multiple: !maxCount || parseInt(maxCount) > 1,
+    multiple: maxCount !== undefined && parseInt(maxCount) !== 1,
     order,
     options,
     visible: true
