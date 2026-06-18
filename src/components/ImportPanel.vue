@@ -9,13 +9,14 @@
       <div class="import-tabs">
         <button :class="{ active: activeTab === 'jsonld' }" @click="activeTab = 'jsonld'">JSON-LD</button>
         <button :class="{ active: activeTab === 'turtle' }" @click="activeTab = 'turtle'">Turtle</button>
+        <button :class="{ active: activeTab === 'rdfxml' }" @click="activeTab = 'rdfxml'">RDF/XML</button>
       </div>
 
       <div class="import-body">
         <div class="file-row">
           <label class="btn-file">
             {{ lang === 'de' ? 'Datei öffnen …' : 'Open file …' }}
-            <input type="file" :accept="activeTab === 'jsonld' ? '.json,.jsonld' : '.ttl,.turtle'" @change="loadFile" />
+            <input type="file" :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'" @change="loadFile" />
           </label>
           <span v-if="filename" class="filename">{{ filename }}</span>
         </div>
@@ -58,11 +59,13 @@ const text = ref('')
 const filename = ref('')
 const error = ref('')
 
-const placeholder = computed(() =>
-  activeTab.value === 'jsonld'
-    ? '{\n  "@context": { ... },\n  "@type": "dcat:Dataset",\n  "dct:title": { "de": "...", "en": "..." },\n  ...\n}'
-    : '@prefix dct: <http://purl.org/dc/terms/> .\n<https://...> a dcat:Dataset ;\n    dct:title "..."@de .'
-)
+const placeholder = computed(() => {
+  if (activeTab.value === 'jsonld')
+    return '{\n  "@context": { ... },\n  "@type": "dcat:Dataset",\n  "dct:title": { "de": "...", "en": "..." },\n  ...\n}'
+  if (activeTab.value === 'turtle')
+    return '@prefix dct: <http://purl.org/dc/terms/> .\n<https://...> a dcat:Dataset ;\n    dct:title "..."@de .'
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"\n         xmlns:dct="http://purl.org/dc/terms/"\n         xmlns:dcat="http://www.w3.org/ns/dcat#">\n  <dcat:Dataset rdf:about="https://...">\n    <dct:title xml:lang="de">...</dct:title>\n  </dcat:Dataset>\n</rdf:RDF>'
+})
 
 function loadFile(event) {
   const file = event.target.files[0]
@@ -82,8 +85,10 @@ async function doImport() {
     let formData
     if (activeTab.value === 'jsonld') {
       formData = importer.fromJSONLD(text.value, props.config)
-    } else {
+    } else if (activeTab.value === 'turtle') {
       formData = await importer.fromTurtle(text.value, props.config)
+    } else {
+      formData = importer.fromRDFXML(text.value, props.config)
     }
     emit('import', formData)
   } catch (err) {
