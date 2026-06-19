@@ -24,6 +24,14 @@ const basicConfig = {
         { id: 'vcard:fn', type: 'text' },
         { id: 'vcard:hasEmail', type: 'text' }
       ]
+    },
+    'dct:temporal': {
+      type: 'object',
+      rdfType: 'dct:PeriodOfTime',
+      subFields: [
+        { id: 'dcat:startDate', type: 'date' },
+        { id: 'dcat:endDate', type: 'date' }
+      ]
     }
   }
 }
@@ -157,6 +165,97 @@ PREFIX dcat: <http://www.w3.org/ns/dcat#>
 `
       const result = await importer.fromTurtle(turtle, basicConfig)
       expect(result['dcat:contactPoint']['vcard:hasEmail']).toBe('info@example.com')
+    })
+  })
+
+  describe('fromRDFXML', () => {
+    it('imports langstring from xml:lang attribute', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dct="http://purl.org/dc/terms/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#">
+  <dcat:Dataset rdf:about="https://example.com/ds/1">
+    <dct:title xml:lang="de">Titel</dct:title>
+    <dct:title xml:lang="en">Title</dct:title>
+  </dcat:Dataset>
+</rdf:RDF>`
+      const result = importer.fromRDFXML(xml, basicConfig)
+      expect(result['dct:title']['de']).toBe('Titel')
+      expect(result['dct:title']['en']).toBe('Title')
+    })
+
+    it('imports identifier from rdf:about', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dct="http://purl.org/dc/terms/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#">
+  <dcat:Dataset rdf:about="https://example.com/ds/1">
+  </dcat:Dataset>
+</rdf:RDF>`
+      const result = importer.fromRDFXML(xml, basicConfig)
+      expect(result['dct:identifier']).toBe('https://example.com/ds/1')
+    })
+
+    it('imports URI values from rdf:resource', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dct="http://purl.org/dc/terms/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#">
+  <dcat:Dataset>
+    <dcat:theme rdf:resource="http://eurovoc.europa.eu/100141"/>
+  </dcat:Dataset>
+</rdf:RDF>`
+      const result = importer.fromRDFXML(xml, basicConfig)
+      expect(result['dcat:theme']).toContain('http://eurovoc.europa.eu/100141')
+    })
+
+    it('imports sub-object blank node with rdf:type', () => {
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:dct="http://purl.org/dc/terms/"
+         xmlns:dcat="http://www.w3.org/ns/dcat#">
+  <dcat:Dataset>
+    <dct:temporal>
+      <dct:PeriodOfTime>
+        <dcat:startDate rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2002-01-01</dcat:startDate>
+        <dcat:endDate rdf:datatype="http://www.w3.org/2001/XMLSchema#date">2024-01-01</dcat:endDate>
+      </dct:PeriodOfTime>
+    </dct:temporal>
+  </dcat:Dataset>
+</rdf:RDF>`
+      const result = importer.fromRDFXML(xml, basicConfig)
+      expect(result['dct:temporal']['dcat:startDate']).toBe('2002-01-01')
+      expect(result['dct:temporal']['dcat:endDate']).toBe('2024-01-01')
+      expect(result['dct:temporal']['rdf:type']).toBe('dct:PeriodOfTime')
+    })
+
+    it('throws on malformed XML', () => {
+      expect(() => importer.fromRDFXML('<broken', basicConfig)).toThrow()
+    })
+
+    it('throws when no dcat:Dataset element found', () => {
+      const xml = `<?xml version="1.0"?><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"></rdf:RDF>`
+      expect(() => importer.fromRDFXML(xml, basicConfig)).toThrow('dcat:Dataset')
+    })
+  })
+
+  describe('fromTurtle – rdf:type in sub-objects', () => {
+    it('preserves rdf:type from blank node in object field', async () => {
+      const turtle = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<https://example.com/ds/1> a dcat:Dataset ;
+    dct:temporal [
+        a dct:PeriodOfTime ;
+        dcat:startDate "2002-01-01"^^<http://www.w3.org/2001/XMLSchema#date> ;
+        dcat:endDate   "2024-01-01"^^<http://www.w3.org/2001/XMLSchema#date>
+    ] .
+`
+      const result = await importer.fromTurtle(turtle, basicConfig)
+      expect(result['dct:temporal']['dcat:startDate']).toBe('2002-01-01')
+      expect(result['dct:temporal']['dcat:endDate']).toBe('2024-01-01')
+      expect(result['dct:temporal']['rdf:type']).toBe('dct:PeriodOfTime')
     })
   })
 

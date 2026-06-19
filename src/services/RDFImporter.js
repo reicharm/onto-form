@@ -94,6 +94,12 @@ export class RDFImporter {
       if (innerEl) {
         const bnodeId = `_:bn${bnodeCounter++}`
         const subQuads = []
+        // If the inner element is not rdf:Description, its tag name encodes rdf:type
+        const isDescription = innerEl.namespaceURI === RDF_NS && innerEl.localName === 'Description'
+        if (!isDescription) {
+          const typeURI = innerEl.namespaceURI + innerEl.localName
+          subQuads.push({ subject: { value: bnodeId }, predicate: { value: RDF_NS + 'type' }, object: { termType: 'NamedNode', value: typeURI } })
+        }
         for (const sub of innerEl.children) {
           const subFullURI = sub.namespaceURI + sub.localName
           const subResource = sub.getAttributeNS(RDF_NS, 'resource')

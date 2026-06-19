@@ -244,6 +244,26 @@ Für Felder vom Typ `object`:
 
 Unterfelder unterstützen `required` und `validate`, aber keine weiteren verschachtelten `subFields`.
 
+Unterstützte Subfeld-Typen: `text`, `textarea`, `uri`, `date`, `select`, `langstring`.
+
+### `rdfType`
+
+Optionale Eigenschaft auf `object`-Feldern. Gibt den RDF-Typ des Blank Nodes an:
+
+```json
+"dct:temporal": {
+  "type": "object",
+  "rdfType": "dct:PeriodOfTime",
+  "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
+  "subFields": [
+    { "id": "dcat:startDate", "type": "date", "label": { "de": "Von", "en": "Start date" } },
+    { "id": "dcat:endDate",   "type": "date", "label": { "de": "Bis", "en": "End date" } }
+  ]
+}
+```
+
+Der Typ wird beim Export als `a dct:PeriodOfTime` (Turtle), `<dct:PeriodOfTime>` (RDF/XML) bzw. `"@type": "dct:PeriodOfTime"` (JSON-LD) ausgegeben und beim Import round-trip-sicher eingelesen.
+
 ---
 
 ## Beispiel: Vollständige Feldkonfiguration

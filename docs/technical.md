@@ -18,8 +18,8 @@ App.vue
 │   ├── fields/DistributionEditor.vue  Distributions-Editor (Inline- und Modal-Modus)
 │   └── fields/DistributionForm.vue    Gemeinsames Formular für eine einzelne Distribution
 ├── DistributionModal.vue       Modal-Overlay für Distribution-Bearbeitung
-├── ExportPanel.vue             Export-Dialog (JSON-LD / Turtle)
-├── ImportPanel.vue             Import-Dialog (JSON-LD / Turtle)
+├── ExportPanel.vue             Export-Dialog (JSON-LD / Turtle / RDF/XML)
+├── ImportPanel.vue             Import-Dialog (JSON-LD / Turtle / RDF/XML)
 └── services/
     ├── FormConfigResolver.js   Konfigurationsauflösung (SHACL + UI-Config + Vokabulare)
     ├── SHACLParser.js          Parst SHACL-Shapes aus Turtle
@@ -95,16 +95,16 @@ Props: `config`, `lang`, `modelValue`, `wizard`
 
 ### ImportPanel.vue
 
-Overlay-Komponente für den Import. Zwei Tabs: JSON-LD und Turtle.
+Overlay-Komponente für den Import. Drei Tabs: JSON-LD, Turtle und RDF/XML.
 
 - Datei-Upload via `<input type="file">` oder direktes Einfügen von Text
-- Ruft `RDFImporter.fromJSONLD()` oder `RDFImporter.fromTurtle()` auf
+- Ruft `RDFImporter.fromJSONLD()`, `RDFImporter.fromTurtle()` oder `RDFImporter.fromRDFXML()` auf
 - Emittiert `import`-Event mit dem geparsten Datenobjekt an `App.vue`
 - Importierte Werte werden mit `formData` gemergt (bestehende Werte bleiben erhalten)
 
 ### ExportPanel.vue
 
-Zeigt JSON-LD und Turtle aus `RDFExporter` an; Copy-to-Clipboard.
+Zeigt JSON-LD, Turtle und RDF/XML aus `RDFExporter` an; Copy-to-Clipboard und Download.
 
 ---
 
@@ -146,14 +146,14 @@ Rückgabe immer: `[{value: string, label: {de?, en?, ...}}]`
 
 ### RDFImporter.js
 
-Wandelt JSON-LD oder Turtle in ein `formData`-Objekt um.
+Wandelt JSON-LD, Turtle oder RDF/XML in ein `formData`-Objekt um.
 
 **JSON-LD** (`fromJSONLD(text, config)`):
 - Parst JSON und iteriert über konfigurierte Felder
 - Typ-bewusstes Deserialisieren:
   - `langstring` → Sprachmap `{de: "...", en: "..."}`
   - `multiselect` → Array von URIs
-  - `object` → Unterfeld-Map
+  - `object` → Unterfeld-Map (inkl. `rdf:type`, falls vorhanden)
   - `date` → auf Datum gekürzt (ISO 8601 ohne Zeit)
   - mehrwertige Felder → Arrays
 
@@ -161,13 +161,24 @@ Wandelt JSON-LD oder Turtle in ein `formData`-Objekt um.
 - Normalisiert SPARQL-`PREFIX`-Deklarationen zu `@prefix` (n3.js-Kompatibilität)
 - Parst via n3.js
 - Quad-basiertes Mapping auf Felder
-- Publisher-URIs: werden im geparsten Graphen nachgeschlagen (Quads des Publisher-Knotens)
+- Blank-Node-Sub-Objekte: `rdf:type` wird als `rdf:type`-Schlüssel im Ergebnis bewahrt
+
+**RDF/XML** (`fromRDFXML(text, config)`):
+- Parst via nativen `DOMParser` (Browser) bzw. jsdom (Tests)
+- Erkennt `dcat:Dataset`-Element via Namespace
+- `rdf:about` → `dct:identifier`
+- `xml:lang` → Sprachkennzeichen
+- `rdf:resource` → URI-Werte
+- Typisierte Sub-Elemente (z. B. `<dct:PeriodOfTime>`) → `rdf:type` im Ergebnis
 
 Ungültige Werte (scheitern am Validator) werden **stillschweigend verworfen**. Das Feld zeigt dann einen Validierungsfehler in der Formularoberfläche.
 
 ### RDFExporter.js
 
-Wandelt `formData` in JSON-LD und Turtle um. Unterstützt alle Feldtypen; nutzt konfigurierte RDF-Prädikate aus der SHACL-Shape.
+Wandelt `formData` in JSON-LD, Turtle oder RDF/XML um. Unterstützt alle Feldtypen.
+
+- Sub-Objekte mit `rdf:type` (z. B. `dct:PeriodOfTime`): werden als typisierte Blank Nodes ausgegeben (`a dct:PeriodOfTime` in Turtle, `<dct:PeriodOfTime>` in RDF/XML, `@type` in JSON-LD)
+- Datumswerte in Sub-Objekten erhalten `^^xsd:date`-Typisierung in Turtle und RDF/XML
 
 ---
 
