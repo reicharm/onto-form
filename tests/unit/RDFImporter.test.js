@@ -88,6 +88,12 @@ describe('RDFImporter', () => {
       expect(result['dct:issued']).toBe('2024-01-15')
     })
 
+    it('truncates datetime with timezone offset to date', () => {
+      const jsonld = JSON.stringify({ 'dct:issued': '2024-06-19T14:30:00+02:00' })
+      const result = importer.fromJSONLD(jsonld, basicConfig)
+      expect(result['dct:issued']).toBe('2024-06-19')
+    })
+
     it('returns empty object when config has no fields', () => {
       const jsonld = JSON.stringify({ 'dct:title': { de: 'Test' } })
       expect(importer.fromJSONLD(jsonld, {})).toEqual({})
@@ -422,6 +428,22 @@ PREFIX dcat: <http://www.w3.org/ns/dcat#>
 `
       const result = await importer.fromTurtle(turtle, distConfig)
       expect(result['dcat:distribution'][0]['dct:issued']).toBe('2024-03-15')
+    })
+
+    it('truncates dateTime with timezone to date in distribution fields', async () => {
+      const turtle = `
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.com/ds/tz> a dcat:Dataset ;
+    dcat:distribution [
+        dcat:accessURL <https://example.com/f.csv> ;
+        dct:issued "2024-06-19T14:30:00+02:00"^^xsd:dateTime
+    ] .
+`
+      const result = await importer.fromTurtle(turtle, distConfig)
+      expect(result['dcat:distribution'][0]['dct:issued']).toBe('2024-06-19')
     })
 
     it('imports dcatap:availability using dcatap prefix', async () => {

@@ -148,6 +148,25 @@ describe('RDFExporter', () => {
       expect(result).toContain('"2002-01-01"^^xsd:date')
       expect(result).toContain('"2024-01-01"^^xsd:date')
     })
+
+    it('serializes WKT geometry with ^^geo:wktLiteral', () => {
+      const fd = { 'locn:geometry': 'POLYGON((14.12 46.37, 17.16 46.37, 17.16 49.02, 14.12 49.02, 14.12 46.37))' }
+      const result = exporter.toTurtle(fd)
+      expect(result).toContain('^^geo:wktLiteral')
+      expect(result).toContain('POLYGON(')
+    })
+
+    it('serializes WKT inside a sub-object with ^^geo:wktLiteral', () => {
+      const fd = { 'dct:spatial': { 'rdf:type': 'dct:Location', 'locn:geometry': 'POINT(16.37 48.21)' } }
+      const result = exporter.toTurtle(fd)
+      expect(result).toContain('^^geo:wktLiteral')
+      expect(result).toContain('POINT(')
+    })
+
+    it('includes geo prefix declaration', () => {
+      const result = exporter.toTurtle({})
+      expect(result).toContain('@prefix geo: <http://www.opengis.net/ont/geosparql#>')
+    })
   })
 
   describe('toRDFXML', () => {
@@ -195,6 +214,26 @@ describe('RDFExporter', () => {
     it('escapes special XML characters', () => {
       const result = exporter.toRDFXML({ 'dct:description': { en: 'A & B < C' } })
       expect(result).toContain('A &amp; B &lt; C')
+    })
+
+    it('serializes WKT geometry with geo:wktLiteral datatype', () => {
+      const fd = { 'locn:geometry': 'POLYGON((14.12 46.37, 17.16 46.37, 17.16 49.02, 14.12 49.02, 14.12 46.37))' }
+      const result = exporter.toRDFXML(fd)
+      expect(result).toContain('rdf:datatype="http://www.opengis.net/ont/geosparql#wktLiteral"')
+      expect(result).toContain('POLYGON(')
+    })
+
+    it('serializes WKT inside sub-object with geo:wktLiteral datatype', () => {
+      const fd = { 'dct:spatial': { 'rdf:type': 'dct:Location', 'locn:geometry': 'POINT(16.37 48.21)' } }
+      const result = exporter.toRDFXML(fd)
+      expect(result).toContain('rdf:datatype="http://www.opengis.net/ont/geosparql#wktLiteral"')
+      expect(result).toContain('POINT(')
+    })
+
+    it('omits empty formData gracefully', () => {
+      const result = exporter.toRDFXML({})
+      expect(result).toContain('<dcat:Dataset>')
+      expect(result).toContain('</dcat:Dataset>')
     })
   })
 })

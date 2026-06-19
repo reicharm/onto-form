@@ -35,7 +35,8 @@ src/config/
 ├── fieldComputes.js            Benannte Compute-Funktionen für automatische Feldwerte
 ├── fieldValidators.js          Benannte Validatoren (isURI, isEmail, …)
 ├── fieldTransforms.js          Benannte Transforms (display ↔ encode, z.B. uriSuffix)
-└── fieldVisibility.js          Benannte Visibility-Funktionen (dynamische Feldsichtbarkeit)
+├── fieldVisibility.js          Benannte Visibility- und RequiredIf-Funktionen
+└── idGenerators.js             Benannte ID-Generatoren (uuid, slugDate, nanoid)
 src/composables/
 └── useValidation.js            Formular- und Einzelfeld-Validierung
 src/styles/
@@ -200,14 +201,40 @@ Neue Transforms: Eintrag in `fieldTransforms.js` als `{ display(stored, opts), e
 
 ---
 
-## Bedingte Feldsichtbarkeit
+## ID-Generatoren
+
+`src/config/idGenerators.js` exportiert:
+
+- `idGenerators`: benannte Generatorfunktionen `(opts?) => string | Promise<string>`
+- `generateId(name, opts)` → `Promise<string | null>`: ruft einen benannten Generator auf
+
+`TextField` und `URIField` rufen `generateId` auf dem Mount auf (wenn das Feld leer ist) und zeigen einen ↺-Button für manuelle Neugenerierung.
+
+Signatur eines Generators:
+
+```js
+export const idGenerators = {
+  meinGenerator: async (opts) => {
+    // opts = field.generateOptions aus der UI-Config
+    const id = await fetch('...')
+    return opts?.prefix ? opts.prefix + id : id
+  }
+}
+```
+
+Die Rückgabe ist immer der **gespeicherte Wert** (also ggf. inkl. Prefix). Wenn `transform: uriSuffix` konfiguriert ist, zeigt das Eingabefeld nur den Suffix — die Kombination aus Generator und Transform funktioniert nahtlos.
+
+---
+
+## Bedingte Feldsichtbarkeit und bedingte Pflichtfelder
 
 `src/config/fieldVisibility.js` exportiert:
 
 - `fieldVisibilityFns`: benannte Funktionen `(formData) => boolean`
-- `evaluateVisibleIf(fnName, formData)`: wertet eine Funktion aus; gibt `true` zurück bei unbekanntem Namen
+- `evaluateVisibleIf(fnName, formData)`: wertet eine Funktion aus; gibt `true` bei unbekanntem Namen
+- `evaluateRequiredIf(fnName, formData)`: wertet dieselben Funktionen aus; gibt `false` bei unbekanntem Namen
 
-`MetadataForm.vue` ruft `evaluateVisibleIf` in `groupFields()` auf — bei jedem Render reaktiv. Felder mit nicht erfüllter Bedingung werden aus dem DOM entfernt und überspringen die Validierung.
+`MetadataForm.vue` ruft `evaluateVisibleIf` in `groupFields()` auf — bei jedem Render reaktiv. `useValidation.js` ruft `evaluateRequiredIf` in `validateField()` auf.
 
 ```js
 // fieldVisibility.js
@@ -217,10 +244,13 @@ ifHVDLegislation: (formData) =>
 
 ```json
 // ui-config
-"dcatap:hvdCategory": { "visibleIf": "ifHVDLegislation", ... }
+"dcatap:hvdCategory": {
+  "visibleIf": "ifHVDLegislation",
+  "requiredIf": "ifHVDLegislation"
+}
 ```
 
-Neue Funktion: Eintrag in `fieldVisibilityFns` — kein weiterer Code notwendig.
+Neue Funktion: Eintrag in `fieldVisibilityFns` — kein weiterer Code notwendig. Die Funktion steht automatisch für `visibleIf` und `requiredIf` zur Verfügung.
 
 ---
 
@@ -306,11 +336,11 @@ SHACL-Shape (.ttl)
 
 `useValidation.js` exportiert:
 
-- `validateField(field, value, lang)` → `string[]` (Fehler)
+- `validateField(field, value, lang, formData?)` → `string[]` (Fehler)
 - `validateForm(config, formData, lang)` → `{[fieldId]: string[]}` (nur Felder mit Fehlern)
 
 Regeln:
-1. Pflichtprüfung (`field.required`) — wenn Feld leer: Fehler, weiterer Validator wird nicht mehr ausgeführt
+1. Pflichtprüfung (`field.required` oder `evaluateRequiredIf(field.requiredIf, formData)`) — wenn Feld leer: Fehler, weiterer Validator wird nicht mehr ausgeführt
 2. Validator (`field.validate`) — **nur wenn Feld einen Wert hat** (leere optionale Felder sind immer gültig)
 3. Unterfelder bei `object`-Typ: rekursive Validierung
 

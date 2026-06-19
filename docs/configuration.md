@@ -77,15 +77,18 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | Eigenschaft | Typ | Beschreibung |
 |---|---|---|
 | `type` | string | Feldtyp (siehe unten) |
-| `required` | boolean | Pflichtfeld |
+| `required` | boolean | Statisches Pflichtfeld |
+| `requiredIf` | string | Bedingtes Pflichtfeld – Name einer Funktion aus `fieldVisibility.js` (siehe unten) |
 | `label` | `{de, en}` | Feldbezeichnung |
 | `placeholder` | `{de, en}` | Platzhaltertext |
 | `hint` | `{de, en}` | Hilfetext unter dem Feld |
-| `errorMessages` | object | Eigene Fehlermeldungen |
+| `errorMessages` | object | Eigene Fehlermeldungen (siehe unten) |
 | `order` | number | Reihenfolge innerhalb der Gruppe |
 | `visible` | boolean | `false` = Feld unsichtbar (aber weiterhin aktiv für Berechnung und Export) |
 | `multiple` | boolean | Wiederholbares Feld (RepeatableField) |
 | `defaultValue` | any | Standardwert bei Initialisierung |
+| `generate` | string | Name eines ID-Generators (siehe unten) |
+| `generateOptions` | object | Optionen für den Generator (z. B. `prefix`) |
 
 ### Feldtypen
 
@@ -151,6 +154,92 @@ Vordefinierte Transforms (`src/config/fieldTransforms.js`):
 | `stripPrefix` | Wert ohne konfigurierten Prefix | Wert mit Prefix |
 
 Eigene Transforms: neue Einträge in `fieldTransforms.js` als `{ display(stored, opts), encode(display, opts, stored) }` — kein weiterer Code notwendig.
+
+### Eigene Fehlermeldungen: `errorMessages`
+
+Mit `errorMessages` können die Standard-Fehlermeldungen pro Fehlertyp und Sprache überschrieben werden:
+
+```json
+"dct:identifier": {
+  "required": true,
+  "validate": "isURI",
+  "errorMessages": {
+    "required": {
+      "de": "Identifikator ist erforderlich",
+      "en": "Identifier is required"
+    }
+  }
+}
+```
+
+Aktuell unterstützter Schlüssel: `required`. Validator-Fehlermeldungen werden direkt in `fieldValidators.js` lokalisiert.
+
+---
+
+### Bedingte Pflichtfelder: `requiredIf`
+
+Analog zu `visibleIf` kann ein Feld nur dann als Pflichtfeld gelten, wenn eine bestimmte Bedingung erfüllt ist:
+
+```json
+"dcatap:hvdCategory": {
+  "type": "select",
+  "visibleIf": "ifHVDLegislation",
+  "requiredIf": "ifHVDLegislation",
+  "label": { "de": "HVD-Kategorie", "en": "HVD Category" }
+}
+```
+
+`requiredIf` referenziert dieselben Funktionen aus `fieldVisibility.js` wie `visibleIf`. Das Feld zeigt in der Übersicht einen Fehler und blockiert den Export, solange die Bedingung wahr ist und das Feld leer bleibt.
+
+Kombination mit `visibleIf`: Wenn ein Feld sowohl `visibleIf` als auch `requiredIf` trägt, wird die Pflichtprüfung nur durchgeführt, wenn das Feld auch sichtbar ist — da `visibleIf`-Felder bei nicht erfüllter Bedingung vollständig aus dem DOM entfernt werden und nicht validiert werden.
+
+---
+
+### ID-Generatoren: `generate` / `generateOptions`
+
+Für Felder vom Typ `text` oder `uri` kann automatisch ein Identifikator erzeugt werden:
+
+```json
+"dct:identifier": {
+  "type": "text",
+  "generate": "uuid",
+  "generateOptions": { "prefix": "https://data.gv.at/dataset/" },
+  "transform": "uriSuffix",
+  "transformOptions": { "prefix": "https://data.gv.at/dataset/" }
+}
+```
+
+**Verhalten:**
+- Beim Öffnen eines leeren Formulars wird automatisch ein Wert erzeugt.
+- Ein ↺-Button neben dem Eingabefeld ermöglicht das manuelle Neu-Generieren.
+- `generateOptions.prefix` wird dem generierten Wert vorangestellt, um eine vollständige URI zu erzeugen.
+
+Vordefinierte Generatoren (`src/config/idGenerators.js`):
+
+| Name | Algorithmus | Beispielausgabe |
+|---|---|---|
+| `uuid` | RFC 4122 v4 UUID via `crypto.randomUUID()` | `https://data.gv.at/dataset/550e8400-e29b-41d4-a716-446655440000` |
+| `slugDate` | Heutiges Datum + 4 Hex-Zeichen | `https://data.gv.at/dataset/2026-06-19-a3f1` |
+| `nanoid` | 21 URL-sichere Zufallszeichen (`[A-Za-z0-9_-]`) | `https://data.gv.at/dataset/V1StGXR8_Z5jdHi6B-myT` |
+
+**`generateOptions`:**
+| Option | Typ | Beschreibung |
+|---|---|---|
+| `prefix` | string | Wird dem generierten Wert vorangestellt |
+| `length` | number | Nur für `nanoid`: Länge der Zeichenkette (Standard: 21) |
+
+Eigenen Generator hinzufügen: Eintrag in `src/config/idGenerators.js` unter `idGenerators` als synchrone oder asynchrone Funktion `(opts) => string`:
+
+```js
+// Beispiel: DOI per externe API
+doi: async (opts) => {
+  const res = await fetch('https://api.datacite.org/dois', { method: 'POST', ... })
+  const data = await res.json()
+  return data.data.attributes.doi
+}
+```
+
+---
 
 ### Bedingte Sichtbarkeit: `visibleIf`
 
