@@ -369,13 +369,36 @@ function formatValue(field) {
   }
 
   if (field.type === 'object' && typeof val === 'object' && field.subFields) {
-    return field.subFields
-      .filter(sf => val[sf.id])
+    const parts = field.subFields
+      .filter(sf => val[sf.id] && sf.type !== 'map')
       .map(sf => {
         const sfLabel = sf.label?.[props.lang] || sf.label?.de || sf.id
         return `<span class="sub-field"><b>${sfLabel}:</b> ${val[sf.id]}</span>`
       })
-      .join('<br>')
+    const mapParts = field.subFields
+      .filter(sf => val[sf.id] && sf.type === 'map')
+      .map(sf => {
+        const sfLabel = sf.label?.[props.lang] || sf.label?.de || sf.id
+        return `<span class="sub-field"><b>${sfLabel}:</b> <code style="font-size:0.75em">${val[sf.id]}</code></span>`
+      })
+    return [...parts, ...mapParts].join('<br>') || ''
+  }
+
+  if (field.type === 'map') {
+    if (!val) return ''
+    return `<code style="font-size:0.75em">${val}</code>`
+  }
+
+  if (field.type === 'distribution-editor' && Array.isArray(val)) {
+    if (!val.length) return ''
+    return val
+      .filter(d => d && d['dcat:accessURL'])
+      .map((d, i) => {
+        const title = d['dct:title'] || d['dcat:accessURL']
+        const url = d['dcat:accessURL']
+        return `<span class="sub-field"><b>${i + 1}.</b> <a href="${url}" target="_blank" rel="noopener">${title}</a></span>`
+      })
+      .join('<br>') || `${val.length} Distribution(s)`
   }
 
   return String(val)
