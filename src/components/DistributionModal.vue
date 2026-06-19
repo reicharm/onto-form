@@ -13,6 +13,7 @@
             :lang="lang"
             :formatOptions="formatOptions"
             :availabilityOptions="availabilityOptions"
+            :uploadConfig="uploadConfig"
             @update:modelValue="draft = $event"
           />
         </div>
@@ -39,7 +40,8 @@ const props = defineProps({
   lang: String,
   show: Boolean,
   formatOptions: { type: Array, default: () => [] },
-  availabilityOptions: { type: Array, default: () => [] }
+  availabilityOptions: { type: Array, default: () => [] },
+  uploadConfig: { type: Object, default: null }
 })
 
 const emit = defineEmits(['save', 'cancel'])

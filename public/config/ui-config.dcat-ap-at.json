@@ -658,6 +658,14 @@
       "id": "dcat:distribution",
       "type": "distribution-editor",
       "distributionMode": "modal",
+      "fileUpload": {
+        "enabled": false,
+        "uploadUrl": "https://www.data.gv.at/api/hub/store/{filename}",
+        "method": "POST",
+        "formField": "file",
+        "responseType": "text",
+        "responseUrlField": "url"
+      },
       "label": {
         "de": "Distributionen",
         "en": "Distributions"

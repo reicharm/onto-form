@@ -38,6 +38,7 @@
               :lang="lang"
               :formatOptions="formatOptions"
               :availabilityOptions="availabilityOptions"
+              :uploadConfig="uploadConfig"
               @update:modelValue="updateDist(idx, $event)"
             />
           </div>
@@ -76,6 +77,7 @@
       :lang="lang"
       :formatOptions="formatOptions"
       :availabilityOptions="availabilityOptions"
+      :uploadConfig="uploadConfig"
       @save="onModalSave"
       @cancel="editingDraft = null"
     />
@@ -92,6 +94,8 @@ const props = defineProps({
   lang: String,
   modelValue: { type: Array, default: () => [] }
 })
+
+const uploadConfig = computed(() => props.field?.fileUpload || null)
 
 const emit = defineEmits(['update:modelValue'])
 
