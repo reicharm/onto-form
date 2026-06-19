@@ -1,4 +1,5 @@
 import { fieldValidators } from '../config/fieldValidators.js'
+import { evaluateRequiredIf } from '../config/fieldVisibility.js'
 
 function hasValue(value, field) {
   if (value == null) return false
@@ -28,12 +29,13 @@ function hasValue(value, field) {
  *
  * Returns an array of localised error strings (empty = valid).
  */
-export function validateField(field, value, lang) {
+export function validateField(field, value, lang, formData) {
   const errors = []
   const de = lang === 'de'
 
-  // Required check
-  if (field.required && !hasValue(value, field)) {
+  // Required check: static "required" or conditional "requiredIf"
+  const isRequired = field.required || evaluateRequiredIf(field.requiredIf, formData)
+  if (isRequired && !hasValue(value, field)) {
     const msg = field.errorMessages?.required?.[lang]
       || (de ? 'Dieses Feld ist erforderlich.' : 'This field is required.')
     errors.push(msg)
@@ -85,7 +87,7 @@ export function validateForm(config, formData, lang) {
   for (const [id, field] of Object.entries(config.fields)) {
     if (field.visible === false) continue
     if (!groupedIds.has(id)) continue
-    const errors = validateField(field, formData?.[id], lang)
+    const errors = validateField(field, formData?.[id], lang, formData)
     if (errors.length) result[id] = errors
   }
   return result

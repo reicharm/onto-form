@@ -14,3 +14,13 @@ export function evaluateVisibleIf(fnName, formData) {
   }
   return fn(formData)
 }
+
+export function evaluateRequiredIf(fnName, formData) {
+  if (!fnName) return false
+  const fn = fieldVisibilityFns[fnName]
+  if (!fn) {
+    console.warn(`[fieldVisibility] unknown requiredIf function: "${fnName}"`)
+    return false
+  }
+  return fn(formData)
+}

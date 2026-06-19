@@ -148,3 +148,44 @@ describe('validateForm', () => {
     expect(validateForm(null, {}, 'en')).toEqual({})
   })
 })
+
+describe('requiredIf (conditional required)', () => {
+  const hvdConfig = {
+    fields: {
+      'dcatap:applicableLegislation': { type: 'select' },
+      'dcatap:hvdCategory': { type: 'select', visibleIf: 'ifHVDLegislation', requiredIf: 'ifHVDLegislation' }
+    },
+    groups: [{ fields: ['dcatap:applicableLegislation', 'dcatap:hvdCategory'] }]
+  }
+  const HVD_URI = 'http://data.europa.eu/eli/reg_impl/2023/138/oj'
+
+  it('does not require hvdCategory when HVD legislation is not selected', () => {
+    const errors = validateForm(hvdConfig, { 'dcatap:applicableLegislation': '' }, 'en')
+    expect(errors['dcatap:hvdCategory']).toBeUndefined()
+  })
+
+  it('requires hvdCategory when HVD legislation is selected and category is empty', () => {
+    const errors = validateForm(hvdConfig, { 'dcatap:applicableLegislation': HVD_URI, 'dcatap:hvdCategory': '' }, 'en')
+    expect(errors['dcatap:hvdCategory']).toEqual(['This field is required.'])
+  })
+
+  it('does not error when HVD legislation is selected and category has a value', () => {
+    const errors = validateForm(hvdConfig, {
+      'dcatap:applicableLegislation': HVD_URI,
+      'dcatap:hvdCategory': 'http://data.europa.eu/bna/c_164e0bf5'
+    }, 'en')
+    expect(errors['dcatap:hvdCategory']).toBeUndefined()
+  })
+
+  it('validateField with requiredIf returns no error when condition not met', () => {
+    const field = { requiredIf: 'ifHVDLegislation' }
+    const formData = { 'dcatap:applicableLegislation': '' }
+    expect(validateField(field, '', 'en', formData)).toEqual([])
+  })
+
+  it('validateField with requiredIf returns error when condition is met', () => {
+    const field = { requiredIf: 'ifHVDLegislation' }
+    const formData = { 'dcatap:applicableLegislation': HVD_URI }
+    expect(validateField(field, '', 'en', formData)).toEqual(['This field is required.'])
+  })
+})

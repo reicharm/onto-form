@@ -647,7 +647,8 @@
       ],
       "order": 19,
       "visible": true,
-      "visibleIf": "ifHVDLegislation"
+      "visibleIf": "ifHVDLegislation",
+      "requiredIf": "ifHVDLegislation"
     },
     "dcat:distribution": {
       "id": "dcat:distribution",
