@@ -125,7 +125,7 @@
             class="btn-export"
             :disabled="!isValid"
             :class="{ disabled: !isValid }"
-            @click="isValid && $emit('export')"
+            @click="handleExport"
           >Export JSON-LD / Turtle</button>
         </div>
 
@@ -181,7 +181,7 @@
           class="btn-export"
           :disabled="!isValid"
           :class="{ disabled: !isValid }"
-          @click="isValid && $emit('export')"
+          @click="handleExport"
         >Export JSON-LD / Turtle</button>
       </div>
     </template>
@@ -204,6 +204,7 @@ import MapField from './fields/MapField.vue'
 import { validateForm } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
+import { suggestionsStore } from '../services/SuggestionsStore.js'
 
 const props = defineProps({
   config: Object,
@@ -275,6 +276,18 @@ function updateField(field, value) {
 const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))
 
 const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
+
+function handleExport() {
+  if (!isValid.value) return
+  // Save values of all "remember" fields before exporting
+  const fields = props.config?.fields || {}
+  for (const [id, field] of Object.entries(fields)) {
+    if (field.remember && props.modelValue?.[id] != null) {
+      suggestionsStore.save(id, props.modelValue[id])
+    }
+  }
+  emit('export')
+}
 
 // Wizard state
 const currentStep = ref(0)

@@ -25,12 +25,19 @@
       @input="$emit('update:modelValue', $event.target.value)"
     />
     <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
+    <FieldSuggestions
+      v-if="field.remember"
+      :fieldId="field.id"
+      :lang="lang"
+      @select="$emit('update:modelValue', $event)"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted } from 'vue'
 import { generateId } from '../../config/idGenerators.js'
+import FieldSuggestions from './FieldSuggestions.vue'
 
 const props = defineProps({
   field: Object,

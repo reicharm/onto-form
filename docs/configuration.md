@@ -89,6 +89,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `defaultValue` | any | Standardwert bei Initialisierung |
 | `generate` | string | Name eines ID-Generators (siehe unten) |
 | `generateOptions` | object | Optionen für den Generator (z. B. `prefix`) |
+| `remember` | boolean | Frühere Eingaben als Vorschläge anbieten (siehe unten) |
 
 ### Feldtypen
 
@@ -478,6 +479,68 @@ Das optionale Feld `auth.type` in der Konfiguration hat für OntoForm nur dokume
   "uploadUrl": "https://api.example.com/store/{filename}",
   "auth": { "type": "bearer" }
 }
+```
+
+---
+
+## `remember` – Vorschläge aus früheren Eingaben
+
+Mit `"remember": true` auf einem Feld werden frühere Eingaben als klickbare Vorschläge direkt unter dem Feld angezeigt. Der Nutzer wählt aktiv einen Vorschlag aus — es gibt kein automatisches Ausfüllen. Bei Objekt-Feldern (z. B. Herausgeber, Kontaktstelle) wird das gesamte Objekt mit allen Unterfeldern übernommen.
+
+```json
+"dct:publisher": {
+  "type": "object",
+  "remember": true,
+  "label": { "de": "Herausgeber", "en": "Publisher" },
+  "subFields": [ ... ]
+}
+```
+
+Vorschläge werden beim Export automatisch in `localStorage` gespeichert (maximal 5 pro Feld, neueste zuerst). Sie bleiben über Browser-Sessions erhalten und gehen nur verloren, wenn der Nutzer den localStorage leert.
+
+### Vorschläge aus dem einbettenden System
+
+Das einbettende System kann zusätzliche Vorschläge per Hook bereitstellen — z. B. aus dem Nutzerprofil oder einer Organisationsdatenbank. Diese erscheinen immer ganz oben in der Liste, noch vor den lokal gespeicherten Werten.
+
+```js
+import { suggestionsStore } from 'onto-form/src/services/SuggestionsStore.js'
+
+// Einmalig beim Start der einbettenden Anwendung:
+suggestionsStore.setUserContext({
+  'dct:publisher': [
+    {
+      'foaf:name': 'Stadt Wien – Magistrat',
+      'foaf:homepage': 'https://wien.gv.at',
+      'foaf:mbox': 'opendata@wien.gv.at'
+    }
+  ],
+  'dcat:contactPoint': [
+    {
+      'vcard:fn': 'Open Data Koordination',
+      'vcard:hasEmail': 'opendata@wien.gv.at',
+      'vcard:hasTelephone': '+43 1 4000-0'
+    }
+  ]
+})
+```
+
+Die Werte für `dct:publisher` und `dcat:contactPoint` können aus denselben Nutzerdaten abgeleitet werden — die Feldstrukturen unterscheiden sich jedoch (`foaf:` vs. `vcard:`), daher werden sie separat übergeben.
+
+### Manuelles Speichern
+
+OntoForm speichert automatisch beim Export. Falls das einbettende System den Speichervorgang selbst steuert, kann es `save()` direkt aufrufen:
+
+```js
+import { suggestionsStore } from 'onto-form/src/services/SuggestionsStore.js'
+
+suggestionsStore.save('dct:publisher', formData['dct:publisher'])
+```
+
+### Gespeicherte Vorschläge löschen
+
+```js
+suggestionsStore.clear('dct:publisher')   // nur dieses Feld
+suggestionsStore.setUserContext(null)      // Context des einbettenden Systems zurücksetzen
 ```
 
 ---

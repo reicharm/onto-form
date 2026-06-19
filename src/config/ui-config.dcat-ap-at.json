@@ -456,7 +456,8 @@
             }
           ]
         }
-      ]
+      ],
+      "remember": true
     },
     "dcat:contactPoint": {
       "type": "object",
@@ -523,7 +524,8 @@
             "en": "https://…"
           }
         }
-      ]
+      ],
+      "remember": true
     },
     "dcatap:availability": {
       "type": "select",

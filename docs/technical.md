@@ -415,6 +415,31 @@ applyComputes (nur für noch leere Felder, je nach compute-Funktion)
 
 ---
 
+## Vorschläge aus früheren Eingaben (`SuggestionsStore.js`)
+
+`src/services/SuggestionsStore.js` verwaltet Vorschlagswerte für Felder mit `"remember": true`.
+
+**Zwei Quellen (Priorität: Kontext > localStorage):**
+
+| Quelle | Beschreibung |
+|---|---|
+| User Context | Vom einbettenden System per `suggestionsStore.setUserContext(map)` injiziert; nie in localStorage gespeichert |
+| localStorage | Von OntoForm beim Export automatisch gespeichert; max. 5 Werte pro Feld |
+
+**API:**
+
+```js
+suggestionsStore.setUserContext({ 'dct:publisher': [...], 'dcat:contactPoint': [...] })
+suggestionsStore.get('dct:publisher')        // → alle Vorschläge (Kontext + localStorage)
+suggestionsStore.save('dct:publisher', val)  // in localStorage schreiben
+suggestionsStore.clear('dct:publisher')      // localStorage-Einträge löschen
+suggestionsStore.label(value)               // → lesbare Kurzbezeichnung für Anzeige
+```
+
+`FieldSuggestions.vue` ist die zugehörige UI-Komponente (Chip-Leiste). Sie ist in `ObjectField.vue` und `TextField.vue` eingebunden und wird aktiviert, wenn `field.remember === true`.
+
+---
+
 ## Erweiterung
 
 ### Neuen Standard hinzufügen

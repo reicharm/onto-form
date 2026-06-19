@@ -1,6 +1,15 @@
 <template>
   <div class="field object-field">
     <div class="object-label">{{ label }}</div>
+
+    <!-- Suggestion picker (shown when field.remember is true and suggestions exist) -->
+    <FieldSuggestions
+      v-if="field.remember"
+      :fieldId="field.id"
+      :lang="lang"
+      @select="applySuggestion"
+    />
+
     <fieldset class="object-fieldset">
       <component
         v-for="subField in field.subFields"
@@ -24,6 +33,7 @@ import LangStringField from './LangStringField.vue'
 import TextareaField from './TextareaField.vue'
 import DateField from './DateField.vue'
 import MapField from './MapField.vue'
+import FieldSuggestions from './FieldSuggestions.vue'
 
 const props = defineProps({
   field: Object,
@@ -52,6 +62,11 @@ function updateSubField(id, value) {
   const base = { ...(props.modelValue || {}) }
   if (props.field.rdfType) base['rdf:type'] = props.field.rdfType
   emit('update:modelValue', { ...base, [id]: value })
+}
+
+function applySuggestion(value) {
+  const base = props.field.rdfType ? { 'rdf:type': props.field.rdfType } : {}
+  emit('update:modelValue', { ...base, ...value })
 }
 </script>
 
