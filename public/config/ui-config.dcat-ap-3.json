@@ -409,12 +409,31 @@
       "order": 13
     },
     "dct:temporal": {
-      "type": "text",
+      "type": "object",
       "label": {
-        "de": "Zeitliche Abdeckung (URI)",
-        "en": "Temporal Coverage (URI)"
+        "de": "Zeitliche Abdeckung",
+        "en": "Temporal Coverage"
       },
-      "order": 14
+      "order": 14,
+      "rdfType": "dct:PeriodOfTime",
+      "subFields": [
+        {
+          "id": "dcat:startDate",
+          "type": "date",
+          "label": {
+            "de": "Von",
+            "en": "Start date"
+          }
+        },
+        {
+          "id": "dcat:endDate",
+          "type": "date",
+          "label": {
+            "de": "Bis",
+            "en": "End date"
+          }
+        }
+      ]
     },
     "dct:license": {
       "type": "uri",

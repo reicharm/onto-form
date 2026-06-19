@@ -299,21 +299,31 @@
       "visible": true
     },
     "dct:temporal": {
-      "type": "text",
+      "type": "object",
       "label": {
         "de": "Zeitliche Abdeckung",
         "en": "Temporal Coverage"
       },
-      "hint": {
-        "de": "Zeitraum, den der Datensatz abdeckt (z.B. 2020/2024)",
-        "en": "Time period covered by the dataset (e.g. 2020/2024)"
-      },
-      "placeholder": {
-        "de": "z.B. 2020/2024",
-        "en": "e.g. 2020/2024"
-      },
       "order": 13,
-      "visible": true
+      "rdfType": "dct:PeriodOfTime",
+      "subFields": [
+        {
+          "id": "dcat:startDate",
+          "type": "date",
+          "label": {
+            "de": "Von",
+            "en": "Start date"
+          }
+        },
+        {
+          "id": "dcat:endDate",
+          "type": "date",
+          "label": {
+            "de": "Bis",
+            "en": "End date"
+          }
+        }
+      ]
     },
     "dct:publisher": {
       "type": "object",
