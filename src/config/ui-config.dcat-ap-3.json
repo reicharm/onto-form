@@ -59,7 +59,8 @@
       },
       "fields": [
         "dct:spatial",
-        "dct:temporal"
+        "dct:temporal",
+        "locn:geometry"
       ]
     },
     {
@@ -486,6 +487,19 @@
         "en": "https://..."
       },
       "order": 18
+    },
+    "locn:geometry": {
+      "type": "map",
+      "label": {
+        "de": "Bounding Box / Geometrie",
+        "en": "Bounding Box / Geometry"
+      },
+      "hint": {
+        "de": "Rechteck oder Polygon auf der Karte zeichnen (WKT)",
+        "en": "Draw a rectangle or polygon on the map (WKT)"
+      },
+      "order": 14,
+      "visible": true
     }
   }
 }

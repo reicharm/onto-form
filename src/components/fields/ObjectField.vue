@@ -23,6 +23,7 @@ import SelectField from './SelectField.vue'
 import LangStringField from './LangStringField.vue'
 import TextareaField from './TextareaField.vue'
 import DateField from './DateField.vue'
+import MapField from './MapField.vue'
 
 const props = defineProps({
   field: Object,
@@ -40,6 +41,7 @@ const componentMap = {
   langstring: LangStringField,
   textarea: TextareaField,
   date: DateField,
+  map: MapField,
 }
 
 function subFieldComponent(subField) {

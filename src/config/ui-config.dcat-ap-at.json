@@ -281,22 +281,44 @@
       "visible": true
     },
     "dct:spatial": {
-      "type": "uri",
-      "validate": "isURI",
+      "type": "object",
+      "rdfType": "dct:Location",
       "label": {
         "de": "Räumliche Abdeckung",
         "en": "Spatial Coverage"
       },
       "hint": {
-        "de": "URI einer geografischen Region (z.B. aus GeoNames oder EU-Vokabular)",
-        "en": "URI of a geographic region (e.g. from GeoNames or EU vocabulary)"
-      },
-      "placeholder": {
-        "de": "https://www.geonames.org/2782113",
-        "en": "https://www.geonames.org/2782113"
+        "de": "Geografische Region als Bounding Box oder Geometrie",
+        "en": "Geographic region as bounding box or geometry"
       },
       "order": 12,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        {
+          "id": "dcat:bbox",
+          "type": "map",
+          "label": {
+            "de": "Bounding Box",
+            "en": "Bounding Box"
+          },
+          "hint": {
+            "de": "Rechteck oder Polygon auf der Karte zeichnen",
+            "en": "Draw a rectangle or polygon on the map"
+          }
+        },
+        {
+          "id": "locn:geometry",
+          "type": "map",
+          "label": {
+            "de": "Geometrie",
+            "en": "Geometry"
+          },
+          "hint": {
+            "de": "Detaillierte Geometrie (Polygon)",
+            "en": "Detailed geometry (polygon)"
+          }
+        }
+      ]
     },
     "dct:temporal": {
       "type": "object",

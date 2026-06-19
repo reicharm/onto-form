@@ -24,7 +24,8 @@
       "fields": [
         "dct:spatial",
         "geo:hasGeometry",
-        "locn:geometry"
+        "locn:geometry",
+        "dcat:bbox"
       ]
     },
     {
@@ -150,15 +151,14 @@
       "visible": true
     },
     "locn:geometry": {
-      "type": "textarea",
-      "validate": "isWKTorGeoJSON",
+      "type": "map",
       "label": {
         "de": "WKT/GeoJSON Geometrie",
         "en": "WKT/GeoJSON Geometry"
       },
-      "placeholder": {
-        "de": "POLYGON((...))",
-        "en": "POLYGON(())"
+      "hint": {
+        "de": "Geometrie auf der Karte zeichnen",
+        "en": "Draw geometry on the map"
       },
       "order": 6,
       "visible": true
@@ -370,6 +370,19 @@
         "en": "URI of source dataset"
       },
       "order": 14,
+      "visible": true
+    },
+    "dcat:bbox": {
+      "type": "map",
+      "label": {
+        "de": "Bounding Box",
+        "en": "Bounding Box"
+      },
+      "hint": {
+        "de": "Rechteck auf der Karte zeichnen",
+        "en": "Draw a bounding box on the map"
+      },
+      "order": 7,
       "visible": true
     }
   }

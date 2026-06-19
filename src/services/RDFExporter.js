@@ -101,6 +101,7 @@ export class RDFExporter {
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        <${subKey} rdf:resource="${escapeXML(subVal)}"/>`)
           else if (isDate(subVal)) subLines.push(`        <${subKey} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(subVal)}</${subKey}>`)
+          else if (isWKT(subVal)) subLines.push(`        <${subKey} rdf:datatype="http://www.opengis.net/ont/geosparql#wktLiteral">${escapeXML(String(subVal))}</${subKey}>`)
           else subLines.push(`        <${subKey}>${escapeXML(String(subVal))}</${subKey}>`)
         }
         if (subLines.length > 0) {
@@ -114,6 +115,8 @@ export class RDFExporter {
         lines.push(`    <${key} rdf:resource="${escapeXML(value)}"/>`)
       } else if (isDate(value)) {
         lines.push(`    <${key} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(value)}</${key}>`)
+      } else if (isWKT(value)) {
+        lines.push(`    <${key} rdf:datatype="http://www.opengis.net/ont/geosparql#wktLiteral">${escapeXML(String(value))}</${key}>`)
       } else {
         lines.push(`    <${key}>${escapeXML(String(value))}</${key}>`)
       }
@@ -138,6 +141,8 @@ export class RDFExporter {
       '@prefix skos: <http://www.w3.org/2004/02/skos/core#> .',
       '@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .',
       '@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .',
+      '@prefix geo: <http://www.opengis.net/ont/geosparql#> .',
+      '@prefix locn: <http://www.w3.org/ns/locn#> .',
       ''
     ]
 
@@ -171,6 +176,7 @@ export class RDFExporter {
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        ${subKey} <${subVal}>`)
           else if (isDate(subVal)) subLines.push(`        ${subKey} "${subVal}"^^xsd:date`)
+          else if (isWKT(subVal)) subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"^^geo:wktLiteral`)
           else subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"`)
         }
         if (subLines.length > 0) {
@@ -189,6 +195,8 @@ export class RDFExporter {
         lines.push(`    ${key} <${value}>`)
       } else if (isDate(value)) {
         lines.push(`    ${key} "${value}"^^xsd:date`)
+      } else if (isWKT(value)) {
+        lines.push(`    ${key} "${escapeTurtle(String(value))}"^^geo:wktLiteral`)
       } else {
         lines.push(`    ${key} "${escapeTurtle(String(value))}"`)
       }
@@ -224,6 +232,10 @@ function isURI(v) {
 
 function isDate(v) {
   return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)
+}
+
+function isWKT(v) {
+  return typeof v === 'string' && /^(POLYGON|POINT|LINESTRING|MULTIPOLYGON|MULTIPOINT|MULTILINESTRING|GEOMETRYCOLLECTION)\s*\(/i.test(v.trim())
 }
 
 // Sub-objects have prefixed property keys like "foaf:name", "vcard:fn"
