@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { FileUploader } from '../../src/services/FileUploader.js'
+import { uploadAuthStore } from '../../src/services/UploadAuthStore.js'
 
 function makeFile(name = 'test.csv', type = 'text/csv', content = 'a,b') {
   return new File([content], name, { type })
@@ -99,6 +100,50 @@ describe('FileUploader', () => {
       })
       const [url] = global.fetch.mock.calls[0]
       expect(url).toBe('https://api.example.com/store/my%20file.csv')
+    })
+  })
+
+  describe('authentication header injection', () => {
+    const uploadUrl = 'https://api.example.com/upload'
+
+    beforeEach(() => {
+      uploadAuthStore.set(uploadUrl, null)
+    })
+
+    it('passes bearer token as Authorization header', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      uploadAuthStore.set(uploadUrl, { token: 'mytoken' })
+      await uploader.upload(makeFile(), { uploadUrl, responseType: 'text', auth: { type: 'bearer' } })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBe('Bearer mytoken')
+    })
+
+    it('passes API key as X-API-Key header', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      uploadAuthStore.set(uploadUrl, { value: 'secretkey' })
+      await uploader.upload(makeFile(), { uploadUrl, responseType: 'text', auth: { type: 'apikey' } })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['X-API-Key']).toBe('secretkey')
+    })
+
+    it('auth headers override static config headers', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      uploadAuthStore.set(uploadUrl, { token: 'override' })
+      await uploader.upload(makeFile(), {
+        uploadUrl, responseType: 'text',
+        headers: { Authorization: 'Bearer old', 'X-Custom': 'kept' },
+        auth: { type: 'bearer' }
+      })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBe('Bearer override')
+      expect(opts.headers['X-Custom']).toBe('kept')
+    })
+
+    it('sends no auth headers when no credentials stored', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      await uploader.upload(makeFile(), { uploadUrl, responseType: 'text', auth: { type: 'bearer' } })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBeUndefined()
     })
   })
 

@@ -5,13 +5,61 @@
     <div v-if="uploadConfig?.enabled" class="field span2 upload-section">
       <label>{{ lang === 'de' ? 'Datei hochladen' : 'Upload file' }}</label>
 
+      <!-- Auth credentials box -->
+      <div v-if="needsCredentials" class="auth-box">
+        <div class="auth-title">
+          {{ authConfig?.label?.[lang] || authConfig?.label?.en || (lang === 'de' ? 'Zugangsdaten' : 'Credentials') }}
+        </div>
+
+        <template v-if="authConfig?.type === 'apikey'">
+          <input type="password" :placeholder="lang === 'de' ? 'API-Schlüssel' : 'API key'"
+            v-model="creds.value" autocomplete="off" class="auth-input" />
+        </template>
+
+        <template v-else-if="authConfig?.type === 'bearer'">
+          <input type="password" placeholder="Token"
+            v-model="creds.token" autocomplete="off" class="auth-input" />
+        </template>
+
+        <template v-else-if="authConfig?.type === 'basic'">
+          <input type="text" :placeholder="lang === 'de' ? 'Benutzername' : 'Username'"
+            v-model="creds.username" autocomplete="off" class="auth-input" />
+          <input type="password" :placeholder="lang === 'de' ? 'Passwort' : 'Password'"
+            v-model="creds.password" autocomplete="off" class="auth-input" />
+        </template>
+
+        <template v-else-if="authConfig?.type === 'oauth2cc'">
+          <input type="text" placeholder="Client ID"
+            v-model="creds.clientId" autocomplete="off" class="auth-input" />
+          <input type="password" placeholder="Client Secret"
+            v-model="creds.clientSecret" autocomplete="off" class="auth-input" />
+        </template>
+
+        <p class="auth-note">
+          {{ lang === 'de'
+            ? '🔒 Wird nur für diese Sitzung im Arbeitsspeicher gehalten.'
+            : '🔒 Kept in memory for this session only.' }}
+        </p>
+        <button type="button" class="btn-save-creds" :disabled="!credsComplete" @click="saveCredentials">
+          {{ lang === 'de' ? 'Speichern' : 'Save' }}
+        </button>
+      </div>
+
+      <!-- Clear button when credentials are stored -->
+      <div v-else-if="authConfig && uploadAuthStore.requiresCredentials(authConfig.type)" class="auth-stored">
+        <span class="auth-stored-label">🔒 {{ lang === 'de' ? 'Zugangsdaten gespeichert' : 'Credentials stored' }}</span>
+        <button type="button" class="btn-clear-creds" @click="clearCredentials">
+          {{ lang === 'de' ? 'Ändern' : 'Change' }}
+        </button>
+      </div>
+
       <div
         class="drop-zone"
-        :class="{ dragging: isDragging, uploading: uploadState === 'uploading', success: uploadState === 'success', error: uploadState === 'error' }"
-        @dragover.prevent="isDragging = true"
+        :class="{ dragging: isDragging, uploading: uploadState === 'uploading', success: uploadState === 'success', error: uploadState === 'error', locked: needsCredentials }"
+        @dragover.prevent="!needsCredentials && (isDragging = true)"
         @dragleave="isDragging = false"
-        @drop.prevent="onDrop"
-        @click="fileInput?.click()"
+        @drop.prevent="!needsCredentials && onDrop($event)"
+        @click="!needsCredentials && fileInput?.click()"
       >
         <input ref="fileInput" type="file" class="hidden-input" @change="onFileChange" />
 
@@ -140,8 +188,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { FileUploader } from '../../services/FileUploader.js'
+import { uploadAuthStore } from '../../services/UploadAuthStore.js'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -155,6 +204,48 @@ const emit = defineEmits(['update:modelValue'])
 
 function update(key, value) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+}
+
+// ── Auth ──
+const authConfig = computed(() => props.uploadConfig?.auth || null)
+const needsCredentials = computed(() => {
+  if (!authConfig.value) return false
+  const type = authConfig.value.type
+  if (!uploadAuthStore.requiresCredentials(type)) return false
+  return !uploadAuthStore.has(props.uploadConfig.uploadUrl)
+})
+
+const creds = ref({ value: '', token: '', username: '', password: '', clientId: '', clientSecret: '' })
+const credsComplete = computed(() => {
+  if (!authConfig.value) return true
+  const c = creds.value
+  switch (authConfig.value.type) {
+    case 'apikey': return !!c.value
+    case 'bearer': return !!c.token
+    case 'basic': return !!(c.username && c.password)
+    case 'oauth2cc': return !!(c.clientId && c.clientSecret)
+    default: return true
+  }
+})
+
+function saveCredentials() {
+  const type = authConfig.value?.type
+  const url = props.uploadConfig.uploadUrl
+  const c = creds.value
+  let stored
+  switch (type) {
+    case 'apikey': stored = { value: c.value }; break
+    case 'bearer': stored = { token: c.token }; break
+    case 'basic': stored = { username: c.username, password: c.password }; break
+    case 'oauth2cc': stored = { clientId: c.clientId, clientSecret: c.clientSecret }; break
+    default: return
+  }
+  uploadAuthStore.set(url, stored)
+  creds.value = { value: '', token: '', username: '', password: '', clientId: '', clientSecret: '' }
+}
+
+function clearCredentials() {
+  uploadAuthStore.set(props.uploadConfig.uploadUrl, null)
 }
 
 // ── File upload state ──
@@ -349,6 +440,78 @@ select { cursor: pointer; }
   color: var(--color-primary);
   background: none;
   border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}
+
+.drop-zone.locked {
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.auth-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+}
+
+.auth-title {
+  font-size: var(--font-size-label);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.15rem;
+}
+
+.auth-input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-base);
+  background: var(--color-surface);
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-note {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
+  margin: 0.1rem 0 0;
+}
+
+.btn-save-creds {
+  align-self: flex-start;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 1rem;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+.btn-save-creds:disabled { opacity: 0.5; cursor: default; }
+.btn-save-creds:not(:disabled):hover { background: var(--color-primary-dark); }
+
+.auth-stored {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: var(--font-size-sm);
+}
+
+.auth-stored-label { color: var(--color-text-muted); }
+
+.btn-clear-creds {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
