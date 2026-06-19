@@ -38,8 +38,9 @@ export class RDFExporter {
         })
         if (items.length > 0) doc[key] = items.length === 1 ? items[0] : items
       } else if (isSubObject(value)) {
-        // Sub-object → blank node; skip rdf:type and non-prefixed keys
+        // Sub-object → blank node
         const node = {}
+        if (value['rdf:type']) node['@type'] = value['rdf:type']
         for (const [subKey, subVal] of Object.entries(value)) {
           if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (subVal) node[subKey] = subVal
@@ -90,14 +91,20 @@ export class RDFExporter {
         }
       } else if (isSubObject(value)) {
         const subLines = []
+        const rdfType = value['rdf:type']
+        const openTag = rdfType
+          ? `      <${rdfType}>`
+          : '      <rdf:Description>'
+        const closeTag = rdfType ? `      </${rdfType}>` : '      </rdf:Description>'
         for (const [subKey, subVal] of Object.entries(value)) {
           if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        <${subKey} rdf:resource="${escapeXML(subVal)}"/>`)
+          else if (isDate(subVal)) subLines.push(`        <${subKey} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(subVal)}</${subKey}>`)
           else subLines.push(`        <${subKey}>${escapeXML(String(subVal))}</${subKey}>`)
         }
         if (subLines.length > 0) {
-          lines.push(`    <${key}>\n      <rdf:Description>\n${subLines.join('\n')}\n      </rdf:Description>\n    </${key}>`)
+          lines.push(`    <${key}>\n${openTag}\n${subLines.join('\n')}\n${closeTag}\n    </${key}>`)
         }
       } else if (typeof value === 'object') {
         for (const [lang, v] of Object.entries(value)) {
@@ -156,12 +163,14 @@ export class RDFExporter {
           }
         }
       } else if (isSubObject(value)) {
-        // Sub-object → blank node; skip rdf:type and non-prefixed keys
+        // Sub-object → blank node
         const subLines = []
+        if (value['rdf:type']) subLines.push(`        a ${value['rdf:type']}`)
         for (const [subKey, subVal] of Object.entries(value)) {
           if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        ${subKey} <${subVal}>`)
+          else if (isDate(subVal)) subLines.push(`        ${subKey} "${subVal}"^^xsd:date`)
           else subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"`)
         }
         if (subLines.length > 0) {

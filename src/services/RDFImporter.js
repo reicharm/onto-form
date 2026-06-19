@@ -274,11 +274,15 @@ export class RDFImporter {
       const node = objects.find(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
       if (!node) return {}
       const subQuads = bySubject.get(node.value) || []
-      // Only include sub-fields that are defined in the field config
       const validSubIds = new Set((field.subFields || []).map(sf => sf.id))
+      const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
       const result = {}
       for (const q of subQuads) {
         const subId = this._toPrefixed(q.predicate.value)
+        if (q.predicate.value === RDF_TYPE) {
+          result['rdf:type'] = this._toPrefixed(q.object.value)
+          continue
+        }
         if (validSubIds.size > 0 && !validSubIds.has(subId)) continue
         const clean = SUBFIELD_CLEAN[subId]
         result[subId] = clean ? clean(q.object.value) : q.object.value
