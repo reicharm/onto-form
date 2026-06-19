@@ -113,6 +113,10 @@
         "de": "Identifikator",
         "en": "Identifier"
       },
+      "generate": "uuid",
+      "generateOptions": {
+        "prefix": "https://data.europa.eu/dataset/"
+      },
       "errorMessages": {
         "required": {
           "de": "Identifikator ist erforderlich",

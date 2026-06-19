@@ -140,6 +140,10 @@
       "transformOptions": {
         "prefix": "https://data.gv.at/dataset/"
       },
+      "generate": "uuid",
+      "generateOptions": {
+        "prefix": "https://data.gv.at/dataset/"
+      },
       "label": {
         "de": "Datensatz-ID",
         "en": "Dataset ID"
