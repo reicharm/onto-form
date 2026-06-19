@@ -381,6 +381,107 @@ Der Typ wird beim Export als `a dct:PeriodOfTime` (Turtle), `<dct:PeriodOfTime>`
 
 ---
 
+## `fileUpload` – Datei-Upload für Distributionen
+
+Optionale Eigenschaft auf Feldern vom Typ `distribution`. Aktiviert ein Upload-Widget in `DistributionForm`, mit dem Dateien direkt an eine API gesendet werden. Die zurückgegebene URL wird als `dcat:downloadURL` eingetragen.
+
+```json
+"dcat:distribution": {
+  "fileUpload": {
+    "enabled": true,
+    "uploadUrl": "https://api.example.com/store/{filename}",
+    "method": "POST",
+    "formField": "file",
+    "responseType": "text"
+  }
+}
+```
+
+### `fileUpload`-Eigenschaften
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `enabled` | boolean | `false` | Widget einblenden |
+| `uploadUrl` | string | — | Pflicht. API-Endpunkt; `{filename}` wird durch den URL-codierten Dateinamen ersetzt |
+| `method` | `"POST"` \| `"PUT"` | `"POST"` | HTTP-Methode. POST → `multipart/form-data`; PUT → Datei direkt im Body |
+| `formField` | string | `"file"` | Feldname im FormData (nur POST) |
+| `responseType` | `"text"` \| `"json"` | `"text"` | Wie die API-Antwort ausgewertet wird |
+| `responseUrlField` | string | `"url"` | JSON-Pfad zur Download-URL (Punkt-Notation, nur wenn `responseType: "json"`) |
+| `headers` | object | — | Statische zusätzliche HTTP-Header (z. B. `Accept`) |
+| `auth.type` | string | — | Hinweis für das einbettende System: `"bearer"`, `"apikey"`, `"basic"`, `"oauth2cc"` (OntoForm wertet diesen Wert selbst nicht aus) |
+
+### Authentifizierung – Auth-Provider-Hook
+
+OntoForm verwaltet keine Zugangsdaten. Stattdessen registriert die einbettende Anwendung einmalig eine async Funktion, die vor jedem Upload die benötigten Auth-Header zurückgibt. OntoForm ruft diese Funktion auf und fügt die Header in den Request ein.
+
+```js
+import { FileUploader } from 'onto-form/src/services/FileUploader.js'
+
+// Einmalig beim Start der einbettenden Anwendung aufrufen:
+FileUploader.setAuthProvider(async (config) => {
+  return { Authorization: `Bearer ${meinAuthStore.getToken()}` }
+})
+```
+
+Die Funktion erhält das vollständige `fileUpload`-Konfigurationsobjekt, damit sie bei Bedarf pro Endpunkt unterschiedlich reagieren kann.
+
+#### Beispiele
+
+**Bearer-Token aus einem eigenen Auth-Store:**
+```js
+FileUploader.setAuthProvider(async (config) => ({
+  Authorization: `Bearer ${myAuthStore.getToken()}`
+}))
+```
+
+**API-Key:**
+```js
+FileUploader.setAuthProvider(async (config) => ({
+  'X-API-Key': appConfig.uploadApiKey
+}))
+```
+
+**Per-Endpunkt-Logik** (wenn mehrere Upload-APIs mit unterschiedlicher Auth):
+```js
+FileUploader.setAuthProvider(async (config) => {
+  if (config.uploadUrl.startsWith('https://intern.example.com')) {
+    return { Authorization: `Bearer ${internalStore.token}` }
+  }
+  return { 'X-API-Key': publicApiKey }
+})
+```
+
+**OAuth 2.0 mit automatischem Token-Refresh** (Refresh-Logik liegt im Wrapper):
+```js
+FileUploader.setAuthProvider(async (config) => {
+  const token = await oauthClient.getValidToken()  // kümmert sich selbst um Ablauf
+  return { Authorization: `Bearer ${token}` }
+})
+```
+
+**Keiner Auth** (Standard; auch explizit zurücksetzen):
+```js
+FileUploader.setAuthProvider(null)
+```
+
+#### Priorität der Header
+
+Statische `headers` aus der Konfiguration werden zuerst gesetzt; Auth-Provider-Header werden danach gemergt und überschreiben bei Namenskonflikten die statischen Werte.
+
+#### `auth.type` als Hinweis im Config
+
+Das optionale Feld `auth.type` in der Konfiguration hat für OntoForm nur dokumentarischen Charakter — es wird nicht ausgewertet. Es dient als Hinweis für Entwickler, was die API erwartet:
+
+```json
+"fileUpload": {
+  "enabled": true,
+  "uploadUrl": "https://api.example.com/store/{filename}",
+  "auth": { "type": "bearer" }
+}
+```
+
+---
+
 ## SHACL-Integration
 
 `SHACLParser` liest SHACL-Shapes aus Turtle-Dateien und extrahiert:

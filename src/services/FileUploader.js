@@ -8,25 +8,80 @@
  * The upload URL may contain a `{filename}` placeholder that is replaced
  * with the URL-encoded original file name before the request is made.
  *
- * Response parsing:
- *   "text" — response body is used as-is (the download URL)
- *   "json" — response body is parsed as JSON; the URL is read from the
- *             field named by `responseUrlField` (dot-path notation, default "url")
+ * ## Authentication (auth provider hook)
  *
- * Config object shape:
+ * OntoForm does not manage credentials. Instead, the embedding application
+ * registers an async function that returns additional HTTP headers for each
+ * upload. This keeps auth logic entirely outside OntoForm.
+ *
+ * Register a provider once at application startup:
+ *
+ *   import { FileUploader } from 'onto-form/src/services/FileUploader.js'
+ *
+ *   // Bearer token (e.g. from your own auth store)
+ *   FileUploader.setAuthProvider(async (config) => ({
+ *     Authorization: `Bearer ${myAuthStore.getToken()}`
+ *   }))
+ *
+ *   // API key
+ *   FileUploader.setAuthProvider(async (config) => ({
+ *     'X-API-Key': myConfig.apiKey
+ *   }))
+ *
+ *   // Per-endpoint logic (config.uploadUrl identifies the target)
+ *   FileUploader.setAuthProvider(async (config) => {
+ *     if (config.uploadUrl.includes('internal-api')) {
+ *       return { Authorization: `Bearer ${internalStore.token}` }
+ *     }
+ *     return { 'X-API-Key': publicApiKey }
+ *   })
+ *
+ *   // OAuth2 / async token fetch
+ *   FileUploader.setAuthProvider(async (config) => {
+ *     const token = await oauthClient.getValidToken()   // handles refresh internally
+ *     return { Authorization: `Bearer ${token}` }
+ *   })
+ *
+ *   // Remove the provider (back to unauthenticated uploads)
+ *   FileUploader.setAuthProvider(null)
+ *
+ * The provider receives the full fileUpload config object so it can make
+ * per-endpoint decisions. Returned headers are merged into every request;
+ * auth headers take precedence over static `config.headers`.
+ *
+ * Config object shape (fileUpload field in UI config):
  * {
  *   uploadUrl:        string   — required; API endpoint (may contain {filename})
  *   method:          string   — "POST" (default) or "PUT"
  *   formField:       string   — form-data field name for POST (default "file")
  *   responseType:    string   — "text" (default) or "json"
  *   responseUrlField:string   — JSON field path for the URL (default "url")
- *   headers:         object   — additional request headers (optional)
+ *   headers:         object   — static additional request headers (optional)
+ *   auth: {
+ *     type:          string   — informational: "bearer"|"apikey"|"basic"|"oauth2cc"
+ *                              OntoForm does not act on this; it is a hint for the
+ *                              embedding application about what the API expects.
+ *   }
  * }
  */
+
+/** @type {((config: object) => Promise<Record<string,string>>) | null} */
+let _authProvider = null
+
 export class FileUploader {
   /**
+   * Registers a global async function that returns auth headers for every upload.
+   * Pass null to remove the provider (uploads will be unauthenticated).
+   *
+   * @param {((config: object) => Promise<Record<string,string>>) | null} providerFn
+   */
+  static setAuthProvider(providerFn) {
+    _authProvider = providerFn ?? null
+  }
+
+  /**
    * @param {File} file
-   * @param {object} config
+   * @param {object} config — fileUpload config block from the field definition
    * @returns {Promise<string>} download URL returned by the API
    */
   async upload(file, config) {
@@ -34,7 +89,10 @@ export class FileUploader {
 
     const url = config.uploadUrl.replace('{filename}', encodeURIComponent(file.name))
     const method = (config.method || 'POST').toUpperCase()
-    const headers = { ...(config.headers || {}) }
+
+    // Static config headers < auth provider headers (provider may override)
+    const authHeaders = _authProvider ? await _authProvider(config) : {}
+    const headers = { ...(config.headers || {}), ...authHeaders }
 
     let body
     if (method === 'PUT') {

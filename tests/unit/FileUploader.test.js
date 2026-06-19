@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { FileUploader } from '../../src/services/FileUploader.js'
 
+// Always reset the auth provider between tests
+afterEach(() => {
+  FileUploader.setAuthProvider(null)
+})
+
 function makeFile(name = 'test.csv', type = 'text/csv', content = 'a,b') {
   return new File([content], name, { type })
 }
@@ -99,6 +104,55 @@ describe('FileUploader', () => {
       })
       const [url] = global.fetch.mock.calls[0]
       expect(url).toBe('https://api.example.com/store/my%20file.csv')
+    })
+  })
+
+  describe('auth provider hook', () => {
+    it('merges headers returned by the provider', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      FileUploader.setAuthProvider(async () => ({ Authorization: 'Bearer tok123' }))
+      await uploader.upload(makeFile(), { uploadUrl: 'https://api.example.com/upload', responseType: 'text' })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBe('Bearer tok123')
+    })
+
+    it('provider headers override static config headers', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      FileUploader.setAuthProvider(async () => ({ Authorization: 'Bearer new', 'X-Extra': 'added' }))
+      await uploader.upload(makeFile(), {
+        uploadUrl: 'https://api.example.com/upload',
+        responseType: 'text',
+        headers: { Authorization: 'Bearer old', 'X-Static': 'kept' }
+      })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBe('Bearer new')
+      expect(opts.headers['X-Static']).toBe('kept')
+      expect(opts.headers['X-Extra']).toBe('added')
+    })
+
+    it('provider receives the full config object', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      const provider = vi.fn().mockResolvedValue({})
+      FileUploader.setAuthProvider(provider)
+      const config = { uploadUrl: 'https://api.example.com/upload', responseType: 'text', auth: { type: 'bearer' } }
+      await uploader.upload(makeFile(), config)
+      expect(provider).toHaveBeenCalledWith(config)
+    })
+
+    it('sends no auth headers when no provider is set', async () => {
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      await uploader.upload(makeFile(), { uploadUrl: 'https://api.example.com/upload', responseType: 'text' })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBeUndefined()
+    })
+
+    it('removing provider with null restores unauthenticated uploads', async () => {
+      FileUploader.setAuthProvider(async () => ({ Authorization: 'Bearer tok' }))
+      FileUploader.setAuthProvider(null)
+      global.fetch = mockFetch(200, 'https://example.com/f.csv')
+      await uploader.upload(makeFile(), { uploadUrl: 'https://api.example.com/upload', responseType: 'text' })
+      const [, opts] = global.fetch.mock.calls[0]
+      expect(opts.headers['Authorization']).toBeUndefined()
     })
   })
 

@@ -307,6 +307,26 @@ Props von `DistributionEditor.vue`:
 
 Der aktive Modus kann zur Laufzeit über den Toggle-Button im Header umgeschaltet werden (siehe `toggleDistributionMode()` in App.vue).
 
+### Datei-Upload (`FileUploader.js`)
+
+`src/services/FileUploader.js` kapselt den HTTP-Upload einer Datei an eine externe API. Konfiguriert über das `fileUpload`-Objekt im Feldconfig (siehe `configuration.md`).
+
+Unterstützte Strategien: `POST` (multipart/form-data) und `PUT` (Datei direkt im Body). Die Antwort wird als Plaintext-URL oder als JSON mit konfigurierbarem Feldpfad ausgewertet.
+
+#### Auth-Provider-Hook
+
+OntoForm verwaltet selbst keine Zugangsdaten. Die einbettende Anwendung registriert eine async Funktion, die Auth-Header liefert:
+
+```js
+FileUploader.setAuthProvider(async (config) => ({
+  Authorization: `Bearer ${myAuthStore.getToken()}`
+}))
+```
+
+Die Funktion wird vor jedem Upload aufgerufen. Ihr Rückgabewert wird mit den statischen `config.headers` gemergt (Provider-Header haben Vorrang). Mit `FileUploader.setAuthProvider(null)` wird der Hook entfernt.
+
+Das optionale Feld `auth.type` in der Konfiguration (`"bearer"`, `"apikey"`, …) ist ein reiner Hinweis für Entwickler — OntoForm wertet ihn nicht aus.
+
 ---
 
 ## Konfigurationsauflösung
