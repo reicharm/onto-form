@@ -1,6 +1,10 @@
 import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
 
+function _isAbsoluteURI(s) {
+  return typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'))
+}
+
 const PREFIXES = {
   rdf:    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
   dct:    'http://purl.org/dc/terms/',
@@ -43,6 +47,14 @@ export class RDFImporter {
       const coerced = this._coerceToFieldType(val, field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
+      }
+    }
+
+    // Fallback: use @id as dct:identifier if field is missing (e.g. not in doc)
+    if (!formData['dct:identifier'] && doc['@id'] && _isAbsoluteURI(doc['@id'])) {
+      const field = fields['dct:identifier']
+      if (!field || !this._isInvalid(doc['@id'], field)) {
+        formData['dct:identifier'] = doc['@id']
       }
     }
 
@@ -246,6 +258,15 @@ export class RDFImporter {
       const coerced = this._coerceToFieldType(val, field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
+      }
+    }
+
+    // Fallback: if dct:identifier was discarded (non-URI literal) but the dataset
+    // subject itself is a URI, use that as the identifier
+    if (!formData['dct:identifier'] && mainSubject && _isAbsoluteURI(mainSubject)) {
+      const field = fields['dct:identifier']
+      if (!field || !this._isInvalid(mainSubject, field)) {
+        formData['dct:identifier'] = mainSubject
       }
     }
 

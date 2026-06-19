@@ -33,7 +33,7 @@ export const fieldValidators = {
 
   isEmail: (value, lang) => {
     if (!value) return []
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(value)
       ? []
       : [lang === 'de' ? 'Ungültige E-Mail-Adresse.' : 'Invalid email address.']
   },

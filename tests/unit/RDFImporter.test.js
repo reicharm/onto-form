@@ -152,6 +152,64 @@ PREFIX dcat: <http://www.w3.org/ns/dcat#>
       expect(result['dcat:contactPoint']['vcard:hasEmail']).toBe('jane@example.com')
     })
 
+    it('falls back to subject URI when dct:identifier is a non-URI literal', async () => {
+      const turtle = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<https://example.com/datasets/abc-123> a dcat:Dataset ;
+    dct:identifier "abc-123" .
+`
+      const config = { fields: { 'dct:identifier': { type: 'text', validate: 'isURI' } } }
+      const result = await importer.fromTurtle(turtle, config)
+      expect(result['dct:identifier']).toBe('https://example.com/datasets/abc-123')
+    })
+
+    it('uses literal dct:identifier when it is a valid URI', async () => {
+      const turtle = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<https://example.com/datasets/abc-123> a dcat:Dataset ;
+    dct:identifier "https://example.com/datasets/abc-123" .
+`
+      const config = { fields: { 'dct:identifier': { type: 'text', validate: 'isURI' } } }
+      const result = await importer.fromTurtle(turtle, config)
+      expect(result['dct:identifier']).toBe('https://example.com/datasets/abc-123')
+    })
+
+    it('imports distributions referenced by named node URI', async () => {
+      const turtle = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<https://example.com/ds/1> a dcat:Dataset ;
+    dcat:distribution <https://example.com/dist/1> .
+
+<https://example.com/dist/1> a dcat:Distribution ;
+    dcat:accessURL <https://example.com/file.csv> ;
+    dct:title "My CSV" .
+`
+      const config = { fields: { 'dcat:distribution': { type: 'distribution-editor' } } }
+      const result = await importer.fromTurtle(turtle, config)
+      expect(result['dcat:distribution']).toHaveLength(1)
+      expect(result['dcat:distribution'][0]['dcat:accessURL']).toBe('https://example.com/file.csv')
+    })
+
+    it('imports keywords without language tag as lang=de', async () => {
+      const turtle = `
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+
+<https://example.com/ds/1> a dcat:Dataset ;
+    dcat:keyword "GSAA", "InVeKoS" .
+`
+      const result = await importer.fromTurtle(turtle, basicConfig)
+      expect(Array.isArray(result['dcat:keyword'])).toBe(true)
+      expect(result['dcat:keyword'].length).toBeGreaterThan(0)
+      expect(result['dcat:keyword'][0].lang).toBe('de')
+    })
+
     it('strips mailto: prefix from email sub-fields', async () => {
       const turtle = `
 @prefix dct: <http://purl.org/dc/terms/> .
