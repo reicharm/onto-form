@@ -61,6 +61,12 @@ describe('RDFExporter', () => {
       expect(doc['dcat:contactPoint']['rdf:type']).toBeUndefined()
     })
 
+    it('includes @type in sub-object when rdf:type is set', () => {
+      const fd = { 'dct:temporal': { 'rdf:type': 'dct:PeriodOfTime', 'dcat:startDate': '2020-01-01' } }
+      const doc = JSON.parse(exporter.toJSONLD(fd))
+      expect(doc['dct:temporal']['@type']).toBe('dct:PeriodOfTime')
+    })
+
     it('omits null and empty string values', () => {
       const fd = { 'dct:title': null, 'dct:description': '', 'dct:identifier': 'https://x.com' }
       const doc = JSON.parse(exporter.toJSONLD(fd))
@@ -128,6 +134,67 @@ describe('RDFExporter', () => {
       const result = exporter.toTurtle(fd)
       expect(result).toContain('dcat:contactPoint [')
       expect(result).toContain('vcard:fn "Jane"')
+    })
+
+    it('emits rdf:type as "a" in sub-object blank node', () => {
+      const fd = { 'dct:temporal': { 'rdf:type': 'dct:PeriodOfTime', 'dcat:startDate': '2020-01-01' } }
+      const result = exporter.toTurtle(fd)
+      expect(result).toContain('a dct:PeriodOfTime')
+    })
+
+    it('serializes date sub-fields with ^^xsd:date', () => {
+      const fd = { 'dct:temporal': { 'rdf:type': 'dct:PeriodOfTime', 'dcat:startDate': '2002-01-01', 'dcat:endDate': '2024-01-01' } }
+      const result = exporter.toTurtle(fd)
+      expect(result).toContain('"2002-01-01"^^xsd:date')
+      expect(result).toContain('"2024-01-01"^^xsd:date')
+    })
+  })
+
+  describe('toRDFXML', () => {
+    it('produces a valid XML declaration', () => {
+      const result = exporter.toRDFXML({})
+      expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>')
+    })
+
+    it('wraps content in rdf:RDF root with namespace declarations', () => {
+      const result = exporter.toRDFXML({})
+      expect(result).toContain('xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"')
+      expect(result).toContain('xmlns:dcat="http://www.w3.org/ns/dcat#"')
+      expect(result).toContain('xmlns:dct="http://purl.org/dc/terms/"')
+    })
+
+    it('declares dataset as dcat:Dataset with rdf:about', () => {
+      const result = exporter.toRDFXML({ 'dct:identifier': 'https://example.com/ds/1' })
+      expect(result).toContain('<dcat:Dataset rdf:about="https://example.com/ds/1">')
+    })
+
+    it('serializes language map as xml:lang attributes', () => {
+      const result = exporter.toRDFXML({ 'dct:title': { de: 'Titel', en: 'Title' } })
+      expect(result).toContain('xml:lang="de"')
+      expect(result).toContain('>Titel<')
+    })
+
+    it('serializes URI values as rdf:resource', () => {
+      const result = exporter.toRDFXML({ 'dct:publisher': 'https://example.com/org' })
+      expect(result).toContain('rdf:resource="https://example.com/org"')
+    })
+
+    it('serializes date values with rdf:datatype xsd:date', () => {
+      const result = exporter.toRDFXML({ 'dct:issued': '2024-01-15' })
+      expect(result).toContain('rdf:datatype="http://www.w3.org/2001/XMLSchema#date"')
+      expect(result).toContain('>2024-01-15<')
+    })
+
+    it('serializes sub-object with rdf:type as typed XML element and ^^xsd:date sub-fields', () => {
+      const fd = { 'dct:temporal': { 'rdf:type': 'dct:PeriodOfTime', 'dcat:startDate': '2002-01-01', 'dcat:endDate': '2024-01-01' } }
+      const result = exporter.toRDFXML(fd)
+      expect(result).toContain('<dct:PeriodOfTime>')
+      expect(result).toContain('rdf:datatype="http://www.w3.org/2001/XMLSchema#date"')
+    })
+
+    it('escapes special XML characters', () => {
+      const result = exporter.toRDFXML({ 'dct:description': { en: 'A & B < C' } })
+      expect(result).toContain('A &amp; B &lt; C')
     })
   })
 })

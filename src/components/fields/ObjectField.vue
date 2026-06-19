@@ -22,6 +22,7 @@ import URIField from './URIField.vue'
 import SelectField from './SelectField.vue'
 import LangStringField from './LangStringField.vue'
 import TextareaField from './TextareaField.vue'
+import DateField from './DateField.vue'
 
 const props = defineProps({
   field: Object,
@@ -37,7 +38,8 @@ const componentMap = {
   uri: URIField,
   select: SelectField,
   langstring: LangStringField,
-  textarea: TextareaField
+  textarea: TextareaField,
+  date: DateField,
 }
 
 function subFieldComponent(subField) {
@@ -45,7 +47,9 @@ function subFieldComponent(subField) {
 }
 
 function updateSubField(id, value) {
-  emit('update:modelValue', { ...(props.modelValue || {}), [id]: value })
+  const base = { ...(props.modelValue || {}) }
+  if (props.field.rdfType) base['rdf:type'] = props.field.rdfType
+  emit('update:modelValue', { ...base, [id]: value })
 }
 </script>
 

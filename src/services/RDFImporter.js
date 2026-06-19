@@ -49,6 +49,93 @@ export class RDFImporter {
     return formData
   }
 
+  fromRDFXML(text, config) {
+    const parser = new DOMParser()
+    const xmlDoc = parser.parseFromString(text, 'application/xml')
+
+    const parseError = xmlDoc.querySelector('parsererror')
+    if (parseError) throw new Error(parseError.textContent)
+
+    const DCAT_NS = 'http://www.w3.org/ns/dcat#'
+    const RDF_NS  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+    const XML_NS  = 'http://www.w3.org/XML/1998/namespace'
+
+    const datasetEl = xmlDoc.getElementsByTagNameNS(DCAT_NS, 'Dataset')[0]
+    if (!datasetEl) throw new Error('Kein dcat:Dataset gefunden')
+
+    const byPred = {}
+    const bySubject = new Map()
+    let bnodeCounter = 0
+
+    const addObject = (pred, obj) => {
+      if (!byPred[pred]) byPred[pred] = []
+      byPred[pred].push(obj)
+    }
+
+    const about = datasetEl.getAttributeNS(RDF_NS, 'about')
+    if (about) {
+      addObject('dct:identifier', { termType: 'NamedNode', value: about })
+    }
+
+    for (const child of datasetEl.children) {
+      const fullURI = child.namespaceURI + child.localName
+      const pred = this._toPrefixed(fullURI)
+
+      const resource = child.getAttributeNS(RDF_NS, 'resource')
+      if (resource) {
+        addObject(pred, { termType: 'NamedNode', value: resource })
+        continue
+      }
+
+      // Blank node sub-object: child has element children
+      const innerEl = child.getElementsByTagNameNS(RDF_NS, 'Description')[0]
+        || (child.children.length > 0 ? child.children[0] : null)
+
+      if (innerEl) {
+        const bnodeId = `_:bn${bnodeCounter++}`
+        const subQuads = []
+        // If the inner element is not rdf:Description, its tag name encodes rdf:type
+        const isDescription = innerEl.namespaceURI === RDF_NS && innerEl.localName === 'Description'
+        if (!isDescription) {
+          const typeURI = innerEl.namespaceURI + innerEl.localName
+          subQuads.push({ subject: { value: bnodeId }, predicate: { value: RDF_NS + 'type' }, object: { termType: 'NamedNode', value: typeURI } })
+        }
+        for (const sub of innerEl.children) {
+          const subFullURI = sub.namespaceURI + sub.localName
+          const subResource = sub.getAttributeNS(RDF_NS, 'resource')
+          if (subResource) {
+            subQuads.push({ subject: { value: bnodeId }, predicate: { value: subFullURI }, object: { termType: 'NamedNode', value: subResource } })
+          } else {
+            const subLang = sub.getAttributeNS(XML_NS, 'lang') || sub.getAttribute('xml:lang') || ''
+            subQuads.push({ subject: { value: bnodeId }, predicate: { value: subFullURI }, object: { termType: 'Literal', value: sub.textContent, language: subLang } })
+          }
+        }
+        bySubject.set(bnodeId, subQuads)
+        addObject(pred, { termType: 'BlankNode', value: bnodeId })
+        continue
+      }
+
+      const lang = child.getAttributeNS(XML_NS, 'lang') || child.getAttribute('xml:lang') || ''
+      const datatype = child.getAttributeNS(RDF_NS, 'datatype') || ''
+      addObject(pred, { termType: 'Literal', value: child.textContent, language: lang, datatype })
+    }
+
+    const fields = config?.fields || {}
+    const formData = {}
+
+    for (const [fieldId, field] of Object.entries(fields)) {
+      const objects = byPred[fieldId]
+      if (!objects?.length) continue
+      const val = this._deserializeTurtleObjects(objects, field, bySubject)
+      const coerced = this._coerceToFieldType(val, field)
+      if (coerced != null && !this._isInvalid(coerced, field)) {
+        formData[fieldId] = coerced
+      }
+    }
+
+    return formData
+  }
+
   async fromTurtle(text, config) {
     const normalized = this._normalizePrefixes(text)
     const quads = await this._parseTurtle(normalized)
@@ -193,11 +280,15 @@ export class RDFImporter {
       const node = objects.find(o => o.termType === 'BlankNode' || o.termType === 'NamedNode')
       if (!node) return {}
       const subQuads = bySubject.get(node.value) || []
-      // Only include sub-fields that are defined in the field config
       const validSubIds = new Set((field.subFields || []).map(sf => sf.id))
+      const RDF_TYPE = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
       const result = {}
       for (const q of subQuads) {
         const subId = this._toPrefixed(q.predicate.value)
+        if (q.predicate.value === RDF_TYPE) {
+          result['rdf:type'] = this._toPrefixed(q.object.value)
+          continue
+        }
         if (validSubIds.size > 0 && !validSubIds.has(subId)) continue
         const clean = SUBFIELD_CLEAN[subId]
         result[subId] = clean ? clean(q.object.value) : q.object.value

@@ -38,8 +38,9 @@ export class RDFExporter {
         })
         if (items.length > 0) doc[key] = items.length === 1 ? items[0] : items
       } else if (isSubObject(value)) {
-        // Sub-object → blank node; skip rdf:type and non-prefixed keys
+        // Sub-object → blank node
         const node = {}
+        if (value['rdf:type']) node['@type'] = value['rdf:type']
         for (const [subKey, subVal] of Object.entries(value)) {
           if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (subVal) node[subKey] = subVal
@@ -55,6 +56,77 @@ export class RDFExporter {
     }
 
     return JSON.stringify(doc, null, 2)
+  }
+
+  toRDFXML(formData, standard) {
+    const nsDecls = [
+      '  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"',
+      '  xmlns:dct="http://purl.org/dc/terms/"',
+      '  xmlns:dcat="http://www.w3.org/ns/dcat#"',
+      '  xmlns:foaf="http://xmlns.com/foaf/0.1/"',
+      '  xmlns:skos="http://www.w3.org/2004/02/skos/core#"',
+      '  xmlns:vcard="http://www.w3.org/2006/vcard/ns#"',
+      '  xmlns:xsd="http://www.w3.org/2001/XMLSchema#"',
+      '  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"',
+    ].join('\n')
+
+    const id = formData['dct:identifier']
+    const aboutAttr = id && isURI(id) ? ` rdf:about="${escapeXML(id)}"` : ''
+
+    const lines = []
+
+    for (const [key, value] of Object.entries(formData || {})) {
+      if (value == null || value === '' || key === 'dct:identifier') continue
+
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          if (!item) continue
+          if (typeof item === 'object' && 'value' in item) {
+            if (item.value) lines.push(`    <${key} xml:lang="${item.lang}">${escapeXML(item.value)}</${key}>`)
+          } else if (isURI(item)) {
+            lines.push(`    <${key} rdf:resource="${escapeXML(item)}"/>`)
+          } else if (item) {
+            lines.push(`    <${key}>${escapeXML(String(item))}</${key}>`)
+          }
+        }
+      } else if (isSubObject(value)) {
+        const subLines = []
+        const rdfType = value['rdf:type']
+        const openTag = rdfType
+          ? `      <${rdfType}>`
+          : '      <rdf:Description>'
+        const closeTag = rdfType ? `      </${rdfType}>` : '      </rdf:Description>'
+        for (const [subKey, subVal] of Object.entries(value)) {
+          if (!subKey.includes(':') || subKey === 'rdf:type') continue
+          if (!subVal) continue
+          if (isURI(subVal)) subLines.push(`        <${subKey} rdf:resource="${escapeXML(subVal)}"/>`)
+          else if (isDate(subVal)) subLines.push(`        <${subKey} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(subVal)}</${subKey}>`)
+          else subLines.push(`        <${subKey}>${escapeXML(String(subVal))}</${subKey}>`)
+        }
+        if (subLines.length > 0) {
+          lines.push(`    <${key}>\n${openTag}\n${subLines.join('\n')}\n${closeTag}\n    </${key}>`)
+        }
+      } else if (typeof value === 'object') {
+        for (const [lang, v] of Object.entries(value)) {
+          if (v) lines.push(`    <${key} xml:lang="${lang}">${escapeXML(v)}</${key}>`)
+        }
+      } else if (isURI(value)) {
+        lines.push(`    <${key} rdf:resource="${escapeXML(value)}"/>`)
+      } else if (isDate(value)) {
+        lines.push(`    <${key} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(value)}</${key}>`)
+      } else {
+        lines.push(`    <${key}>${escapeXML(String(value))}</${key}>`)
+      }
+    }
+
+    return [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      `<rdf:RDF\n${nsDecls}>`,
+      `  <dcat:Dataset${aboutAttr}>`,
+      ...lines,
+      '  </dcat:Dataset>',
+      '</rdf:RDF>',
+    ].join('\n')
   }
 
   toTurtle(formData, standard) {
@@ -91,12 +163,14 @@ export class RDFExporter {
           }
         }
       } else if (isSubObject(value)) {
-        // Sub-object → blank node; skip rdf:type and non-prefixed keys
+        // Sub-object → blank node
         const subLines = []
+        if (value['rdf:type']) subLines.push(`        a ${value['rdf:type']}`)
         for (const [subKey, subVal] of Object.entries(value)) {
           if (!subKey.includes(':') || subKey === 'rdf:type') continue
           if (!subVal) continue
           if (isURI(subVal)) subLines.push(`        ${subKey} <${subVal}>`)
+          else if (isDate(subVal)) subLines.push(`        ${subKey} "${subVal}"^^xsd:date`)
           else subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"`)
         }
         if (subLines.length > 0) {
@@ -130,6 +204,14 @@ export class RDFExporter {
 
     return [...prefixes, `${subject} a dcat:Dataset ;`, ...body].join('\n')
   }
+}
+
+function escapeXML(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
 }
 
 function escapeTurtle(s) {

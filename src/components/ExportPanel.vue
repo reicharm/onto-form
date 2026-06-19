@@ -9,11 +9,13 @@
       <div class="export-tabs">
         <button :class="{ active: activeTab === 'jsonld' }" @click="activeTab = 'jsonld'">JSON-LD</button>
         <button :class="{ active: activeTab === 'turtle' }" @click="activeTab = 'turtle'">Turtle</button>
+        <button :class="{ active: activeTab === 'rdfxml' }" @click="activeTab = 'rdfxml'">RDF/XML</button>
       </div>
 
       <div class="export-content">
         <pre v-if="activeTab === 'jsonld'">{{ jsonld }}</pre>
-        <pre v-else>{{ turtle }}</pre>
+        <pre v-else-if="activeTab === 'turtle'">{{ turtle }}</pre>
+        <pre v-else>{{ rdfxml }}</pre>
       </div>
 
       <div class="export-actions">
@@ -41,8 +43,13 @@ const exporter = new RDFExporter()
 
 const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard))
 const turtle = computed(() => exporter.toTurtle(props.formData, props.standard))
+const rdfxml = computed(() => exporter.toRDFXML(props.formData, props.standard))
 
-const currentContent = computed(() => activeTab.value === 'jsonld' ? jsonld.value : turtle.value)
+const currentContent = computed(() => {
+  if (activeTab.value === 'jsonld') return jsonld.value
+  if (activeTab.value === 'turtle') return turtle.value
+  return rdfxml.value
+})
 
 async function copy() {
   await navigator.clipboard.writeText(currentContent.value)
@@ -51,13 +58,15 @@ async function copy() {
 }
 
 function download() {
-  const ext = activeTab.value === 'jsonld' ? 'jsonld' : 'ttl'
-  const mime = activeTab.value === 'jsonld' ? 'application/ld+json' : 'text/turtle'
+  const extMap = { jsonld: 'jsonld', turtle: 'ttl', rdfxml: 'rdf' }
+  const mimeMap = { jsonld: 'application/ld+json', turtle: 'text/turtle', rdfxml: 'application/rdf+xml' }
+  const ext = extMap[activeTab.value] || 'rdf'
+  const mime = mimeMap[activeTab.value] || 'application/rdf+xml'
   const blob = new Blob([currentContent.value], { type: mime })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `metadata.${ext}`
+  a.download = activeTab.value === 'jsonld' ? 'metadata.jsonld' : activeTab.value === 'turtle' ? 'metadata.ttl' : 'metadata.rdf'
   a.click()
   URL.revokeObjectURL(url)
 }
