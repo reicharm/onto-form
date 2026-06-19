@@ -11,7 +11,8 @@
           :class="{
             completed: idx < currentStep,
             active: idx === currentStep && currentStep < visibleGroups.length,
-            future: idx > currentStep || currentStep >= visibleGroups.length
+            future: idx > currentStep || currentStep >= visibleGroups.length,
+            'has-error': currentStep >= visibleGroups.length && groupHasErrors(group)
           }"
         >
           <div class="step-connector left" v-if="idx > 0" :class="{ done: idx <= currentStep }"></div>
@@ -84,12 +85,22 @@
       <!-- Summary View -->
       <template v-else>
         <div class="summary-view">
-          <div v-for="(group, idx) in visibleGroups" :key="group.id" class="form-group summary-group">
+          <div
+            v-for="(group, idx) in visibleGroups"
+            :key="group.id"
+            class="form-group summary-group"
+            :class="{ 'summary-group-has-error': groupHasErrors(group) }"
+          >
             <div class="summary-group-header">
               <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
-              <button class="btn-edit" @click="jumpToStep(idx)">
-                {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
-              </button>
+              <div class="summary-group-header-right">
+                <span v-if="groupHasErrors(group)" class="group-error-badge">
+                  {{ lang === 'de' ? 'Fehlende Pflichtfelder' : 'Required fields missing' }}
+                </span>
+                <button class="btn-edit" @click="jumpToStep(idx)">
+                  {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
+                </button>
+              </div>
             </div>
             <div class="summary-fields">
               <template v-if="groupHasValues(group)">
@@ -283,6 +294,10 @@ function groupFieldErrors(group) {
     if (fieldErrors.value[f.id]) result[f.id] = fieldErrors.value[f.id]
   }
   return result
+}
+
+function groupHasErrors(group) {
+  return Object.keys(groupFieldErrors(group)).length > 0
 }
 
 const currentStepHasErrors = computed(() => {
@@ -540,6 +555,16 @@ function formatValue(field) {
   cursor: default;
 }
 
+.step-item.has-error .step-circle {
+  border-color: var(--color-error) !important;
+  color: var(--color-error) !important;
+  background: color-mix(in srgb, var(--color-error) 10%, var(--color-surface)) !important;
+}
+
+.step-item.has-error .step-label {
+  color: var(--color-error) !important;
+}
+
 .step-label {
   font-size: 0.7rem;
   color: var(--color-text-muted);
@@ -587,6 +612,18 @@ function formatValue(field) {
 /* Summary */
 .summary-view { display: flex; flex-direction: column; gap: 1.5rem; }
 
+.summary-group-has-error {
+  border-left: 3px solid var(--color-error);
+}
+
+.summary-group-has-error .summary-group-header {
+  border-bottom-color: var(--color-error);
+}
+
+.summary-group-has-error .group-title {
+  color: var(--color-error);
+}
+
 .summary-group-header {
   display: flex;
   justify-content: space-between;
@@ -594,6 +631,23 @@ function formatValue(field) {
   margin-bottom: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--color-primary-bg);
+}
+
+.summary-group-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.group-error-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
 }
 
 .summary-group-header .group-title {
