@@ -5,7 +5,7 @@
     <!-- Suggestion picker (shown when field.remember is true and suggestions exist) -->
     <FieldSuggestions
       v-if="field.remember"
-      :fieldId="field.id"
+      :field="field"
       :lang="lang"
       @select="applySuggestion"
     />

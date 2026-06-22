@@ -457,7 +457,15 @@
           ]
         }
       ],
-      "remember": true
+      "remember": true,
+      "suggestionsFrom": [
+        "dcat:contactPoint"
+      ],
+      "suggestionsMap": {
+        "vcard:fn": "foaf:name",
+        "vcard:hasEmail": "foaf:mbox",
+        "vcard:hasURL": "foaf:homepage"
+      }
     },
     "dcat:contactPoint": {
       "type": "object",
@@ -525,7 +533,15 @@
           }
         }
       ],
-      "remember": true
+      "remember": true,
+      "suggestionsFrom": [
+        "dct:publisher"
+      ],
+      "suggestionsMap": {
+        "foaf:name": "vcard:fn",
+        "foaf:mbox": "vcard:hasEmail",
+        "foaf:homepage": "vcard:hasURL"
+      }
     },
     "dcatap:availability": {
       "type": "select",

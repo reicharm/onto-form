@@ -170,3 +170,72 @@ describe('label', () => {
     expect(suggestionsStore.label({ x: 'foo', y: 'bar' })).toBe('foo · bar')
   })
 })
+
+// ── getFor (cross-field) ───────────────────────────────────────────────────
+
+describe('getFor', () => {
+  const publisherField = { id: 'dct:publisher' }
+  const contactField = {
+    id: 'dcat:contactPoint',
+    suggestionsFrom: ['dct:publisher'],
+    suggestionsMap: {
+      'foaf:name': 'vcard:fn',
+      'foaf:mbox': 'vcard:hasEmail',
+      'foaf:homepage': 'vcard:hasURL'
+    }
+  }
+
+  it('returns own suggestions when no suggestionsFrom defined', () => {
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'Pub' })
+    expect(suggestionsStore.getFor(publisherField)).toHaveLength(1)
+  })
+
+  it('remaps keys from foreign field according to suggestionsMap', () => {
+    suggestionsStore.save('dct:publisher', {
+      'foaf:name': 'Stadt Wien',
+      'foaf:mbox': 'pub@wien.gv.at',
+      'foaf:homepage': 'https://wien.gv.at'
+    })
+    const results = suggestionsStore.getFor(contactField)
+    const fromPublisher = results.find(r => r['vcard:fn'] === 'Stadt Wien')
+    expect(fromPublisher).toBeDefined()
+    expect(fromPublisher['vcard:hasEmail']).toBe('pub@wien.gv.at')
+    expect(fromPublisher['vcard:hasURL']).toBe('https://wien.gv.at')
+  })
+
+  it('own suggestions appear before cross-field suggestions', () => {
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'Foreign' })
+    suggestionsStore.save('dcat:contactPoint', { 'vcard:fn': 'Own' })
+    const results = suggestionsStore.getFor(contactField)
+    expect(results[0]['vcard:fn']).toBe('Own')
+  })
+
+  it('deduplicates cross-field values that match own values after remapping', () => {
+    // Store the same person in both fields with matching data
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'X', 'foaf:mbox': 'x@x.at' })
+    suggestionsStore.save('dcat:contactPoint', { 'vcard:fn': 'X', 'vcard:hasEmail': 'x@x.at' })
+    const results = suggestionsStore.getFor(contactField)
+    // The remapped publisher entry equals the contact entry — should appear only once
+    expect(results.filter(r => r['vcard:fn'] === 'X')).toHaveLength(1)
+  })
+
+  it('keeps unknown keys unchanged when not in suggestionsMap', () => {
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'Pub', 'dct:type': 'LocalAuthority' })
+    const results = suggestionsStore.getFor(contactField)
+    const remapped = results.find(r => r['vcard:fn'] === 'Pub')
+    expect(remapped?.['dct:type']).toBe('LocalAuthority')
+  })
+
+  it('handles multiple suggestionsFrom sources', () => {
+    const multiField = {
+      id: 'target',
+      suggestionsFrom: ['dct:publisher', 'dcat:contactPoint'],
+      suggestionsMap: { 'foaf:name': 'name', 'vcard:fn': 'name' }
+    }
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'Pub' })
+    suggestionsStore.save('dcat:contactPoint', { 'vcard:fn': 'Contact' })
+    const results = suggestionsStore.getFor(multiField)
+    expect(results.some(r => r.name === 'Pub')).toBe(true)
+    expect(results.some(r => r.name === 'Contact')).toBe(true)
+  })
+})

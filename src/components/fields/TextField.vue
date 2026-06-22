@@ -27,7 +27,7 @@
     <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
     <FieldSuggestions
       v-if="field.remember"
-      :fieldId="field.id"
+      :field="field"
       :lang="lang"
       @select="$emit('update:modelValue', $event)"
     />

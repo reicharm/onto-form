@@ -536,6 +536,44 @@ import { suggestionsStore } from 'onto-form/src/services/SuggestionsStore.js'
 suggestionsStore.save('dct:publisher', formData['dct:publisher'])
 ```
 
+### Feldübergreifende Vorschläge (`suggestionsFrom` / `suggestionsMap`)
+
+Ein Feld kann Vorschläge auch aus anderen Feldern beziehen — z. B. soll eine Eingabe bei Herausgeber auch bei Kontaktstelle als Vorschlag auftauchen. Da die Felder unterschiedliche Vokabulare verwenden (`foaf:` vs. `vcard:`), übersetzt `suggestionsMap` die Schlüssel beim Importieren.
+
+```json
+"dcat:contactPoint": {
+  "type": "object",
+  "remember": true,
+  "suggestionsFrom": ["dct:publisher"],
+  "suggestionsMap": {
+    "foaf:name":     "vcard:fn",
+    "foaf:mbox":     "vcard:hasEmail",
+    "foaf:homepage": "vcard:hasURL"
+  }
+}
+```
+
+```json
+"dct:publisher": {
+  "type": "object",
+  "remember": true,
+  "suggestionsFrom": ["dcat:contactPoint"],
+  "suggestionsMap": {
+    "vcard:fn":       "foaf:name",
+    "vcard:hasEmail": "foaf:mbox",
+    "vcard:hasURL":   "foaf:homepage"
+  }
+}
+```
+
+**Reihenfolge der Vorschläge:** Eigene Vorschläge (context + localStorage) erscheinen zuerst, danach die umgemappten Vorschläge aus Fremdfeldern. Duplikate (nach Schlüsselumbenennung) werden entfernt. Unbekannte Schlüssel (kein Eintrag in `suggestionsMap`) werden unverändert übernommen.
+
+`suggestionsFrom` kann mehrere Feld-IDs enthalten:
+
+```json
+"suggestionsFrom": ["dct:publisher", "dct:creator"]
+```
+
 ### Gespeicherte Vorschläge löschen
 
 ```js

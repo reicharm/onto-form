@@ -23,13 +23,13 @@ import { computed } from 'vue'
 import { suggestionsStore } from '../../services/SuggestionsStore.js'
 
 const props = defineProps({
-  fieldId: { type: String, required: true },
+  field: { type: Object, required: true },
   lang: { type: String, default: 'de' }
 })
 
 defineEmits(['select'])
 
-const suggestions = computed(() => suggestionsStore.get(props.fieldId))
+const suggestions = computed(() => suggestionsStore.getFor(props.field))
 </script>
 
 <style scoped>
