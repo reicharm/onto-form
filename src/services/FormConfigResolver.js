@@ -14,7 +14,7 @@ export class FormConfigResolver {
 
     const allFields = {}
     for (const shape of Object.values(shapes)) {
-      Object.assign(allFields, shape.fields)
+      if (!shape.embedded) Object.assign(allFields, shape.fields)
     }
 
     const mergedFields = { ...allFields }

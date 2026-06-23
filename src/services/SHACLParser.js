@@ -4,6 +4,7 @@ const SH   = 'http://www.w3.org/ns/shacl#'
 const RDF  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
 const XSD  = 'http://www.w3.org/2001/XMLSchema#'
 const RDFS = 'http://www.w3.org/2000/01/rdf-schema#'
+const PV   = 'https://piveau.eu/ns/voc#'
 
 const DATATYPE_MAP = {
   [`${XSD}string`]:              'text',
@@ -19,8 +20,9 @@ const DATATYPE_MAP = {
 export class SHACLParser {
   async parse(ttlContent) {
     const store = await parseTTLToStore(ttlContent)
-    const shapes = {}
+    const rawShapes = {}
 
+    // First pass: parse all NodeShapes into raw shapes
     for (const [subject, triples] of store.entries()) {
       const types = triples.filter(t => t.p === `${RDF}type`).map(t => t.o.value)
       if (!types.includes(`${SH}NodeShape`)) continue
@@ -35,8 +37,33 @@ export class SHACLParser {
         if (field) fields[field.id] = field
       }
 
-      const shapeKey = targetClass || subject
-      shapes[shapeKey] = { targetClass, fields }
+      rawShapes[subject] = { subject, targetClass, fields }
+    }
+
+    // Second pass: resolve pv:mappingLink references into subFields
+    const embeddedSubjects = new Set()
+    for (const shape of Object.values(rawShapes)) {
+      for (const field of Object.values(shape.fields)) {
+        if (!field._linkedShape) continue
+        const linkedSubject = field._linkedShape
+        delete field._linkedShape
+        const linkedShape = rawShapes[linkedSubject]
+        if (linkedShape) {
+          field.subFields = linkedShape.fields
+          embeddedSubjects.add(linkedSubject)
+        }
+      }
+    }
+
+    // Build final shapes map, marking embedded shapes
+    const shapes = {}
+    for (const [subject, shape] of Object.entries(rawShapes)) {
+      const shapeKey = shape.targetClass || subject
+      shapes[shapeKey] = {
+        targetClass: shape.targetClass,
+        fields: shape.fields,
+        embedded: embeddedSubjects.has(subject)
+      }
     }
 
     return shapes
@@ -75,12 +102,15 @@ function parsePropertyShape(triples, store) {
   const inValues = triples.filter(t => t.p === `${SH}in`)
   const options  = extractListOptions(inValues, store)
 
+  const linkedShape = triples.find(t => t.p === `${PV}mappingLink`)?.o.value
+
   let type = 'text'
-  if (options.length > 0)          type = 'select'
+  if (linkedShape)                  type = 'object'
+  else if (options.length > 0)      type = 'select'
   else if (datatype)                type = DATATYPE_MAP[datatype] || 'text'
   else if (nodeKind === `${SH}IRI`) type = 'uri'
 
-  return {
+  const field = {
     id,
     path: pathValue,
     label: { de: nameDe || nameAny || id, en: nameEn || nameAny || id },
@@ -93,6 +123,10 @@ function parsePropertyShape(triples, store) {
     options,
     visible: true
   }
+
+  if (linkedShape) field._linkedShape = linkedShape
+
+  return field
 }
 
 function extractListOptions(inTriples, store) {

@@ -190,6 +190,21 @@ ex:ShapeB a sh:NodeShape ; sh:targetClass ex:B ;
     expect(shapes['http://example.org/B'].fields['dct:title'].required).toBe(false)
   })
 
+  it('shapes not referenced via pv:mappingLink have embedded: false', async () => {
+    const ttl = `
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix ex:   <http://example.org/> .
+
+ex:ShapeA a sh:NodeShape ; sh:targetClass ex:A ;
+  sh:property [ sh:path dct:title ; sh:datatype xsd:string ] .
+`
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttl)
+    expect(shapes['http://example.org/A'].embedded).toBe(false)
+  })
+
   it('falls back to shape subject URI as key when no sh:targetClass', async () => {
     const ttl = `
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
@@ -203,5 +218,66 @@ ex:OrphanShape a sh:NodeShape ;
     const parser = new SHACLParser()
     const shapes = await parser.parse(ttl)
     expect(shapes['http://example.org/OrphanShape']).toBeDefined()
+  })
+})
+
+// ─── pv:mappingLink (nested sub-shapes) ──────────────────────────────────────
+
+describe('SHACLParser – pv:mappingLink', () => {
+  const ttlWithLink = `
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix dct:  <http://purl.org/dc/terms/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix pv:   <https://piveau.eu/ns/voc#> .
+@prefix ex:   <http://example.org/> .
+
+ex:DatasetShape a sh:NodeShape ; sh:targetClass ex:Dataset ;
+  sh:property [
+    sh:path dcat:distribution ;
+    pv:mappingLink ex:DistShape
+  ] .
+
+ex:DistShape a sh:NodeShape ;
+  sh:property [
+    sh:path dct:format ;
+    sh:datatype xsd:string ;
+    sh:maxCount 1
+  ] .
+`
+
+  it('field with pv:mappingLink gets type "object"', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithLink)
+    const field = shapes['http://example.org/Dataset'].fields['dcat:distribution']
+    expect(field.type).toBe('object')
+  })
+
+  it('field with pv:mappingLink gets subFields from the linked shape', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithLink)
+    const field = shapes['http://example.org/Dataset'].fields['dcat:distribution']
+    expect(field.subFields).toBeDefined()
+    expect(field.subFields['dct:format']).toBeDefined()
+    expect(field.subFields['dct:format'].multiple).toBe(false)
+  })
+
+  it('linked shape is marked as embedded', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithLink)
+    expect(shapes['http://example.org/DistShape'].embedded).toBe(true)
+  })
+
+  it('root shape is not embedded', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithLink)
+    expect(shapes['http://example.org/Dataset'].embedded).toBe(false)
+  })
+
+  it('_linkedShape is not present on the returned field', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithLink)
+    const field = shapes['http://example.org/Dataset'].fields['dcat:distribution']
+    expect(field._linkedShape).toBeUndefined()
   })
 })
