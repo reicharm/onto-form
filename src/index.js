@@ -21,6 +21,7 @@ export { FileUploader }             from './services/FileUploader.js'
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 export { configure, assetUrl } from './config/ontoFormConfig.js'
+export { BUILTIN_STANDARDS }   from './App.vue'
 
 // ── Vue plugin (optional: registers MetadataForm globally) ────────────────────
 import MetadataForm from './components/MetadataForm.vue'

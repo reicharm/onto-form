@@ -54,6 +54,14 @@
   </div>
 </template>
 
+<script>
+export const BUILTIN_STANDARDS = [
+  { id: 'dcat-ap-at', label: 'DCAT-AP.at' },
+  { id: 'geodcat',    label: 'GeoDCAT' },
+  { id: 'dcat-ap-3',  label: 'DCAT-AP 3.0' }
+]
+</script>
+
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
@@ -63,13 +71,21 @@ import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
 
-const standards = [
-  { id: 'dcat-ap-at', label: 'DCAT-AP.at' },
-  { id: 'geodcat', label: 'GeoDCAT' },
-  { id: 'dcat-ap-3', label: 'DCAT-AP 3.0' }
-]
+const props = defineProps({
+  standards: {
+    type: Array,
+    default: () => BUILTIN_STANDARDS
+  },
+  initialStandard: {
+    type: String,
+    default: null   // falls back to first entry in standards
+  }
+})
 
-const selectedStandard = ref('dcat-ap-at')
+// Expose as local so the template can reference it without props. prefix
+const standards = computed(() => props.standards)
+
+const selectedStandard = ref(props.initialStandard ?? props.standards[0]?.id ?? 'dcat-ap-at')
 const lang = ref('de')
 const formConfig = ref(null)
 const formData = ref({})
