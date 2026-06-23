@@ -58,34 +58,15 @@
       <template v-if="currentStep < visibleGroups.length">
         <div class="form-group">
           <h2 class="group-title">{{ currentGroup.label[lang] || currentGroup.label.en }}</h2>
-          <div class="group-fields">
-            <template v-for="field in groupFields(currentGroup)" :key="field.id">
-              <div :id="'field-' + field.id" class="field-wrapper" :class="{ 'has-error': showStepErrors && fieldErrors[field.id]?.length }">
-                <RepeatableField
-                  v-if="field.multiple && field.type !== 'multiselect'"
-                  :field="field"
-                  :lang="lang"
-                  :modelValue="displayValue(field)"
-                  @update:modelValue="updateField(field, $event)"
-                />
-                <component
-                  v-else
-                  :is="fieldComponent(field)"
-                  :field="field"
-                  :lang="lang"
-                  :modelValue="displayValue(field)"
-                  @update:modelValue="updateField(field, $event)"
-                />
-                <div v-if="field.transform && displayValue(field)" class="transform-preview">
-                  {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
-                  <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
-                </div>
-                <ul v-if="showStepErrors && fieldErrors[field.id]?.length" class="field-errors" role="alert">
-                  <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
-                </ul>
-              </div>
-            </template>
-          </div>
+          <FieldGroup
+            :fields="groupFields(currentGroup)"
+            :lang="lang"
+            :modelValue="modelValue"
+            :fieldErrors="fieldErrors"
+            :showErrors="showStepErrors"
+            :fieldComponent="fieldComponent"
+            @update:modelValue="$emit('update:modelValue', $event)"
+          />
         </div>
 
         <!-- Navigation -->
@@ -181,34 +162,15 @@
     <template v-else>
       <div v-for="group in visibleGroups" :key="group.id" class="form-group">
         <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
-        <div class="group-fields">
-          <template v-for="field in groupFields(group)" :key="field.id">
-            <div :id="'field-' + field.id" class="field-wrapper" :class="{ 'has-error': fieldErrors[field.id]?.length }">
-              <RepeatableField
-                v-if="field.multiple && field.type !== 'multiselect'"
-                :field="field"
-                :lang="lang"
-                :modelValue="displayValue(field)"
-                @update:modelValue="updateField(field, $event)"
-              />
-              <component
-                v-else
-                :is="fieldComponent(field)"
-                :field="field"
-                :lang="lang"
-                :modelValue="displayValue(field)"
-                @update:modelValue="updateField(field, $event)"
-              />
-              <div v-if="field.transform && displayValue(field)" class="transform-preview">
-                {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
-                <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
-              </div>
-              <ul v-if="fieldErrors[field.id]?.length" class="field-errors" role="alert">
-                <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
-              </ul>
-            </div>
-          </template>
-        </div>
+        <FieldGroup
+          :fields="groupFields(group)"
+          :lang="lang"
+          :modelValue="modelValue"
+          :fieldErrors="fieldErrors"
+          :showErrors="true"
+          :fieldComponent="fieldComponent"
+          @update:modelValue="$emit('update:modelValue', $event)"
+        />
       </div>
 
       <div class="form-actions">
@@ -247,6 +209,7 @@ import LangStringField from './fields/LangStringField.vue'
 import ObjectField from './fields/ObjectField.vue'
 import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
+import FieldGroup from './fields/FieldGroup.vue'
 import DistributionEditor from './fields/DistributionEditor.vue'
 import MapField from './fields/MapField.vue'
 import SearchSelectField from './fields/SearchSelectField.vue'
@@ -256,6 +219,15 @@ import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 import { suggestionsStore } from '../services/SuggestionsStore.js'
 import { SHACLValidationService } from '../services/SHACLValidationService.js'
+
+function escHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
 
 const props = defineProps({
   config: Object,
@@ -492,7 +464,8 @@ function formatValue(field) {
 
   if (field.type === 'uri') {
     if (!val) return ''
-    return `<a href="${val}" target="_blank" rel="noopener">${val}</a>`
+    const safeVal = escHtml(val)
+    return `<a href="${safeVal}" target="_blank" rel="noopener">${safeVal}</a>`
   }
 
   if (field.type === 'date') {
@@ -503,21 +476,21 @@ function formatValue(field) {
     const parts = field.subFields
       .filter(sf => val[sf.id] && sf.type !== 'map')
       .map(sf => {
-        const sfLabel = sf.label?.[props.lang] || sf.label?.de || sf.id
-        return `<span class="sub-field"><b>${sfLabel}:</b> ${val[sf.id]}</span>`
+        const sfLabel = escHtml(sf.label?.[props.lang] || sf.label?.de || sf.id)
+        return `<span class="sub-field"><b>${sfLabel}:</b> ${escHtml(val[sf.id])}</span>`
       })
     const mapParts = field.subFields
       .filter(sf => val[sf.id] && sf.type === 'map')
       .map(sf => {
-        const sfLabel = sf.label?.[props.lang] || sf.label?.de || sf.id
-        return `<span class="sub-field"><b>${sfLabel}:</b> <code style="font-size:0.75em">${val[sf.id]}</code></span>`
+        const sfLabel = escHtml(sf.label?.[props.lang] || sf.label?.de || sf.id)
+        return `<span class="sub-field"><b>${sfLabel}:</b> <code style="font-size:0.75em">${escHtml(val[sf.id])}</code></span>`
       })
     return [...parts, ...mapParts].join('<br>') || ''
   }
 
   if (field.type === 'map') {
     if (!val) return ''
-    return `<code style="font-size:0.75em">${val}</code>`
+    return `<code style="font-size:0.75em">${escHtml(val)}</code>`
   }
 
   if (field.type === 'distribution-editor' && Array.isArray(val)) {
@@ -525,8 +498,8 @@ function formatValue(field) {
     return val
       .filter(d => d && d['dcat:accessURL'])
       .map((d, i) => {
-        const title = d['dct:title'] || d['dcat:accessURL']
-        const url = d['dcat:accessURL']
+        const title = escHtml(d['dct:title'] || d['dcat:accessURL'])
+        const url = escHtml(d['dcat:accessURL'])
         return `<span class="sub-field"><b>${i + 1}.</b> <a href="${url}" target="_blank" rel="noopener">${title}</a></span>`
       })
       .join('<br>') || `${val.length} Distribution(s)`
@@ -555,37 +528,6 @@ function formatValue(field) {
   border-bottom: 2px solid var(--color-primary-bg);
 }
 
-.group-fields { display: flex; flex-direction: column; gap: 1rem; }
-
-.field-wrapper { display: flex; flex-direction: column; gap: 0.2rem; }
-
-.field-wrapper.has-error :deep(input),
-.field-wrapper.has-error :deep(textarea),
-.field-wrapper.has-error :deep(select) {
-  border-color: var(--color-error) !important;
-}
-
-.field-wrapper.has-error :deep(.uri-input),
-.field-wrapper.has-error :deep(.object-fieldset) {
-  border-color: var(--color-error) !important;
-}
-
-.field-errors {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.field-errors li {
-  font-size: var(--font-size-sm);
-  color: var(--color-error);
-  padding-left: 0.1rem;
-}
-
-.field-errors li::before { content: '⚠ '; }
 
 .form-actions {
   display: flex;
@@ -864,18 +806,4 @@ function formatValue(field) {
   font-style: italic;
 }
 
-.transform-preview {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  margin-top: 0.15rem;
-}
-
-.transform-preview code {
-  font-size: var(--font-size-sm);
-  background: var(--color-surface-alt);
-  padding: 0.05rem 0.3rem;
-  border-radius: 3px;
-  color: var(--color-primary);
-  word-break: break-all;
-}
 </style>
