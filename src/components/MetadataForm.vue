@@ -209,6 +209,7 @@ import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
 import DistributionEditor from './fields/DistributionEditor.vue'
 import MapField from './fields/MapField.vue'
+import SearchSelectField from './fields/SearchSelectField.vue'
 import { validateForm, hasValue } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
@@ -237,6 +238,7 @@ const componentMap = {
   multiselect: MultiSelectField,
   'distribution-editor': DistributionEditor,
   map: MapField,
+  searchselect: SearchSelectField,
 }
 
 function fieldComponent(field) {

@@ -33,6 +33,7 @@ import LangStringField from './LangStringField.vue'
 import TextareaField from './TextareaField.vue'
 import DateField from './DateField.vue'
 import MapField from './MapField.vue'
+import SearchSelectField from './SearchSelectField.vue'
 import FieldSuggestions from './FieldSuggestions.vue'
 
 const props = defineProps({
@@ -52,6 +53,7 @@ const componentMap = {
   textarea: TextareaField,
   date: DateField,
   map: MapField,
+  searchselect: SearchSelectField,
 }
 
 function subFieldComponent(subField) {

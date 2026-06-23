@@ -34,6 +34,7 @@ import LangStringItem from './LangStringItem.vue'
 import TextField from './TextField.vue'
 import URIField from './URIField.vue'
 import SelectField from './SelectField.vue'
+import SearchSelectField from './SearchSelectField.vue'
 
 const props = defineProps({
   field: Object,
@@ -48,6 +49,7 @@ const placeholder = computed(() => props.field.placeholder?.[props.lang] || prop
 const componentMap = {
   uri: URIField,
   select: SelectField,
+  searchselect: SearchSelectField,
   text: TextField
 }
 

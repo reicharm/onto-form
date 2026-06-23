@@ -212,7 +212,7 @@
       "visible": true
     },
     "dct:language": {
-      "type": "select",
+      "type": "searchselect",
       "multiple": false,
       "label": {
         "de": "Sprache",

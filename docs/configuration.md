@@ -117,9 +117,27 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `langstring` | `LangStringField` | Sprachspezifischer Text (Sprachkürzel → Wert) |
 | `uri` | `URIField` | URI-Eingabe |
 | `date` | `DateField` | Datum (ISO 8601) |
-| `select` | `SelectField` | Einzelauswahl |
+| `select` | `SelectField` | Einzelauswahl (natives `<select>`) |
+| `searchselect` | `SearchSelectField` | Einzelauswahl mit integriertem Suchfeld — empfohlen für große Vokabulare |
 | `multiselect` | `MultiSelectField` | Mehrfachauswahl (Checkbox-Liste); wird nie in `RepeatableField` eingebettet, auch wenn SHACL `multiple: true` setzt |
 | `object` | `ObjectField` | Zusammengesetztes Feld mit Unterfeldern |
+
+#### `searchselect` – Auswahl mit Suchfeld
+
+Für große Vokabulare (z. B. Sprachen, Dateiformate, Lizenzen) ist `searchselect` die empfohlene Alternative zu `select`. Das Feld zeigt einen anklickbaren Trigger; ein Klick öffnet ein Panel mit Suchfeld und gefilterter Optionsliste.
+
+```json
+"dct:language": {
+  "type": "searchselect",
+  "label": { "de": "Sprache", "en": "Language" },
+  "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+  "optionsSourceFallback": "/vocabularies/language.json"
+}
+```
+
+Features: Tippen filtert die Liste, Pfeiltasten navigieren, Enter wählt aus, Escape schließt, × löscht die Auswahl. Funktioniert in einfachen Feldern, Objekt-Subfeldern und `RepeatableField`.
+
+---
 
 ### Validierung: `validate`
 
