@@ -15,8 +15,25 @@
     <template v-else>
       <!-- ── INLINE MODE: collapsible cards ── -->
       <template v-if="mode === 'inline'">
-        <div v-for="(dist, idx) in distributions" :key="idx" class="dist-card">
+        <div
+          v-for="(dist, idx) in distributions"
+          :key="idx"
+          class="dist-card"
+          :class="{ 'drag-over': dragOverIdx === idx, 'dragging': draggedIdx === idx }"
+          draggable="true"
+          @dragstart="onDragStart(idx, $event)"
+          @dragover.prevent="onDragOver(idx)"
+          @dragleave="onDragLeave"
+          @drop.prevent="onDrop(idx)"
+          @dragend="onDragEnd"
+        >
           <div class="dist-card-header" @click="toggleCard(idx)">
+            <span
+              class="drag-handle"
+              :aria-label="lang === 'de' ? 'Distribution verschieben' : 'Drag to reorder'"
+              title="Drag to reorder"
+              @click.stop
+            >⠿</span>
             <div class="dist-card-summary">
               <span class="dist-card-index">{{ idx + 1 }}.</span>
               <span class="dist-card-title">{{ cardTitle(dist) }}</span>
@@ -26,9 +43,10 @@
             </div>
             <div class="dist-card-controls">
               <button type="button" class="btn-remove-inline"
+                :aria-label="(lang === 'de' ? 'Distribution ' : 'Distribution ') + (idx + 1) + (lang === 'de' ? ' entfernen' : ' remove')"
                 @click.stop="removeDistribution(idx)"
                 :title="lang === 'de' ? 'Entfernen' : 'Remove'">✕</button>
-              <span class="dist-toggle">{{ openCards.has(idx) ? '▲' : '▼' }}</span>
+              <span class="dist-toggle" aria-hidden="true">{{ openCards.has(idx) ? '▲' : '▼' }}</span>
             </div>
           </div>
 
@@ -47,7 +65,23 @@
 
       <!-- ── MODAL MODE: compact list + overlay ── -->
       <template v-else>
-        <div v-for="(dist, idx) in distributions" :key="idx" class="dist-row">
+        <div
+          v-for="(dist, idx) in distributions"
+          :key="idx"
+          class="dist-row"
+          :class="{ 'drag-over': dragOverIdx === idx, 'dragging': draggedIdx === idx }"
+          draggable="true"
+          @dragstart="onDragStart(idx, $event)"
+          @dragover.prevent="onDragOver(idx)"
+          @dragleave="onDragLeave"
+          @drop.prevent="onDrop(idx)"
+          @dragend="onDragEnd"
+        >
+          <span
+            class="drag-handle"
+            :aria-label="lang === 'de' ? 'Distribution verschieben' : 'Drag to reorder'"
+            title="Drag to reorder"
+          >⠿</span>
           <div class="dist-row-info">
             <span class="dist-row-title">{{ cardTitle(dist) }}</span>
             <span v-if="dist['dcat:accessURL']" class="dist-row-url">{{ dist['dcat:accessURL'] }}</span>
@@ -85,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import DistributionForm from './DistributionForm.vue'
 import DistributionModal from '../DistributionModal.vue'
 
@@ -189,6 +223,54 @@ function onModalSave(saved) {
   editingDraft.value = null
 }
 
+// ── Drag-and-drop reordering ──
+const draggedIdx  = ref(-1)
+const dragOverIdx = ref(-1)
+
+function onDragStart(idx, event) {
+  draggedIdx.value = idx
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(idx))
+}
+
+function onDragOver(idx) {
+  if (idx !== draggedIdx.value) dragOverIdx.value = idx
+}
+
+function onDragLeave() {
+  dragOverIdx.value = -1
+}
+
+function onDrop(targetIdx) {
+  const from = draggedIdx.value
+  if (from === -1 || from === targetIdx) { onDragEnd(); return }
+  const next = [...distributions.value]
+  const [moved] = next.splice(from, 1)
+  next.splice(targetIdx, 0, moved)
+  // Adjust open-card set for inline mode
+  if (mode.value === 'inline') {
+    const nextOpen = new Set()
+    for (const i of openCards.value) {
+      const newI = shiftIndex(i, from, targetIdx)
+      if (newI >= 0) nextOpen.add(newI)
+    }
+    openCards.value = nextOpen
+  }
+  emit('update:modelValue', next)
+  onDragEnd()
+}
+
+function onDragEnd() {
+  draggedIdx.value  = -1
+  dragOverIdx.value = -1
+}
+
+function shiftIndex(i, from, to) {
+  if (i === from) return to
+  if (from < to) return i > from && i <= to ? i - 1 : i
+  return i >= to && i < from ? i + 1 : i
+}
+
 // Helpers
 function cardTitle(dist) {
   return dist['dct:title'] || dist['dcat:accessURL'] || '—'
@@ -288,6 +370,33 @@ function formatLabel(formatUri) {
 .btn-edit:hover { background: var(--color-primary); color: white; }
 .btn-remove { background: #fdf0f0; color: var(--color-error); }
 .btn-remove:hover { background: var(--color-error); color: white; }
+
+/* ── Drag-and-drop ── */
+.drag-handle {
+  cursor: grab;
+  font-size: 1rem;
+  color: var(--color-text-subtle);
+  padding: 0 0.3rem;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 1;
+}
+.drag-handle:active { cursor: grabbing; }
+
+.dist-card.dragging,
+.dist-row.dragging {
+  opacity: 0.4;
+}
+
+.dist-card.drag-over {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.dist-row.drag-over {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
 
 /* ── Shared ── */
 .dist-card-badge, .dist-row-badge {
