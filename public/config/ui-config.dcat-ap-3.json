@@ -82,7 +82,16 @@
         "en": "Relations"
       },
       "fields": [
-        "dcat:qualifiedRelation",
+        "dcat:qualifiedRelation"
+      ]
+    },
+    {
+      "id": "distributions",
+      "label": {
+        "de": "Distributionen",
+        "en": "Distributions"
+      },
+      "fields": [
         "dcat:distribution"
       ]
     }
@@ -481,17 +490,22 @@
       "order": 17
     },
     "dcat:distribution": {
-      "type": "uri",
-      "validate": "isURI",
+      "id": "dcat:distribution",
+      "type": "distribution-editor",
+      "distributionMode": "modal",
+      "fileUpload": {
+        "enabled": false
+      },
       "label": {
-        "de": "Distribution (URI)",
-        "en": "Distribution (URI)"
+        "de": "Distributionen",
+        "en": "Distributions"
       },
-      "placeholder": {
-        "de": "https://...",
-        "en": "https://..."
+      "hint": {
+        "de": "Dateien, Endpunkte oder andere Zugangsmöglichkeiten zu diesem Datensatz",
+        "en": "Files, endpoints or other access options for this dataset"
       },
-      "order": 18
+      "order": 20,
+      "visible": true
     },
     "locn:geometry": {
       "type": "map",

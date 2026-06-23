@@ -63,6 +63,16 @@
         "dct:conformsTo",
         "dct:source"
       ]
+    },
+    {
+      "id": "distributions",
+      "label": {
+        "de": "Distributionen",
+        "en": "Distributions"
+      },
+      "fields": [
+        "dcat:distribution"
+      ]
     }
   ],
   "fields": {
@@ -388,6 +398,24 @@
         "en": "Draw a bounding box on the map"
       },
       "order": 7,
+      "visible": true
+    },
+    "dcat:distribution": {
+      "id": "dcat:distribution",
+      "type": "distribution-editor",
+      "distributionMode": "modal",
+      "fileUpload": {
+        "enabled": false
+      },
+      "label": {
+        "de": "Distributionen",
+        "en": "Distributions"
+      },
+      "hint": {
+        "de": "Dateien, Endpunkte oder andere Zugangsmöglichkeiten zu diesem Datensatz",
+        "en": "Files, endpoints or other access options for this dataset"
+      },
+      "order": 20,
       "visible": true
     }
   }
