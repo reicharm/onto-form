@@ -112,7 +112,9 @@ function buildDefaultFormData(config) {
   const data = {}
   if (!config?.fields) return data
   for (const [id, field] of Object.entries(config.fields)) {
-    if (field.multiple) {
+    if (field.type === 'distribution-editor') {
+      data[id] = []
+    } else if (field.multiple) {
       // Start repeatable fields with one empty item
       if (field.type === 'langstring') {
         data[id] = [{ value: '', lang: 'de' }]
@@ -156,6 +158,7 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
     const merged = { ...defaults, ...formData.value }
     // Normalize values whose cardinality changed between profiles
     for (const [id, field] of Object.entries(config.fields || {})) {
+      if (field.type === 'distribution-editor') continue
       const val = merged[id]
       if (field.multiple && !Array.isArray(val)) {
         merged[id] = val !== '' && val != null ? [val] : ['']
