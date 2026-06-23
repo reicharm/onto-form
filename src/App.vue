@@ -152,9 +152,21 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
     hasDistributionEditor.value = distField?.type === 'distribution-editor'
   }
   const defaults = buildDefaultFormData(config)
-  formData.value = preserveData
-    ? { ...defaults, ...formData.value }
-    : defaults
+  if (preserveData) {
+    const merged = { ...defaults, ...formData.value }
+    // Normalize values whose cardinality changed between profiles
+    for (const [id, field] of Object.entries(config.fields || {})) {
+      const val = merged[id]
+      if (field.multiple && !Array.isArray(val)) {
+        merged[id] = val !== '' && val != null ? [val] : ['']
+      } else if (!field.multiple && Array.isArray(val)) {
+        merged[id] = val[0] ?? ''
+      }
+    }
+    formData.value = merged
+  } else {
+    formData.value = defaults
+  }
 }
 
 function toggleDistributionMode() {

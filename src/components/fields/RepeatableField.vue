@@ -63,7 +63,12 @@ const componentMap = {
 
 const innerComponent = computed(() => componentMap[props.field.type] || TextField)
 
-const items = computed(() => props.modelValue?.length ? props.modelValue : [emptyItem()])
+const items = computed(() => {
+  const val = props.modelValue
+  if (Array.isArray(val)) return val.length ? val : [emptyItem()]
+  if (val !== null && val !== undefined && val !== '') return [val]
+  return [emptyItem()]
+})
 
 // Stable per-item keys so Vue doesn't reuse DOM nodes when splicing from the middle.
 // Keys live only in component memory — never written into emitted data.
