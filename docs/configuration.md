@@ -25,6 +25,23 @@ Die Formularkonfiguration setzt sich aus zwei Quellen zusammen:
 
 `true` aktiviert den Schritt-Assistenten als Standard beim Start. Standardmäßig `true` für alle drei vordefinierten Standards. Der Nutzer kann über den Header-Button jederzeit zwischen Wizard und Einzel-Seite wechseln.
 
+### `showProgress`
+
+`true` blendet unterhalb des Schritt-Indikators (nur im Wizard-Modus) einen Fortschrittsbalken ein. Er zeigt, wie viele der sichtbaren Felder bereits einen Wert enthalten.
+
+```json
+{
+  "standard": "dcat-ap-at",
+  "wizard": true,
+  "showProgress": true
+}
+```
+
+- Gezählt werden alle sichtbaren Felder aus allen Gruppen (inkl. konditionell sichtbarer Felder)
+- Rechts neben dem Balken: `ausgefüllt / gesamt` als Zahl
+- Der Balken aktualisiert sich reaktiv bei jeder Eingabe
+- Standardmäßig `false` (nicht angezeigt)
+
 ---
 
 ## Gruppen (`groups`)

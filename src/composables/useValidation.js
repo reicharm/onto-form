@@ -1,7 +1,7 @@
 import { fieldValidators } from '../config/fieldValidators.js'
 import { evaluateRequiredIf } from '../config/fieldVisibility.js'
 
-function hasValue(value, field) {
+export function hasValue(value, field) {
   if (value == null) return false
   if (Array.isArray(value)) {
     return value.some(item =>

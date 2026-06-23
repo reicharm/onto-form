@@ -34,6 +34,14 @@
         </div>
       </div>
 
+      <!-- Progress bar (optional, enabled via config.showProgress) -->
+      <div v-if="config?.showProgress" class="progress-bar-wrap">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" :style="{ width: progressPct + '%' }"></div>
+        </div>
+        <span class="progress-label">{{ progressFilled }}&thinsp;/&thinsp;{{ progressTotal }}</span>
+      </div>
+
       <!-- Per-Step View -->
       <template v-if="currentStep < visibleGroups.length">
         <div class="form-group">
@@ -201,7 +209,7 @@ import RepeatableField from './fields/RepeatableField.vue'
 import MultiSelectField from './fields/MultiSelectField.vue'
 import DistributionEditor from './fields/DistributionEditor.vue'
 import MapField from './fields/MapField.vue'
-import { validateForm } from '../composables/useValidation.js'
+import { validateForm, hasValue } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 import { suggestionsStore } from '../services/SuggestionsStore.js'
@@ -274,6 +282,24 @@ function updateField(field, value) {
 }
 
 const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))
+
+// ── Progress ──────────────────────────────────────────────────────────────
+// Counts visible, non-hidden fields across all groups: how many have a value.
+const progressStats = computed(() => {
+  let filled = 0, total = 0
+  for (const group of visibleGroups.value) {
+    for (const field of groupFields(group)) {
+      total++
+      if (hasValue(props.modelValue?.[field.id], field)) filled++
+    }
+  }
+  return { filled, total }
+})
+const progressFilled = computed(() => progressStats.value.filled)
+const progressTotal  = computed(() => progressStats.value.total)
+const progressPct    = computed(() =>
+  progressTotal.value ? Math.round(progressFilled.value / progressTotal.value * 100) : 0
+)
 
 const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
 
@@ -515,6 +541,37 @@ function formatValue(field) {
 }
 
 /* Step indicator */
+/* ── Progress bar ── */
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.1rem 1.5rem 0.75rem;
+}
+
+.progress-bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.35s ease;
+}
+
+.progress-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
+  white-space: nowrap;
+  min-width: 3.5rem;
+  text-align: right;
+}
+
 .step-indicator {
   display: flex;
   align-items: flex-start;

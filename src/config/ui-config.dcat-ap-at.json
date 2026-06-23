@@ -695,5 +695,6 @@
       "order": 20,
       "visible": true
     }
-  }
+  },
+  "showProgress": true
 }
