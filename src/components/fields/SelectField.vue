@@ -1,7 +1,7 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required }">{{ label }}</label>
-    <select :value="modelValue || ''" @change="$emit('update:modelValue', $event.target.value)">
+    <label :for="field.id" :class="{ required: field.required }">{{ label }}</label>
+    <select :id="field.id" :value="modelValue || ''" @change="$emit('update:modelValue', $event.target.value)">
       <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
       <option v-for="opt in field.options" :key="opt.value" :value="opt.value">
         {{ opt.label?.[lang] || opt.label?.en || opt.value }}
@@ -36,6 +36,6 @@ select {
   background: var(--color-surface);
   cursor: pointer;
 }
-select:focus { outline: none; border-color: var(--color-primary); }
+select:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 .hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

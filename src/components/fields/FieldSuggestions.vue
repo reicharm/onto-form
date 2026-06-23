@@ -18,7 +18,9 @@
         <button
           type="button"
           class="chip-remove"
-          :title="lang === 'de' ? 'Vorschlag entfernen' : 'Remove suggestion'"
+          :aria-label="lang === 'de'
+            ? `Vorschlag „${suggestionsStore.label(item)}" entfernen`
+            : `Remove suggestion „${suggestionsStore.label(item)}"`"
           @click="remove(item)"
         >×</button>
       </span>

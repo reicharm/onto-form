@@ -1,10 +1,25 @@
 <template>
   <Teleport to="body">
-    <div v-if="show" class="dist-overlay" @click.self="$emit('cancel')">
-      <div class="dist-panel">
+    <div
+      v-if="show"
+      class="dist-overlay"
+      @click.self="$emit('cancel')"
+      @keydown.esc="$emit('cancel')"
+    >
+      <div
+        class="dist-panel"
+        role="dialog"
+        aria-modal="true"
+        :aria-labelledby="headingId"
+        ref="panelEl"
+      >
         <div class="dist-header">
-          <h2>{{ lang === 'de' ? 'Distribution bearbeiten' : 'Edit Distribution' }}</h2>
-          <button class="close-btn" @click="$emit('cancel')">✕</button>
+          <h2 :id="headingId">{{ lang === 'de' ? 'Distribution bearbeiten' : 'Edit Distribution' }}</h2>
+          <button
+            class="close-btn"
+            :aria-label="lang === 'de' ? 'Dialog schließen' : 'Close dialog'"
+            @click="$emit('cancel')"
+          >✕</button>
         </div>
 
         <div class="dist-body">
@@ -22,7 +37,12 @@
           <button class="btn-cancel" @click="$emit('cancel')">
             {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
           </button>
-          <button class="btn-save" :disabled="!draft['dcat:accessURL']" @click="save">
+          <button
+            class="btn-save"
+            :disabled="!draft['dcat:accessURL']"
+            :aria-disabled="!draft['dcat:accessURL']"
+            @click="save"
+          >
             {{ lang === 'de' ? 'Speichern' : 'Save' }}
           </button>
         </div>
@@ -32,7 +52,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import DistributionForm from './fields/DistributionForm.vue'
 
 const props = defineProps({
@@ -46,11 +66,22 @@ const props = defineProps({
 
 const emit = defineEmits(['save', 'cancel'])
 
-const draft = ref({ ...(props.modelValue || {}) })
+const draft   = ref({ ...(props.modelValue || {}) })
+const panelEl = ref(null)
+const headingId = 'dist-modal-heading'
 
 watch(() => props.modelValue, (val) => {
   draft.value = { ...(val || {}) }
 }, { deep: true })
+
+// Focus first interactive element when modal opens
+watch(() => props.show, async (open) => {
+  if (open) {
+    await nextTick()
+    const first = panelEl.value?.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    first?.focus()
+  }
+})
 
 function save() {
   emit('save', { ...draft.value })
@@ -94,8 +125,11 @@ function save() {
 .close-btn {
   background: none; border: none; font-size: 1.2rem;
   cursor: pointer; color: var(--color-text-subtle); line-height: 1;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius-sm);
 }
 .close-btn:hover { color: var(--color-error); }
+.close-btn:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .dist-body {
   flex: 1;
@@ -125,11 +159,13 @@ function save() {
   background: var(--color-primary-bg);
   color: var(--color-primary);
 }
+.btn-cancel:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .btn-save {
   background: var(--color-primary);
   color: white;
 }
+.btn-save:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .btn-save:disabled {
   background: #a0b4c5;

@@ -1,34 +1,81 @@
 <template>
-  <div class="import-overlay" @click.self="$emit('close')">
-    <div class="import-panel">
+  <div
+    class="import-overlay"
+    @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
+  >
+    <div
+      class="import-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-heading"
+      ref="panelEl"
+    >
       <div class="import-header">
-        <h2>{{ lang === 'de' ? 'Importieren' : 'Import' }}</h2>
-        <button class="close-btn" @click="$emit('close')">✕</button>
+        <h2 id="import-heading">{{ lang === 'de' ? 'Importieren' : 'Import' }}</h2>
+        <button
+          class="close-btn"
+          :aria-label="lang === 'de' ? 'Import schließen' : 'Close import'"
+          @click="$emit('close')"
+        >✕</button>
       </div>
 
-      <div class="import-tabs">
-        <button :class="{ active: activeTab === 'jsonld' }" @click="activeTab = 'jsonld'">JSON-LD</button>
-        <button :class="{ active: activeTab === 'turtle' }" @click="activeTab = 'turtle'">Turtle</button>
-        <button :class="{ active: activeTab === 'rdfxml' }" @click="activeTab = 'rdfxml'">RDF/XML</button>
+      <div class="import-tabs" role="tablist" :aria-label="lang === 'de' ? 'Importformat' : 'Import format'">
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'jsonld'"
+          aria-controls="import-panel-jsonld"
+          :class="{ active: activeTab === 'jsonld' }"
+          :tabindex="activeTab === 'jsonld' ? 0 : -1"
+          @click="activeTab = 'jsonld'"
+        >JSON-LD</button>
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'turtle'"
+          aria-controls="import-panel-turtle"
+          :class="{ active: activeTab === 'turtle' }"
+          :tabindex="activeTab === 'turtle' ? 0 : -1"
+          @click="activeTab = 'turtle'"
+        >Turtle</button>
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'rdfxml'"
+          aria-controls="import-panel-rdfxml"
+          :class="{ active: activeTab === 'rdfxml' }"
+          :tabindex="activeTab === 'rdfxml' ? 0 : -1"
+          @click="activeTab = 'rdfxml'"
+        >RDF/XML</button>
       </div>
 
       <div class="import-body">
         <div class="file-row">
           <label class="btn-file">
             {{ lang === 'de' ? 'Datei öffnen …' : 'Open file …' }}
-            <input type="file" :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'" @change="loadFile" />
+            <input
+              type="file"
+              :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'"
+              :aria-label="lang === 'de' ? 'RDF-Datei auswählen' : 'Select RDF file'"
+              @change="loadFile"
+            />
           </label>
-          <span v-if="filename" class="filename">{{ filename }}</span>
+          <span v-if="filename" class="filename" aria-live="polite">{{ filename }}</span>
         </div>
 
         <textarea
           v-model="text"
           class="import-textarea"
           :placeholder="placeholder"
+          :aria-label="lang === 'de' ? 'RDF-Inhalt zum Importieren' : 'RDF content to import'"
+          :aria-describedby="error ? 'import-error' : undefined"
           spellcheck="false"
         />
 
-        <div v-if="error" class="import-error">⚠ {{ error }}</div>
+        <div
+          v-if="error"
+          id="import-error"
+          class="import-error"
+          role="alert"
+        >⚠ {{ error }}</div>
       </div>
 
       <div class="import-actions">
@@ -44,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { RDFImporter } from '../services/RDFImporter.js'
 
 const props = defineProps({
@@ -55,9 +102,15 @@ const props = defineProps({
 const emit = defineEmits(['import', 'close'])
 
 const activeTab = ref('jsonld')
-const text = ref('')
-const filename = ref('')
-const error = ref('')
+const text      = ref('')
+const filename  = ref('')
+const error     = ref('')
+const panelEl   = ref(null)
+
+onMounted(async () => {
+  await nextTick()
+  panelEl.value?.querySelector('button')?.focus()
+})
 
 const placeholder = computed(() => {
   if (activeTab.value === 'jsonld')
@@ -121,22 +174,26 @@ async function doImport() {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 .import-header h2 { font-size: var(--font-size-heading); color: var(--color-primary); }
 
 .close-btn {
   background: none; border: none; font-size: 1.2rem;
   cursor: pointer; color: var(--color-text-subtle); line-height: 1;
+  padding: 0.2rem 0.4rem; border-radius: var(--radius-sm);
 }
+.close-btn:hover { color: var(--color-error); }
+.close-btn:focus { outline: none; box-shadow: var(--focus-ring); }
 
-.import-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid #eee; }
+.import-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid var(--color-border); }
 .import-tabs button {
   background: none; border: none; border-bottom: 3px solid transparent;
   padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: var(--color-text-muted);
   margin-bottom: -1px;
 }
 .import-tabs button.active { border-bottom-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
+.import-tabs button:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .import-body {
   flex: 1;
@@ -147,11 +204,7 @@ async function doImport() {
   gap: 0.75rem;
 }
 
-.file-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+.file-row { display: flex; align-items: center; gap: 0.75rem; }
 
 .btn-file {
   display: inline-block;
@@ -177,11 +230,11 @@ async function doImport() {
   padding: 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  background: #f8f9fa;
+  background: var(--color-surface-alt);
   color: var(--color-text);
   outline: none;
 }
-.import-textarea:focus { border-color: var(--color-primary); }
+.import-textarea:focus { border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 
 .import-error {
   font-size: 0.82rem;
@@ -197,7 +250,7 @@ async function doImport() {
   gap: 0.5rem;
   justify-content: flex-end;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
 }
 
 .btn-cancel, .btn-import {
@@ -210,4 +263,5 @@ async function doImport() {
 .btn-cancel { background: var(--color-primary-bg); color: var(--color-primary); }
 .btn-import { background: var(--color-primary); color: white; }
 .btn-import:disabled { background: #a0b4c5; cursor: not-allowed; opacity: 0.7; }
+.btn-cancel:focus, .btn-import:focus { outline: none; box-shadow: var(--focus-ring); }
 </style>

@@ -1,9 +1,10 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required }">
+    <label :for="field.id" :class="{ required: field.required }">
       {{ label }}
     </label>
     <textarea
+      :id="field.id"
       :value="modelValue || ''"
       :placeholder="placeholder"
       rows="4"

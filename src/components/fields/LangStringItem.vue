@@ -1,12 +1,18 @@
 <template>
   <div class="langstring-item">
-    <select class="lang-select" :value="modelValue.lang || 'de'" @change="updateLang($event.target.value)">
+    <select
+      class="lang-select"
+      :value="modelValue.lang || 'de'"
+      :aria-label="lang === 'de' ? 'Sprache des Eintrags' : 'Language of this entry'"
+      @change="updateLang($event.target.value)"
+    >
       <option v-for="l in availableLangs" :key="l" :value="l">{{ l }}</option>
     </select>
     <input
       type="text"
       :value="modelValue.value || ''"
       :placeholder="placeholder"
+      :aria-label="lang === 'de' ? `Texteingabe auf ${modelValue.lang || 'de'}` : `Text in ${modelValue.lang || 'de'}`"
       @input="updateValue($event.target.value)"
     />
   </div>
@@ -46,7 +52,7 @@ function updateValue(v) {
   background: var(--color-surface);
   cursor: pointer;
 }
-.lang-select:focus { outline: none; border-color: var(--color-primary); }
+.lang-select:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 input {
   flex: 1;
   padding: 0.5rem 0.75rem;

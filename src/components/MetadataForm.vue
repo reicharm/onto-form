@@ -16,7 +16,12 @@
           }"
         >
           <div class="step-connector left" v-if="idx > 0" :class="{ done: idx <= currentStep }"></div>
-          <div class="step-circle" @click="jumpToStep(idx)">{{ idx + 1 }}</div>
+          <button
+            class="step-circle"
+            :aria-label="(lang === 'de' ? 'Schritt ' : 'Step ') + (idx + 1) + ': ' + (group.label[lang] || group.label.en)"
+            :aria-current="idx === currentStep ? 'step' : undefined"
+            @click="jumpToStep(idx)"
+          >{{ idx + 1 }}</button>
           <div class="step-label">{{ group.label[lang] || group.label.en }}</div>
           <div class="step-connector right" v-if="idx < visibleGroups.length - 1" :class="{ done: idx < currentStep }"></div>
         </div>
@@ -36,10 +41,17 @@
 
       <!-- Progress bar (optional, enabled via config.showProgress) -->
       <div v-if="config?.showProgress" class="progress-bar-wrap">
-        <div class="progress-bar-track">
+        <div
+          class="progress-bar-track"
+          role="progressbar"
+          :aria-valuenow="progressPct"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          :aria-label="(lang === 'de' ? 'Fortschritt: ' : 'Progress: ') + progressFilled + ' / ' + progressTotal"
+        >
           <div class="progress-bar-fill" :style="{ width: progressPct + '%' }"></div>
         </div>
-        <span class="progress-label">{{ progressFilled }}&thinsp;/&thinsp;{{ progressTotal }}</span>
+        <span class="progress-label" aria-hidden="true">{{ progressFilled }}&thinsp;/&thinsp;{{ progressTotal }}</span>
       </div>
 
       <!-- Per-Step View -->
@@ -68,7 +80,7 @@
                   {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
                   <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
                 </div>
-                <ul v-if="showStepErrors && fieldErrors[field.id]?.length" class="field-errors">
+                <ul v-if="showStepErrors && fieldErrors[field.id]?.length" class="field-errors" role="alert">
                   <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
                 </ul>
               </div>
@@ -129,7 +141,15 @@
           <span v-if="!isValid" class="validation-hint">
             {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
           </span>
-          <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
+          <button
+            class="btn-validate"
+            type="button"
+            :disabled="validating"
+            :aria-label="validating
+              ? (lang === 'de' ? 'Validierung läuft …' : 'Validating …')
+              : (lang === 'de' ? 'SHACL-Validierung starten' : 'Run SHACL validation')"
+            @click="runValidation"
+          >
             {{ validating ? '…' : (lang === 'de' ? 'SHACL prüfen' : 'SHACL validate') }}
           </button>
           <button
@@ -183,7 +203,7 @@
                 {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
                 <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
               </div>
-              <ul v-if="fieldErrors[field.id]?.length" class="field-errors">
+              <ul v-if="fieldErrors[field.id]?.length" class="field-errors" role="alert">
                 <li v-for="err in fieldErrors[field.id]" :key="err">{{ err }}</li>
               </ul>
             </div>
@@ -673,7 +693,9 @@ function formatValue(field) {
   background: var(--color-surface);
   border: 2px solid #ccc;
   color: #ccc;
+  padding: 0;
 }
+.step-circle:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .step-item.completed .step-circle {
   background: var(--color-primary);

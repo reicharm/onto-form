@@ -18,7 +18,9 @@
           :modelValue="item"
           @update:modelValue="updateItem(index, $event)"
         />
-        <button type="button" class="btn-remove" @click="removeItem(index)" title="Entfernen / Remove">×</button>
+        <button type="button" class="btn-remove"
+          :aria-label="lang === 'de' ? `Eintrag ${index + 1} aus ${label} entfernen` : `Remove item ${index + 1} from ${label}`"
+          @click="removeItem(index)">×</button>
       </div>
     </div>
     <button type="button" class="btn-add" @click="addItem">
@@ -113,6 +115,7 @@ label.required::after { content: ' *'; color: var(--color-error); }
   justify-content: center;
 }
 .btn-remove:hover { background: var(--color-error-dark); }
+.btn-remove:focus { outline: none; box-shadow: var(--focus-ring); }
 .btn-add {
   background: var(--color-primary);
   color: white;
@@ -125,5 +128,6 @@ label.required::after { content: ' *'; color: var(--color-error); }
   margin-top: 0.2rem;
 }
 .btn-add:hover { background: var(--color-primary-dark); }
+.btn-add:focus { outline: none; box-shadow: var(--focus-ring); }
 .hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

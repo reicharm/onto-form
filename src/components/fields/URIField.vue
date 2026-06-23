@@ -1,23 +1,26 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required }">{{ label }}</label>
+    <label :for="`${field.id}-body`" :class="{ required: field.required }">{{ label }}</label>
     <div class="uri-row">
       <div class="uri-input" :class="{ focused }">
         <select
           class="protocol-select"
           :value="protocol"
+          :aria-label="lang === 'de' ? 'URI-Protokoll' : 'URI protocol'"
           @change="onProtocolChange($event.target.value)"
           @focus="focused = true"
           @blur="focused = false"
         >
           <option v-for="p in protocols" :key="p" :value="p">{{ p }}</option>
         </select>
-        <span class="protocol-sep">://</span>
+        <span class="protocol-sep" aria-hidden="true">://</span>
         <input
+          :id="`${field.id}-body`"
           ref="inputEl"
           type="text"
           :value="body"
           :placeholder="bodyPlaceholder"
+          :aria-label="`${protocol}://${lang === 'de' ? ' Adresspfad' : ' address path'}`"
           @input="onBodyInput($event.target.value)"
           @focus="focused = true"
           @blur="focused = false"
@@ -27,7 +30,7 @@
         v-if="field.generate"
         type="button"
         class="btn-generate"
-        :title="lang === 'de' ? 'Neuen Identifikator generieren' : 'Generate new identifier'"
+        :aria-label="lang === 'de' ? `Neuen ${label} generieren` : `Generate new ${label}`"
         @click="generate"
       >↺</button>
     </div>
@@ -52,7 +55,6 @@ const DEFAULT_PROTOCOL = 'https'
 const focused = ref(false)
 const inputEl = ref(null)
 
-// Split stored value into protocol + body
 function splitURI(value) {
   if (!value) return { protocol: DEFAULT_PROTOCOL, body: '' }
   const sep = value.indexOf('://')
@@ -62,7 +64,6 @@ function splitURI(value) {
       ? { protocol: p, body: value.slice(sep + 3) }
       : { protocol: DEFAULT_PROTOCOL, body: value }
   }
-  // mailto without ://
   if (value.startsWith('mailto:')) {
     return { protocol: 'mailto', body: value.slice(7) }
   }
@@ -72,7 +73,6 @@ function splitURI(value) {
 const protocol = ref(splitURI(props.modelValue).protocol)
 const body = ref(splitURI(props.modelValue).body)
 
-// Keep local state in sync when the stored value changes externally (e.g. import)
 watch(() => props.modelValue, (val) => {
   const parts = splitURI(val)
   if (parts.protocol !== protocol.value) protocol.value = parts.protocol
@@ -92,7 +92,6 @@ function onProtocolChange(p) {
 }
 
 function onBodyInput(val) {
-  // If the user pastes a full URI into the body field, split it
   const sep = val.indexOf('://')
   if (sep !== -1) {
     const p = val.slice(0, sep)
@@ -120,7 +119,6 @@ const label = computed(() => props.field.label?.[props.lang] || props.field.labe
 
 const bodyPlaceholder = computed(() => {
   const ph = props.field.placeholder?.[props.lang] || props.field.placeholder?.en || ''
-  // Strip any protocol prefix from the placeholder so it fits the body field
   const sep = ph.indexOf('://')
   if (sep !== -1) return ph.slice(sep + 3)
   return ph || (protocol.value === 'mailto' ? 'name@example.com' : 'example.com/path')
@@ -157,10 +155,8 @@ label.required::after { content: ' *'; color: var(--color-error); }
   white-space: nowrap;
   flex-shrink: 0;
 }
-.btn-generate:hover {
-  background: var(--color-primary-bg);
-  border-color: var(--color-primary);
-}
+.btn-generate:hover { background: var(--color-primary-bg); border-color: var(--color-primary); }
+.btn-generate:focus { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-primary); }
 
 .uri-input {
   display: flex;

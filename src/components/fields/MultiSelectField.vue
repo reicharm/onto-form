@@ -1,24 +1,26 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required }">{{ label }}</label>
-    <div class="multiselect-box">
-      <label
-        v-for="opt in field.options"
-        :key="opt.value"
-        class="option-row"
-      >
-        <input
-          type="checkbox"
-          :value="opt.value"
-          :checked="(modelValue || []).includes(opt.value)"
-          @change="toggle(opt.value)"
-        />
-        <span>{{ opt.label?.[lang] || opt.label?.de || opt.value }}</span>
-      </label>
-      <span v-if="!field.options?.length" class="empty">
-        {{ lang === 'de' ? 'Keine Optionen konfiguriert.' : 'No options configured.' }}
-      </span>
-    </div>
+    <fieldset class="multiselect-fieldset">
+      <legend :class="{ required: field.required }">{{ label }}</legend>
+      <div class="multiselect-box">
+        <label
+          v-for="opt in field.options"
+          :key="opt.value"
+          class="option-row"
+        >
+          <input
+            type="checkbox"
+            :value="opt.value"
+            :checked="(modelValue || []).includes(opt.value)"
+            @change="toggle(opt.value)"
+          />
+          <span>{{ opt.label?.[lang] || opt.label?.de || opt.value }}</span>
+        </label>
+        <span v-if="!field.options?.length" class="empty">
+          {{ lang === 'de' ? 'Keine Optionen konfiguriert.' : 'No options configured.' }}
+        </span>
+      </div>
+    </fieldset>
     <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
   </div>
 </template>
@@ -46,8 +48,21 @@ function toggle(value) {
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-label { font-size: var(--font-size-label); font-weight: 500; color: var(--color-text-muted); }
-label.required::after { content: ' *'; color: var(--color-error); }
+
+.multiselect-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+legend {
+  font-size: var(--font-size-label);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  padding: 0;
+  margin-bottom: 0.3rem;
+}
+legend.required::after { content: ' *'; color: var(--color-error); }
 
 .multiselect-box {
   border: 1px solid var(--color-border);
@@ -76,6 +91,10 @@ label.required::after { content: ' *'; color: var(--color-error); }
   height: 1rem;
   flex-shrink: 0;
   cursor: pointer;
+}
+.option-row input[type="checkbox"]:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .empty { padding: 0.5rem 0.75rem; font-size: var(--font-size-label); color: #aaa; }

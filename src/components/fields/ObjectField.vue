@@ -1,7 +1,5 @@
 <template>
   <div class="field object-field">
-    <div class="object-label">{{ label }}</div>
-
     <!-- Suggestion picker (shown when field.remember is true and suggestions exist) -->
     <FieldSuggestions
       v-if="field.remember"
@@ -11,6 +9,7 @@
     />
 
     <fieldset class="object-fieldset">
+      <legend class="object-legend">{{ label }}</legend>
       <component
         v-for="subField in field.subFields"
         :key="subField.id"
@@ -74,18 +73,21 @@ function applySuggestion(value) {
 
 <style scoped>
 .field { display: flex; flex-direction: column; gap: 0.3rem; }
-.object-label {
-  font-size: var(--font-size-label);
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
+
 .object-fieldset {
-  border: 1px solid #d0d7de;
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface-alt);
-  padding: 1rem;
+  padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
+}
+
+.object-legend {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  padding: 0 0.25rem;
 }
 </style>

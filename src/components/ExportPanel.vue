@@ -1,33 +1,84 @@
 <template>
-  <div class="export-overlay" @click.self="$emit('close')">
-    <div class="export-panel">
+  <div
+    class="export-overlay"
+    @click.self="$emit('close')"
+    @keydown.esc="$emit('close')"
+  >
+    <div
+      class="export-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="export-heading"
+      ref="panelEl"
+    >
       <div class="export-header">
-        <h2>Export</h2>
-        <button class="close-btn" @click="$emit('close')">✕</button>
+        <h2 id="export-heading">Export</h2>
+        <button
+          class="close-btn"
+          :aria-label="lang === 'de' ? 'Export schließen' : 'Close export'"
+          @click="$emit('close')"
+        >✕</button>
       </div>
 
-      <div class="export-tabs">
-        <button :class="{ active: activeTab === 'jsonld' }" @click="activeTab = 'jsonld'">JSON-LD</button>
-        <button :class="{ active: activeTab === 'turtle' }" @click="activeTab = 'turtle'">Turtle</button>
-        <button :class="{ active: activeTab === 'rdfxml' }" @click="activeTab = 'rdfxml'">RDF/XML</button>
+      <div class="export-tabs" role="tablist" :aria-label="lang === 'de' ? 'Exportformat' : 'Export format'">
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'jsonld'"
+          aria-controls="export-panel-jsonld"
+          :class="{ active: activeTab === 'jsonld' }"
+          :tabindex="activeTab === 'jsonld' ? 0 : -1"
+          @click="activeTab = 'jsonld'"
+        >JSON-LD</button>
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'turtle'"
+          aria-controls="export-panel-turtle"
+          :class="{ active: activeTab === 'turtle' }"
+          :tabindex="activeTab === 'turtle' ? 0 : -1"
+          @click="activeTab = 'turtle'"
+        >Turtle</button>
+        <button
+          role="tab"
+          :aria-selected="activeTab === 'rdfxml'"
+          aria-controls="export-panel-rdfxml"
+          :class="{ active: activeTab === 'rdfxml' }"
+          :tabindex="activeTab === 'rdfxml' ? 0 : -1"
+          @click="activeTab = 'rdfxml'"
+        >RDF/XML</button>
       </div>
 
       <div class="export-content">
-        <pre v-if="activeTab === 'jsonld'">{{ jsonld }}</pre>
-        <pre v-else-if="activeTab === 'turtle'">{{ turtle }}</pre>
-        <pre v-else>{{ rdfxml }}</pre>
+        <div
+          id="export-panel-jsonld"
+          role="tabpanel"
+          aria-labelledby="export-tab-jsonld"
+          :hidden="activeTab !== 'jsonld'"
+        ><pre>{{ jsonld }}</pre></div>
+        <div
+          id="export-panel-turtle"
+          role="tabpanel"
+          aria-labelledby="export-tab-turtle"
+          :hidden="activeTab !== 'turtle'"
+        ><pre>{{ turtle }}</pre></div>
+        <div
+          id="export-panel-rdfxml"
+          role="tabpanel"
+          aria-labelledby="export-tab-rdfxml"
+          :hidden="activeTab !== 'rdfxml'"
+        ><pre>{{ rdfxml }}</pre></div>
       </div>
 
       <div class="export-actions">
-        <button class="btn-copy" @click="copy">{{ copied ? 'Copied!' : 'Copy to clipboard' }}</button>
-        <button class="btn-download" @click="download">Download</button>
+        <span role="status" aria-live="polite" class="copy-status">{{ copied ? (lang === 'de' ? 'Kopiert!' : 'Copied!') : '' }}</span>
+        <button class="btn-copy" @click="copy">{{ lang === 'de' ? 'In Zwischenablage kopieren' : 'Copy to clipboard' }}</button>
+        <button class="btn-download" @click="download">{{ lang === 'de' ? 'Herunterladen' : 'Download' }}</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
 import { RDFExporter } from '../services/RDFExporter.js'
 
 const props = defineProps({
@@ -38,8 +89,14 @@ const props = defineProps({
 defineEmits(['close'])
 
 const activeTab = ref('jsonld')
-const copied = ref(false)
-const exporter = new RDFExporter()
+const copied    = ref(false)
+const panelEl   = ref(null)
+const exporter  = new RDFExporter()
+
+onMounted(async () => {
+  await nextTick()
+  panelEl.value?.querySelector('button')?.focus()
+})
 
 const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard))
 const turtle = computed(() => exporter.toTurtle(props.formData, props.standard))
@@ -58,14 +115,14 @@ async function copy() {
 }
 
 function download() {
-  const extMap = { jsonld: 'jsonld', turtle: 'ttl', rdfxml: 'rdf' }
+  const extMap  = { jsonld: 'jsonld', turtle: 'ttl', rdfxml: 'rdf' }
   const mimeMap = { jsonld: 'application/ld+json', turtle: 'text/turtle', rdfxml: 'application/rdf+xml' }
-  const ext = extMap[activeTab.value] || 'rdf'
+  const ext  = extMap[activeTab.value] || 'rdf'
   const mime = mimeMap[activeTab.value] || 'application/rdf+xml'
   const blob = new Blob([currentContent.value], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
   a.download = activeTab.value === 'jsonld' ? 'metadata.jsonld' : activeTab.value === 'turtle' ? 'metadata.ttl' : 'metadata.rdf'
   a.click()
   URL.revokeObjectURL(url)
@@ -96,7 +153,7 @@ function download() {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .export-header h2 { font-size: var(--font-size-heading); color: var(--color-primary); }
@@ -104,20 +161,24 @@ function download() {
 .close-btn {
   background: none; border: none; font-size: 1.2rem;
   cursor: pointer; color: var(--color-text-subtle); line-height: 1;
+  padding: 0.2rem 0.4rem; border-radius: var(--radius-sm);
 }
+.close-btn:hover { color: var(--color-error); }
+.close-btn:focus { outline: none; box-shadow: var(--focus-ring); }
 
-.export-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid #eee; }
+.export-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid var(--color-border); }
 .export-tabs button {
   background: none; border: none; border-bottom: 3px solid transparent;
   padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: var(--color-text-muted);
   margin-bottom: -1px;
 }
 .export-tabs button.active { border-bottom-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
+.export-tabs button:focus { outline: none; box-shadow: var(--focus-ring); }
 
 .export-content { flex: 1; overflow: auto; padding: 1rem 1.5rem; }
 pre {
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   padding: 1rem;
   font-size: 0.82rem;
@@ -127,14 +188,22 @@ pre {
 }
 
 .export-actions {
-  display: flex; gap: 0.5rem; justify-content: flex-end;
+  display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center;
   padding: 1rem 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--color-border);
+}
+
+.copy-status {
+  margin-right: auto;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
+  min-width: 5rem;
 }
 
 .btn-copy, .btn-download {
   padding: 0.5rem 1rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; border: none;
 }
-.btn-copy { background: var(--color-primary-bg); color: var(--color-primary); }
+.btn-copy  { background: var(--color-primary-bg); color: var(--color-primary); }
 .btn-download { background: var(--color-primary); color: white; }
+.btn-copy:focus, .btn-download:focus { outline: none; box-shadow: var(--focus-ring); }
 </style>

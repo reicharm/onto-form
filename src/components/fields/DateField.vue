@@ -1,7 +1,8 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required }">{{ label }}</label>
+    <label :for="field.id" :class="{ required: field.required }">{{ label }}</label>
     <input
+      :id="field.id"
       type="date"
       :value="modelValue || ''"
       @input="$emit('update:modelValue', $event.target.value)"
@@ -33,6 +34,6 @@ input {
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
 }
-input:focus { outline: none; border-color: var(--color-primary); }
+input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 .hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

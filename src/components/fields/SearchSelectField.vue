@@ -1,12 +1,20 @@
 <template>
   <div class="field" ref="root">
-    <label :class="{ required: field.required || field.requiredIf }">{{ label }}</label>
+    <label :id="`${field.id}-label`" :class="{ required: field.required || field.requiredIf }">{{ label }}</label>
 
-    <!-- Trigger input -->
+    <!-- Trigger — combobox pattern -->
     <div
       class="ss-input-wrap"
       :class="{ open: isOpen, focused: isOpen }"
+      role="combobox"
+      :aria-expanded="isOpen"
+      aria-haspopup="listbox"
+      :aria-labelledby="`${field.id}-label`"
+      :aria-owns="`${field.id}-panel`"
+      tabindex="0"
       @click="open"
+      @keydown.enter.prevent="open"
+      @keydown.space.prevent="open"
     >
       <span v-if="selectedLabel" class="ss-value">{{ selectedLabel }}</span>
       <span v-else class="ss-placeholder">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</span>
@@ -15,18 +23,25 @@
         v-if="modelValue"
         type="button"
         class="ss-clear"
-        :title="lang === 'de' ? 'Auswahl aufheben' : 'Clear selection'"
+        :aria-label="lang === 'de' ? `${label} Auswahl aufheben` : `Clear ${label} selection`"
         @click.stop="clear"
       >×</button>
     </div>
 
     <!-- Dropdown panel -->
-    <div v-if="isOpen" class="ss-panel" role="listbox">
+    <div
+      v-if="isOpen"
+      :id="`${field.id}-panel`"
+      class="ss-panel"
+      role="listbox"
+      :aria-labelledby="`${field.id}-label`"
+    >
       <input
         ref="searchInput"
         v-model="query"
         class="ss-search"
         :placeholder="lang === 'de' ? 'Suchen …' : 'Search …'"
+        :aria-label="lang === 'de' ? `${label} durchsuchen` : `Search ${label}`"
         autocomplete="off"
         @keydown.down.prevent="moveHighlight(1)"
         @keydown.up.prevent="moveHighlight(-1)"
@@ -37,6 +52,7 @@
         <li
           v-if="!filtered.length"
           class="ss-empty"
+          role="alert"
         >{{ lang === 'de' ? 'Keine Treffer' : 'No results' }}</li>
         <li
           v-for="(opt, idx) in filtered"
@@ -102,7 +118,6 @@ async function open() {
   highlightIdx.value = -1
   await nextTick()
   searchInput.value?.focus()
-  // Pre-highlight the selected option
   const selIdx = filtered.value.findIndex(o => o.value === props.modelValue)
   if (selIdx >= 0) { highlightIdx.value = selIdx; scrollToHighlight() }
   document.addEventListener('mousedown', onOutside)
@@ -174,7 +189,8 @@ label.required::after { content: ' *'; color: var(--color-error); }
 }
 .ss-input-wrap.open,
 .ss-input-wrap:hover { border-color: var(--color-primary); }
-.ss-input-wrap.open { box-shadow: var(--focus-ring); }
+.ss-input-wrap.open  { box-shadow: var(--focus-ring); }
+.ss-input-wrap:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
 
 .ss-value    { flex: 1; font-size: var(--font-size-base); color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ss-placeholder { flex: 1; font-size: var(--font-size-base); color: var(--color-text-subtle); }
@@ -191,6 +207,7 @@ label.required::after { content: ' *'; color: var(--color-error); }
   flex-shrink: 0;
 }
 .ss-clear:hover { color: var(--color-error); }
+.ss-clear:focus { outline: 2px solid var(--color-primary); outline-offset: 1px; border-radius: 2px; }
 
 /* ── Panel ── */
 .ss-panel {
@@ -219,6 +236,7 @@ label.required::after { content: ' *'; color: var(--color-error); }
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   flex-shrink: 0;
 }
+.ss-search:focus { box-shadow: var(--focus-ring); }
 
 .ss-list {
   list-style: none;

@@ -1,10 +1,11 @@
 <template>
   <div class="field">
-    <label :class="{ required: field.required || field.requiredIf }">
+    <label :for="field.id" :class="{ required: field.required || field.requiredIf }">
       {{ label }}
     </label>
     <div v-if="field.generate" class="input-with-action">
       <input
+        :id="field.id"
         type="text"
         :value="modelValue || ''"
         :placeholder="placeholder"
@@ -13,12 +14,13 @@
       <button
         type="button"
         class="btn-generate"
-        :title="lang === 'de' ? 'Neuen Identifikator generieren' : 'Generate new identifier'"
+        :aria-label="lang === 'de' ? `Neuen ${label} generieren` : `Generate new ${label}`"
         @click="generate"
       >↺</button>
     </div>
     <input
       v-else
+      :id="field.id"
       type="text"
       :value="modelValue || ''"
       :placeholder="placeholder"
@@ -97,10 +99,8 @@ input:focus { outline: none; border-color: var(--color-primary); box-shadow: var
   white-space: nowrap;
   flex-shrink: 0;
 }
-.btn-generate:hover {
-  background: var(--color-primary-bg);
-  border-color: var(--color-primary);
-}
+.btn-generate:hover { background: var(--color-primary-bg); border-color: var(--color-primary); }
+.btn-generate:focus { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-primary); }
 
 .hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>

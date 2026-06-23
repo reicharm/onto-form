@@ -7,23 +7,28 @@
       </span>
       <div class="report-summary">
         <span class="badge badge-violation" :class="{ zero: counts.violation === 0 }">
-          ✗ {{ counts.violation }}
-          {{ lang === 'de' ? 'Verstoß' + (counts.violation !== 1 ? 'e' : '') : 'Violation' + (counts.violation !== 1 ? 's' : '') }}
+          <span aria-hidden="true">✗ </span>{{ counts.violation }}
+          {{ lang === 'de' ? ' Verstoß' + (counts.violation !== 1 ? 'e' : '') : ' Violation' + (counts.violation !== 1 ? 's' : '') }}
         </span>
         <span class="badge badge-warning" :class="{ zero: counts.warning === 0 }">
-          ⚠ {{ counts.warning }}
-          {{ lang === 'de' ? 'Warnung' + (counts.warning !== 1 ? 'en' : '') : 'Warning' + (counts.warning !== 1 ? 's' : '') }}
+          <span aria-hidden="true">⚠ </span>{{ counts.warning }}
+          {{ lang === 'de' ? ' Warnung' + (counts.warning !== 1 ? 'en' : '') : ' Warning' + (counts.warning !== 1 ? 's' : '') }}
         </span>
         <span v-if="counts.info > 0" class="badge badge-info">
-          ℹ {{ counts.info }}
+          <span aria-hidden="true">ℹ </span>{{ counts.info }}
         </span>
       </div>
-      <button class="btn-close" type="button" @click="$emit('close')">×</button>
+      <button
+        class="btn-close"
+        type="button"
+        :aria-label="lang === 'de' ? 'Bericht schließen' : 'Close report'"
+        @click="$emit('close')"
+      >×</button>
     </div>
 
     <!-- Valid state -->
-    <div v-if="violations.length === 0" class="report-valid">
-      <span class="valid-icon">✓</span>
+    <div v-if="violations.length === 0" class="report-valid" role="status" aria-live="polite">
+      <span class="valid-icon" aria-hidden="true">✓</span>
       <span>{{ lang === 'de' ? 'Keine Verstöße gefunden.' : 'No violations found.' }}</span>
     </div>
 
@@ -52,6 +57,7 @@
             v-if="v.groupId"
             type="button"
             class="btn-navigate"
+            :aria-label="(lang === 'de' ? 'Zum Feld navigieren: ' : 'Navigate to field: ') + fieldLabel(v)"
             @click="$emit('navigate', { fieldId: v.fieldId, groupId: v.groupId })"
           >{{ lang === 'de' ? 'Zum Feld' : 'Go to field' }}</button>
         </div>
@@ -154,6 +160,7 @@ function sevLabel(sev) {
   margin-left: auto;
 }
 .btn-close:hover { color: var(--color-error); }
+.btn-close:focus { outline: none; box-shadow: var(--focus-ring); }
 
 /* ── Valid state ── */
 .report-valid {
@@ -257,4 +264,5 @@ function sevLabel(sev) {
   flex-shrink: 0;
 }
 .btn-navigate:hover { background: var(--color-primary); color: white; }
+.btn-navigate:focus { outline: none; box-shadow: var(--focus-ring); }
 </style>
