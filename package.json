@@ -11,7 +11,7 @@
     },
     "./style.css": "./dist/onto-form.css"
   },
-  "files": ["dist", "src"],
+  "files": ["dist", "src", "public"],
   "peerDependencies": {
     "vue": "^3.4.0"
   },
