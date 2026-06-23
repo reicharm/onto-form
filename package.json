@@ -2,9 +2,23 @@
   "name": "onto-form",
   "version": "1.0.0",
   "type": "module",
+  "main": "./dist/onto-form.umd.cjs",
+  "module": "./dist/onto-form.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/onto-form.es.js",
+      "require": "./dist/onto-form.umd.cjs"
+    },
+    "./style.css": "./dist/onto-form.css"
+  },
+  "files": ["dist", "src"],
+  "peerDependencies": {
+    "vue": "^3.4.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:lib": "BUILD_LIB=1 vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

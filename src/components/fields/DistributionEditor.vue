@@ -122,6 +122,7 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import DistributionForm from './DistributionForm.vue'
 import DistributionModal from '../DistributionModal.vue'
+import { assetUrl } from '../../config/ontoFormConfig.js'
 
 const props = defineProps({
   field: Object,
@@ -146,7 +147,7 @@ const availabilityOptions = [
 
 onMounted(async () => {
   try {
-    const res = await fetch('/vocabularies/file-format.json')
+    const res = await fetch(assetUrl('vocabularies/file-format.json'))
     if (res.ok) formatOptions.value = await res.json()
   } catch { /* fallback: empty list */ }
 })
