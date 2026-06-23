@@ -1,6 +1,7 @@
 import { SHACLParser } from './SHACLParser.js'
 import { VocabularyLoader } from './VocabularyLoader.js'
 import { assetUrl } from '../config/ontoFormConfig.js'
+import { compactIRI } from './rdfUtils.js'
 
 export class FormConfigResolver {
   async resolve(standard) {
@@ -12,9 +13,12 @@ export class FormConfigResolver {
     const parser = new SHACLParser()
     const shapes = await parser.parse(shaclContent)
 
+    const rootClass = uiConfig.rootClass
     const allFields = {}
     for (const shape of Object.values(shapes)) {
-      if (!shape.embedded) Object.assign(allFields, shape.fields)
+      if (shape.embedded) continue
+      if (rootClass && shape.targetClass && compactIRI(shape.targetClass) !== rootClass) continue
+      Object.assign(allFields, shape.fields)
     }
 
     const mergedFields = { ...allFields }

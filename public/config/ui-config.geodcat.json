@@ -1,6 +1,7 @@
 {
   "standard": "geodcat",
   "version": "2.0",
+  "rootClass": "dcat:Dataset",
   "wizard": true,
   "groups": [
     {

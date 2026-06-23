@@ -4,6 +4,8 @@ import { FormConfigResolver } from '../../src/services/FormConfigResolver.js'
 // ── Mock SHACLParser ──────────────────────────────────────────────────────────
 const SHACL_SHAPES = {
   'http://example.org/Dataset': {
+    targetClass: 'http://example.org/Dataset',
+    embedded: false,
     fields: {
       'dct:title': {
         id: 'dct:title',
@@ -258,6 +260,74 @@ describe('FormConfigResolver', () => {
       })
       const result = await resolver.resolve('test')
       expect(result.fields['dct:title'].options).toBeUndefined()
+    })
+  })
+
+  describe('rootClass filtering', () => {
+    const SHAPES_WITH_DIST = {
+      'http://www.w3.org/ns/dcat#Dataset': {
+        targetClass: 'http://www.w3.org/ns/dcat#Dataset',
+        embedded: false,
+        fields: {
+          'dct:title':        { id: 'dct:title',        type: 'langstring', label: { de: 'Titel', en: 'Title' }, hint: {}, visible: true, order: 1 },
+          'dcat:distribution':{ id: 'dcat:distribution', type: 'text',      label: { de: 'Dist',  en: 'Dist'  }, hint: {}, visible: true, order: 2, multiple: true }
+        }
+      },
+      'http://www.w3.org/ns/dcat#Distribution': {
+        targetClass: 'http://www.w3.org/ns/dcat#Distribution',
+        embedded: false,
+        fields: {
+          'dcat:accessURL': { id: 'dcat:accessURL', type: 'uri',  label: { de: 'URL', en: 'URL' }, hint: {}, visible: true, order: 1 },
+          'dct:title':      { id: 'dct:title',      type: 'text', label: { de: 'Titel-Dist', en: 'Title-Dist' }, hint: {}, visible: true, order: 2 }
+        }
+      }
+    }
+
+    it('with rootClass set: excludes fields from non-root shapes', async () => {
+      vi.doMock('../../src/services/SHACLParser.js', () => {
+        class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
+        return { SHACLParser }
+      })
+      const { FormConfigResolver: FCR } = await import('../../src/services/FormConfigResolver.js?bust=1')
+      const r = new FCR()
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': { rootClass: 'dcat:Dataset', groups: [], fields: {} }
+      })
+      const result = await r.resolve('test')
+      expect(result.fields['dct:title']).toBeDefined()
+      expect(result.fields['dcat:distribution']).toBeDefined()
+      expect(result.fields['dcat:accessURL']).toBeUndefined()
+    })
+
+    it('with rootClass set: dct:title comes from Dataset shape, not Distribution shape', async () => {
+      vi.doMock('../../src/services/SHACLParser.js', () => {
+        class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
+        return { SHACLParser }
+      })
+      const { FormConfigResolver: FCR } = await import('../../src/services/FormConfigResolver.js?bust=2')
+      const r = new FCR()
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': { rootClass: 'dcat:Dataset', groups: [], fields: {} }
+      })
+      const result = await r.resolve('test')
+      expect(result.fields['dct:title'].type).toBe('langstring')
+    })
+
+    it('without rootClass: all non-embedded shapes are included (backward compat)', async () => {
+      vi.doMock('../../src/services/SHACLParser.js', () => {
+        class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
+        return { SHACLParser }
+      })
+      const { FormConfigResolver: FCR } = await import('../../src/services/FormConfigResolver.js?bust=3')
+      const r = new FCR()
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': { groups: [], fields: {} }
+      })
+      const result = await r.resolve('test')
+      expect(result.fields['dcat:accessURL']).toBeDefined()
     })
   })
 
