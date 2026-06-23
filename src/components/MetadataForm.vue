@@ -214,6 +214,7 @@ import DistributionEditor from './fields/DistributionEditor.vue'
 import MapField from './fields/MapField.vue'
 import SearchSelectField from './fields/SearchSelectField.vue'
 import ValidationReport from './ValidationReport.vue'
+import { assetUrl } from '../config/ontoFormConfig.js'
 import { validateForm, hasValue } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
@@ -329,7 +330,7 @@ async function runValidation() {
   if (!standard) return
   validating.value = true
   try {
-    const ttl = await fetch(`/shacl/${standard}.ttl`).then(r => r.text())
+    const ttl = await fetch(assetUrl(`shacl/${standard}.ttl`)).then(r => r.text())
     const svc = new SHACLValidationService()
     const result = await svc.validate(ttl, props.modelValue, props.config)
     shaclViolations.value = result.violations

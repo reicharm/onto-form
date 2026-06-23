@@ -1,5 +1,6 @@
 import { SHACLParser } from './SHACLParser.js'
 import { VocabularyLoader } from './VocabularyLoader.js'
+import { assetUrl } from '../config/ontoFormConfig.js'
 
 export class FormConfigResolver {
   async resolve(standard) {
@@ -64,13 +65,13 @@ export class FormConfigResolver {
   }
 
   async loadSHACL(standard) {
-    const response = await fetch(`/shacl/${standard}.ttl`)
+    const response = await fetch(assetUrl(`shacl/${standard}.ttl`))
     if (!response.ok) throw new Error(`Failed to load SHACL for ${standard}`)
     return response.text()
   }
 
   async loadUIConfig(standard) {
-    const response = await fetch(`/config/ui-config.${standard}.json`)
+    const response = await fetch(assetUrl(`config/ui-config.${standard}.json`))
     if (!response.ok) throw new Error(`Failed to load UI config for ${standard}`)
     return response.json()
   }
