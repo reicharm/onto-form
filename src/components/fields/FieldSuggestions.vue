@@ -18,9 +18,7 @@
         <button
           type="button"
           class="chip-remove"
-          :aria-label="lang === 'de'
-            ? `Vorschlag „${suggestionsStore.label(item)}" entfernen`
-            : `Remove suggestion „${suggestionsStore.label(item)}"`"
+          :aria-label="removeLabel(item)"
           @click="remove(item)"
         >×</button>
       </span>
@@ -46,6 +44,11 @@ const suggestions = ref([])
 watchEffect(() => {
   suggestions.value = suggestionsStore.getFor(props.field)
 })
+
+function removeLabel(item) {
+  const lbl = suggestionsStore.label(item)
+  return props.lang === 'de' ? `Vorschlag „${lbl}" entfernen` : `Remove suggestion „${lbl}"`
+}
 
 function remove(item) {
   suggestionsStore.removeFor(props.field, item)
