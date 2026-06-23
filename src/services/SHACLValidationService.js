@@ -25,7 +25,7 @@
  *   { fieldId, fieldLabel, groupId, severity, constraint, message, shapeRef }
  */
 
-import { Parser } from 'n3'
+import { parseTTLToStore, compactIRI, isAbsoluteURI, isISODate } from './rdfUtils.js'
 
 const SH   = 'http://www.w3.org/ns/shacl#'
 const RDF  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'
@@ -44,7 +44,7 @@ export class SHACLValidationService {
    * @returns {{ valid: boolean, violations: object[] }}
    */
   async validate(ttlContent, formData, config) {
-    const store = await parseTTL(ttlContent)
+    const store = await parseTTLToStore(ttlContent)
     const shapes = extractNodeShapes(store)
 
     const datasetShape = Object.values(shapes).find(
@@ -83,7 +83,7 @@ export class SHACLValidationService {
 
       // ── sh:nodeKind ────────────────────────────────────────────────────────
       if (prop.nodeKind === `${SH}IRI`) {
-        const bad = stringValues(value).filter(v => !isURI(v))
+        const bad = stringValues(value).filter(v => !isAbsoluteURI(v))
         if (bad.length) {
           violations.push(violation(ctx, prop.severity, 'nodeKind',
             `Wert muss eine URI sein (sh:nodeKind sh:IRI). Ungültig: ${bad.slice(0, 2).join(', ')}`,
@@ -91,7 +91,7 @@ export class SHACLValidationService {
           ))
         }
       } else if (prop.nodeKind === `${SH}Literal`) {
-        const bad = stringValues(value).filter(v => isURI(v))
+        const bad = stringValues(value).filter(v => isAbsoluteURI(v))
         if (bad.length) {
           violations.push(violation(ctx, prop.severity, 'nodeKind',
             `Wert darf keine URI sein (sh:nodeKind sh:Literal).`,
@@ -102,7 +102,7 @@ export class SHACLValidationService {
 
       // ── sh:datatype ────────────────────────────────────────────────────────
       if (prop.datatype === `${XSD}anyURI`) {
-        const bad = stringValues(value).filter(v => !isURI(v))
+        const bad = stringValues(value).filter(v => !isAbsoluteURI(v))
         if (bad.length) {
           violations.push(violation(ctx, prop.severity, 'datatype',
             `Wert muss eine gültige URI sein (xsd:anyURI).`,
@@ -110,7 +110,7 @@ export class SHACLValidationService {
           ))
         }
       } else if (prop.datatype === `${XSD}date` || prop.datatype === `${XSD}dateTime`) {
-        const bad = stringValues(value).filter(v => !isDate(v))
+        const bad = stringValues(value).filter(v => !isISODate(v))
         if (bad.length) {
           violations.push(violation(ctx, prop.severity, 'datatype',
             `Wert muss ein gültiges Datum sein (xsd:date). Ungültig: ${bad[0]}`,
@@ -220,14 +220,6 @@ function stringValues(value) {
   return [String(value)]
 }
 
-function isURI(v) {
-  return typeof v === 'string' && /^https?:\/\/|^urn:|^mailto:/.test(v)
-}
-
-function isDate(v) {
-  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)
-}
-
 /** Find the group ID that contains fieldId in the config. */
 function findGroupId(fieldId, config) {
   if (!config?.groups) return null
@@ -235,28 +227,6 @@ function findGroupId(fieldId, config) {
     if (group.fields?.includes(fieldId)) return group.id
   }
   return null
-}
-
-// ── SHACL TTL Parser ───────────────────────────────────────────────────────
-
-async function parseTTL(ttlContent) {
-  const parser = new Parser()
-  const quads  = await new Promise((resolve, reject) => {
-    const result = []
-    parser.parse(ttlContent, (err, quad) => {
-      if (err) return reject(err)
-      if (quad) result.push(quad)
-      else resolve(result)
-    })
-  })
-
-  const store = new Map()
-  for (const quad of quads) {
-    const s = quad.subject.value
-    if (!store.has(s)) store.set(s, [])
-    store.get(s).push({ p: quad.predicate.value, o: quad.object })
-  }
-  return store
 }
 
 function extractNodeShapes(store) {
@@ -302,21 +272,3 @@ function extractPropertyShape(node, store) {
   }
 }
 
-function compactIRI(iri) {
-  const prefixes = {
-    'http://purl.org/dc/terms/':             'dct:',
-    'http://www.w3.org/ns/dcat#':            'dcat:',
-    'http://xmlns.com/foaf/0.1/':            'foaf:',
-    'http://www.w3.org/2004/02/skos/core#':  'skos:',
-    'http://www.w3.org/2006/vcard/ns#':      'vcard:',
-    'http://www.w3.org/ns/locn#':            'locn:',
-    'http://www.opengis.net/ont/geosparql#': 'geo:',
-    'http://www.w3.org/ns/adms#':            'adms:',
-    'http://www.w3.org/ns/prov#':            'prov:',
-    'http://purl.org/dc/elements/1.1/':      'dc:',
-  }
-  for (const [ns, prefix] of Object.entries(prefixes)) {
-    if (iri.startsWith(ns)) return prefix + iri.slice(ns.length)
-  }
-  return iri.split(/[#/]/).at(-1) || iri
-}

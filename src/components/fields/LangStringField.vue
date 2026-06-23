@@ -26,7 +26,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const activeLangs = ['de', 'en']
+// Field config can override the default content languages via field.contentLangs
+const activeLangs = computed(() => props.field?.contentLangs?.length ? props.field.contentLangs : ['de', 'en'])
 const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
 const placeholder = computed(() => props.field.placeholder?.[props.lang] || props.field.placeholder?.en || '')
 

@@ -16,7 +16,7 @@ OntoForm ermöglicht die browserbasierte Erstellung und Bearbeitung von Metadate
 - **GeoDCAT** – geografische Metadaten
 - **DCAT-AP 3.0** – aktueller europäischer Standard
 
-Beim Wechsel des Standards werden die Felder zurückgesetzt und das passende Formular geladen.
+Beim Wechsel des Standards bleibt der Inhalt aller Felder erhalten, die im neuen Profil ebenfalls vorhanden sind. Felder, die nur im alten Profil existieren, werden nicht übernommen; neue Felder werden leer initialisiert.
 
 ### Sprache
 
@@ -129,7 +129,12 @@ Felder mit `+`-Button können mehrfach ausgefüllt werden (wiederholbare Felder)
 
 Manche Felder werden automatisch gesetzt:
 
-- **Zuletzt geändert** (`dct:modified`): wird auf das heutige Datum gesetzt, sobald ein Titel eingegeben wird. Importierte oder manuell eingegebene Werte bleiben erhalten.
+- **Zuletzt geändert** (`dct:modified`): wird auf das heutige Datum gesetzt, sobald ein Titel eingegeben wird.
+- **ID-Felder**: Felder mit `uri`- oder `text`-Typ können eine Generieren-Schaltfläche (🔀 bzw. ⊕) anzeigen, die einen UUID-v4- oder Nanoid-Wert einträgt.
+
+### Vorschlagswerte (Suggestions)
+
+Bestimmte Felder merken sich bereits eingegebene Werte (z. B. Herausgeber, Kontaktstelle). Beim nächsten Aufruf werden diese als Chips unterhalb des Feldes angezeigt. Ein Klick auf einen Chip übernimmt den Wert. Mit dem ×-Button am Chip wird der Vorschlag dauerhaft entfernt.
 
 ### Vokabular-Felder
 

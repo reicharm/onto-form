@@ -26,14 +26,14 @@
 
     <main class="app-main">
       <MetadataForm
-        v-if="formConfig"
-        :config="formConfig"
+        v-if="activeConfig"
+        :config="activeConfig"
         :lang="lang"
         :wizard="wizardMode"
         v-model="formData"
         @export="showExport = true"
       />
-      <div v-else class="loading">Loading form configuration...</div>
+      <div v-else-if="!formConfig" class="loading">Loading form configuration...</div>
     </main>
 
     <ExportPanel
@@ -55,7 +55,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import ExportPanel from './components/ExportPanel.vue'
@@ -77,6 +77,20 @@ const showExport = ref(false)
 const showImport = ref(false)
 const wizardMode = ref(true)
 const distributionMode = ref('modal')
+
+// Inject the active distributionMode back into the config without mutating formConfig
+const activeConfig = computed(() => {
+  if (!formConfig.value) return null
+  const distField = formConfig.value.fields?.['dcat:distribution']
+  if (!distField) return formConfig.value
+  return {
+    ...formConfig.value,
+    fields: {
+      ...formConfig.value.fields,
+      'dcat:distribution': { ...distField, distributionMode: distributionMode.value }
+    }
+  }
+})
 
 function buildDefaultFormData(config) {
   const data = {}
@@ -129,9 +143,6 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
 
 function toggleDistributionMode() {
   distributionMode.value = distributionMode.value === 'modal' ? 'inline' : 'modal'
-  if (formConfig.value?.fields?.['dcat:distribution']) {
-    formConfig.value.fields['dcat:distribution'].distributionMode = distributionMode.value
-  }
 }
 
 // Run compute functions declared in the config whenever formData or lang changes

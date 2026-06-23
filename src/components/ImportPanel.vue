@@ -109,7 +109,8 @@ const panelEl   = ref(null)
 
 onMounted(async () => {
   await nextTick()
-  panelEl.value?.querySelector('button')?.focus()
+  const firstTab = panelEl.value?.querySelector('[role="tab"]')
+  ;(firstTab || panelEl.value?.querySelector('button'))?.focus()
 })
 
 const placeholder = computed(() => {

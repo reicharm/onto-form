@@ -41,7 +41,7 @@
         </div>
         <div
           v-for="v in bySeverity[sev]"
-          :key="v.fieldId + v.constraint"
+          :key="v.fieldId + '|' + v.constraint"
           class="violation-row"
           :class="'row-' + v.severity"
         >

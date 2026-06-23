@@ -374,7 +374,8 @@ async function navigateToField({ fieldId, groupId }) {
     if (idx >= 0) jumpToStep(idx)
   }
   await nextTick()
-  const el = document.getElementById(`field-${CSS.escape(fieldId)}`)
+  const safeId = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(fieldId) : fieldId.replace(/[^\w-]/g, '_')
+  const el = document.getElementById(`field-${safeId}`)
   el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   el?.querySelector('input,textarea,select')?.focus()
 }

@@ -146,4 +146,4 @@ A full accessibility audit was performed across all interactive Vue components. 
 
 ## Test Coverage
 
-All 309 unit tests continue to pass after the accessibility changes (`npx vitest run tests/unit/`). Accessibility-specific assertions (label associations, ARIA attributes) are not yet part of the automated test suite — this is a future improvement area.
+All unit tests continue to pass after the accessibility changes (`npx vitest run tests/unit/`). Accessibility-specific assertions (label associations, ARIA attributes) are not yet part of the automated test suite — this is a future improvement area.

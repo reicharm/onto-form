@@ -20,13 +20,20 @@ npm run test:watch
 |-------|-----------------|
 | `tests/unit/fieldValidators.test.js` | `src/config/fieldValidators.js` — `isURI`, `isURIList`, `isEmail`, `isDate`, `isWKTorGeoJSON` |
 | `tests/unit/fieldComputes.test.js` | `src/config/fieldComputes.js` — `setTodayIfTitle`, `setTodayIfTitleAndEmpty`, `setToday`, `setLanguageFromUI`, `applyComputes` |
-| `tests/unit/useValidation.test.js` | `src/composables/useValidation.js` — `validateField`, `validateForm` |
-| `tests/unit/RDFExporter.test.js` | `src/services/RDFExporter.js` — `toJSONLD`, `toTurtle` |
-| `tests/unit/RDFImporter.test.js` | `src/services/RDFImporter.js` — `fromJSONLD`, `fromTurtle` |
-| `tests/unit/VocabularyLoader.test.js` | `src/services/VocabularyLoader.js` — `load`, `_normalize`, `_normalizeSparql` |
-| `tests/unit/fieldVisibility.test.js` | `src/config/fieldVisibility.js` — `ifHVDLegislation`, `evaluateVisibleIf` |
 | `tests/unit/fieldTransforms.test.js` | `src/config/fieldTransforms.js` — `uriSuffix`, `stripPrefix`, `applyDisplay`, `applyEncode` |
-| `tests/unit/SHACLParser.test.js` | `src/services/SHACLParser.js` — `multiple`/`required`-Feld-Mapping aus `sh:maxCount`/`sh:minCount` |
+| `tests/unit/fieldVisibility.test.js` | `src/config/fieldVisibility.js` — `ifHVDLegislation`, `evaluateVisibleIf` |
+| `tests/unit/useValidation.test.js` | `src/composables/useValidation.js` — `validateField`, `validateForm` |
+| `tests/unit/hasValue.test.js` | `src/composables/useValidation.js` — `hasValue` (alle Feldtypen) |
+| `tests/unit/idGenerators.test.js` | `src/config/idGenerators.js` — UUID-v4, Nanoid |
+| `tests/unit/RDFExporter.test.js` | `src/services/RDFExporter.js` — `toJSONLD`, `toTurtle`, `toRDFXML` |
+| `tests/unit/RDFImporter.test.js` | `src/services/RDFImporter.js` — `fromJSONLD`, `fromTurtle` |
+| `tests/unit/VocabularyLoader.test.js` | `src/services/VocabularyLoader.js` — `load`, alle Normalisierungsformate, Caching, Fallback |
+| `tests/unit/SHACLParser.test.js` | `src/services/SHACLParser.js` — Feldtyp-Mapping, `multiple`/`required` aus `sh:maxCount`/`sh:minCount`, `sh:in`-Optionen |
+| `tests/unit/SHACLValidationService.test.js` | `src/services/SHACLValidationService.js` — alle Constraints (`minCount`, `maxCount`, `nodeKind`, `datatype`, `pattern`, `minLength`, `maxLength`), Severity-Sortierung |
+| `tests/unit/SuggestionsStore.test.js` | `src/services/SuggestionsStore.js` — save, get, remove, removeFor (cross-field), clear, userContext, label |
+| `tests/unit/FileUploader.test.js` | `src/services/FileUploader.js` — POST/PUT-Strategien, Auth-Provider, Fehlerbehandlung |
+| `tests/unit/SearchSelectField.test.js` | `src/components/fields/SearchSelectField.vue` — Öffnen/Schließen, Filterung, Tastaturnavigation, Clear |
+| `tests/unit/profileSwitch.test.js` | `src/App.vue` — Profilwechsel mit `preserveData`, Initialisierung |
 
 ### Konfiguration
 

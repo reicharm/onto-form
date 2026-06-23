@@ -95,7 +95,9 @@ const exporter  = new RDFExporter()
 
 onMounted(async () => {
   await nextTick()
-  panelEl.value?.querySelector('button')?.focus()
+  // Focus first tab, not the close button which is the first button in DOM order
+  const firstTab = panelEl.value?.querySelector('[role="tab"]')
+  ;(firstTab || panelEl.value?.querySelector('button'))?.focus()
 })
 
 const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard))

@@ -42,8 +42,8 @@ describe('SHACLParser – multiple field mapping', () => {
     expect((await parseField(makeTTL({ maxCount: 2 }))).multiple).toBe(true)
   })
 
-  it('no sh:maxCount → multiple: false', async () => {
-    expect((await parseField(makeTTL())).multiple).toBe(false)
+  it('no sh:maxCount → multiple: true (unbounded cardinality)', async () => {
+    expect((await parseField(makeTTL())).multiple).toBe(true)
   })
 })
 

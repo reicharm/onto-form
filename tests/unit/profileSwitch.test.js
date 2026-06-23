@@ -70,18 +70,19 @@ describe('profile switching (preserveData)', () => {
     expect(w.vm.formData['dct:spatial']).toBe('')
   })
 
-  it('does NOT carry over fields absent from the new profile', async () => {
+  it('preserves values of shared fields when switching to a profile where other fields are absent', async () => {
     const w = mount(App, { attachTo: document.body })
     await flushPromises()
 
+    w.vm.formData['dct:title']    = 'My Dataset'
     w.vm.formData['dct:language'] = 'de'
 
     w.vm.selectedStandard = 'geodcat'
     await flushPromises()
 
-    // dct:language is not in geodcat config so it may be present (preserved) or absent —
-    // the important thing is shared fields survive.  Just verify title survived.
-    expect(w.vm.formData['dct:title']).toBeDefined()
+    // dct:language is not in geodcat — its value is carried along (preserved) but irrelevant
+    // for the new profile. The essential check: dct:title (shared) survived.
+    expect(w.vm.formData['dct:title']).toBe('My Dataset')
   })
 
   it('resets data on initial mount (no preserveData)', async () => {

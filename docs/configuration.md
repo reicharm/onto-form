@@ -121,6 +121,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `searchselect` | `SearchSelectField` | Einzelauswahl mit integriertem Suchfeld — empfohlen für große Vokabulare |
 | `multiselect` | `MultiSelectField` | Mehrfachauswahl (Checkbox-Liste); wird nie in `RepeatableField` eingebettet, auch wenn SHACL `multiple: true` setzt |
 | `object` | `ObjectField` | Zusammengesetztes Feld mit Unterfeldern |
+| `distribution-editor` | `DistributionEditor` | Liste von DCAT-Distributionen mit eigenem Bearbeitungsformular |
 
 #### `searchselect` – Auswahl mit Suchfeld
 
@@ -627,3 +628,38 @@ suggestionsStore.setUserContext(null)      // Context des einbettenden Systems z
 - Fehlermeldungen (`sh:message`)
 
 UI-Config-Werte überschreiben SHACL-Werte bei Konflikten. Labels und Hints werden gemergt.
+
+
+---
+
+## `distribution-editor` – Distributions-Liste
+
+Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal).
+
+```json
+"dcat:distribution": {
+  "type": "distribution-editor",
+  "distributionMode": "modal",
+  "label": { "de": "Distributionen", "en": "Distributions" }
+}
+```
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `distributionMode` | `"modal"` \| `"inline"` | `"modal"` | Modal-Overlay oder direkt aufklappbare Karten |
+
+Die Reihenfolge der Distributionen kann per Drag-and-Drop (Griffsymbol ⠿) angepasst werden.
+
+---
+
+## `contentLangs` – Inhaltssprachen für `langstring`-Felder
+
+Felder vom Typ `langstring` zeigen standardmäßig Eingaben für `de` und `en`. Über `contentLangs` können beliebige Sprachkürzel (BCP-47) konfiguriert werden:
+
+```json
+"dct:title": {
+  "type": "langstring",
+  "contentLangs": ["de", "en", "fr"],
+  "label": { "de": "Titel", "en": "Title" }
+}
+```
