@@ -48,7 +48,7 @@
           <h2 class="group-title">{{ currentGroup.label[lang] || currentGroup.label.en }}</h2>
           <div class="group-fields">
             <template v-for="field in groupFields(currentGroup)" :key="field.id">
-              <div class="field-wrapper" :class="{ 'has-error': showStepErrors && fieldErrors[field.id]?.length }">
+              <div :id="'field-' + field.id" class="field-wrapper" :class="{ 'has-error': showStepErrors && fieldErrors[field.id]?.length }">
                 <RepeatableField
                   v-if="field.multiple && field.type !== 'multiselect'"
                   :field="field"
@@ -129,6 +129,9 @@
           <span v-if="!isValid" class="validation-hint">
             {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
           </span>
+          <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
+            {{ validating ? '…' : (lang === 'de' ? 'SHACL prüfen' : 'SHACL validate') }}
+          </button>
           <button
             class="btn-export"
             :disabled="!isValid"
@@ -136,6 +139,13 @@
             @click="handleExport"
           >Export JSON-LD / Turtle</button>
         </div>
+        <ValidationReport
+          v-if="showReport"
+          :violations="shaclViolations"
+          :lang="lang"
+          @close="showReport = false"
+          @navigate="navigateToField"
+        />
 
         <!-- Back navigation -->
         <div class="wizard-nav">
@@ -153,7 +163,7 @@
         <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
         <div class="group-fields">
           <template v-for="field in groupFields(group)" :key="field.id">
-            <div class="field-wrapper" :class="{ 'has-error': fieldErrors[field.id]?.length }">
+            <div :id="'field-' + field.id" class="field-wrapper" :class="{ 'has-error': fieldErrors[field.id]?.length }">
               <RepeatableField
                 v-if="field.multiple && field.type !== 'multiselect'"
                 :field="field"
@@ -185,6 +195,9 @@
         <span v-if="!isValid" class="validation-hint">
           {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
         </span>
+        <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
+          {{ validating ? '…' : (lang === 'de' ? 'SHACL prüfen' : 'SHACL validate') }}
+        </button>
         <button
           class="btn-export"
           :disabled="!isValid"
@@ -192,12 +205,19 @@
           @click="handleExport"
         >Export JSON-LD / Turtle</button>
       </div>
+      <ValidationReport
+        v-if="showReport"
+        :violations="shaclViolations"
+        :lang="lang"
+        @close="showReport = false"
+        @navigate="navigateToField"
+      />
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import TextField from './fields/TextField.vue'
 import TextareaField from './fields/TextareaField.vue'
 import SelectField from './fields/SelectField.vue'
@@ -210,10 +230,12 @@ import MultiSelectField from './fields/MultiSelectField.vue'
 import DistributionEditor from './fields/DistributionEditor.vue'
 import MapField from './fields/MapField.vue'
 import SearchSelectField from './fields/SearchSelectField.vue'
+import ValidationReport from './ValidationReport.vue'
 import { validateForm, hasValue } from '../composables/useValidation.js'
 import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 import { suggestionsStore } from '../services/SuggestionsStore.js'
+import { SHACLValidationService } from '../services/SHACLValidationService.js'
 
 const props = defineProps({
   config: Object,
@@ -304,6 +326,38 @@ const progressPct    = computed(() =>
 )
 
 const isValid = computed(() => Object.keys(fieldErrors.value).length === 0)
+
+// ── SHACL validation report ───────────────────────────────────────────────
+const shaclViolations = ref([])
+const showReport      = ref(false)
+const validating      = ref(false)
+
+async function runValidation() {
+  const standard = props.config?.standard
+  if (!standard) return
+  validating.value = true
+  try {
+    const ttl = await fetch(`/shacl/${standard}.ttl`).then(r => r.text())
+    const svc = new SHACLValidationService()
+    const result = await svc.validate(ttl, props.modelValue, props.config)
+    shaclViolations.value = result.violations
+    showReport.value = true
+  } finally {
+    validating.value = false
+  }
+}
+
+async function navigateToField({ fieldId, groupId }) {
+  // In wizard mode: jump to the group step first
+  if (props.wizard) {
+    const idx = visibleGroups.value.findIndex(g => g.id === groupId)
+    if (idx >= 0) jumpToStep(idx)
+  }
+  await nextTick()
+  const el = document.getElementById(`field-${CSS.escape(fieldId)}`)
+  el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  el?.querySelector('input,textarea,select')?.focus()
+}
 
 function handleExport() {
   if (!isValid.value) return
@@ -541,6 +595,19 @@ function formatValue(field) {
   cursor: not-allowed;
   opacity: 0.7;
 }
+
+.btn-validate {
+  background: var(--color-surface-alt);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+  padding: 0.7rem 1.2rem;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  font-weight: 500;
+}
+.btn-validate:hover:not(:disabled) { background: var(--color-primary-bg); }
+.btn-validate:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* Step indicator */
 /* ── Progress bar ── */
