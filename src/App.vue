@@ -107,17 +107,24 @@ function buildDefaultFormData(config) {
 
 const hasDistributionEditor = ref(false)
 
-async function loadFormConfig(standard) {
+async function loadFormConfig(standard, { preserveData = false } = {}) {
   formConfig.value = null
-  formData.value = {}
   const resolver = new FormConfigResolver()
   const config = await resolver.resolve(standard)
   formConfig.value = config
-  wizardMode.value = config?.wizard !== false
-  const distField = config?.fields?.['dcat:distribution']
-  hasDistributionEditor.value = distField?.type === 'distribution-editor'
-  if (distField) distributionMode.value = distField.distributionMode || 'modal'
-  formData.value = buildDefaultFormData(config)
+  if (!preserveData) {
+    wizardMode.value = config?.wizard !== false
+    const distField = config?.fields?.['dcat:distribution']
+    hasDistributionEditor.value = distField?.type === 'distribution-editor'
+    if (distField) distributionMode.value = distField.distributionMode || 'modal'
+  } else {
+    const distField = config?.fields?.['dcat:distribution']
+    hasDistributionEditor.value = distField?.type === 'distribution-editor'
+  }
+  const defaults = buildDefaultFormData(config)
+  formData.value = preserveData
+    ? { ...defaults, ...formData.value }
+    : defaults
 }
 
 function toggleDistributionMode() {
@@ -139,7 +146,7 @@ function onImport(importedData) {
   showImport.value = false
 }
 
-watch(selectedStandard, (std) => loadFormConfig(std))
+watch(selectedStandard, (std) => loadFormConfig(std, { preserveData: true }))
 onMounted(() => loadFormConfig(selectedStandard.value))
 </script>
 
