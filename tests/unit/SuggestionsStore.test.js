@@ -81,6 +81,40 @@ describe('save and get', () => {
   })
 })
 
+// ── remove ─────────────────────────────────────────────────────────────────
+
+describe('remove', () => {
+  it('removes a specific value by JSON equality', () => {
+    const a = { 'foaf:name': 'A' }
+    const b = { 'foaf:name': 'B' }
+    suggestionsStore.save('dct:publisher', a)
+    suggestionsStore.save('dct:publisher', b)
+    suggestionsStore.remove('dct:publisher', a)
+    expect(suggestionsStore.get('dct:publisher')).toEqual([b])
+  })
+
+  it('removes localStorage entry entirely when last item is removed', () => {
+    const a = { 'foaf:name': 'A' }
+    suggestionsStore.save('dct:publisher', a)
+    suggestionsStore.remove('dct:publisher', a)
+    expect(suggestionsStore.get('dct:publisher')).toEqual([])
+    expect(localStorageMock.removeItem).toHaveBeenCalledWith('ontoform:suggestions:dct:publisher')
+  })
+
+  it('does not remove user-context values (they are not stored)', () => {
+    const ctx = { 'foaf:name': 'Context' }
+    suggestionsStore.setUserContext({ 'dct:publisher': [ctx] })
+    suggestionsStore.remove('dct:publisher', ctx)
+    expect(suggestionsStore.get('dct:publisher')).toEqual([ctx])
+  })
+
+  it('is a no-op when value is not found', () => {
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'A' })
+    suggestionsStore.remove('dct:publisher', { 'foaf:name': 'B' })
+    expect(suggestionsStore.get('dct:publisher')).toHaveLength(1)
+  })
+})
+
 // ── clear ──────────────────────────────────────────────────────────────────
 
 describe('clear', () => {

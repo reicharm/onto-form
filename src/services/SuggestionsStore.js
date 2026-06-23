@@ -167,6 +167,25 @@ export const suggestionsStore = {
   },
 
   /**
+   * Removes a single stored suggestion for a field from localStorage.
+   * Matched by JSON equality. User-context values are not affected.
+   *
+   * @param {string} fieldId
+   * @param {any} value
+   */
+  remove(fieldId, value) {
+    const serialized = serialize(value)
+    const stored = loadStored(fieldId).filter(v => serialize(v) !== serialized)
+    try {
+      if (stored.length) {
+        localStorage.setItem(LS_PREFIX + fieldId, JSON.stringify(stored))
+      } else {
+        localStorage.removeItem(LS_PREFIX + fieldId)
+      }
+    } catch { /* ignore */ }
+  },
+
+  /**
    * Removes all stored suggestions for a field from localStorage.
    * User-context values are not affected.
    *
