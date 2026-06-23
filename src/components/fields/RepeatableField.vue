@@ -2,7 +2,7 @@
   <div class="field">
     <label :class="{ required: field.required }">{{ label }}</label>
     <div class="items">
-      <div v-for="(item, index) in items" :key="index" class="item-row">
+      <div v-for="(item, index) in items" :key="itemKeys[index] ?? index" class="item-row">
         <LangStringItem
           v-if="field.type === 'langstring'"
           :modelValue="item"
@@ -31,12 +31,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import LangStringItem from './LangStringItem.vue'
 import TextField from './TextField.vue'
+import TextareaField from './TextareaField.vue'
 import URIField from './URIField.vue'
 import SelectField from './SelectField.vue'
 import SearchSelectField from './SearchSelectField.vue'
+import DateField from './DateField.vue'
+import ObjectField from './ObjectField.vue'
 
 const props = defineProps({
   field: Object,
@@ -49,15 +52,30 @@ const label = computed(() => props.field.label?.[props.lang] || props.field.labe
 const placeholder = computed(() => props.field.placeholder?.[props.lang] || props.field.placeholder?.en || '')
 
 const componentMap = {
-  uri: URIField,
-  select: SelectField,
+  text:         TextField,
+  textarea:     TextareaField,
+  uri:          URIField,
+  date:         DateField,
+  select:       SelectField,
   searchselect: SearchSelectField,
-  text: TextField
+  object:       ObjectField,
 }
 
 const innerComponent = computed(() => componentMap[props.field.type] || TextField)
 
 const items = computed(() => props.modelValue?.length ? props.modelValue : [emptyItem()])
+
+// Stable per-item keys so Vue doesn't reuse DOM nodes when splicing from the middle.
+// Keys live only in component memory — never written into emitted data.
+let _nextKey = 0
+const itemKeys = ref([])
+
+watch(items, (newItems) => {
+  // Grow the key array to match; never shrink (handled in removeItem)
+  while (itemKeys.value.length < newItems.length) {
+    itemKeys.value.push(++_nextKey)
+  }
+}, { immediate: true })
 
 function emptyItem() {
   if (props.field.type === 'langstring') return { value: '', lang: props.lang || 'de' }
@@ -78,6 +96,7 @@ function addItem() {
 function removeItem(index) {
   const arr = [...(props.modelValue || [])]
   arr.splice(index, 1)
+  itemKeys.value.splice(index, 1)
   emit('update:modelValue', arr.length ? arr : [emptyItem()])
 }
 </script>

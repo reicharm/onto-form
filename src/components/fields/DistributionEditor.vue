@@ -17,7 +17,7 @@
       <template v-if="mode === 'inline'">
         <div
           v-for="(dist, idx) in distributions"
-          :key="idx"
+          :key="distKeys[idx] ?? idx"
           class="dist-card"
           :class="{ 'drag-over': dragOverIdx === idx, 'dragging': draggedIdx === idx }"
           draggable="true"
@@ -67,7 +67,7 @@
       <template v-else>
         <div
           v-for="(dist, idx) in distributions"
-          :key="idx"
+          :key="distKeys[idx] ?? idx"
           class="dist-row"
           :class="{ 'drag-over': dragOverIdx === idx, 'dragging': draggedIdx === idx }"
           draggable="true"
@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import DistributionForm from './DistributionForm.vue'
 import DistributionModal from '../DistributionModal.vue'
 
@@ -178,6 +178,7 @@ function addDistribution() {
 
 function removeDistribution(idx) {
   const next = distributions.value.filter((_, i) => i !== idx)
+  distKeys.value.splice(idx, 1)
   emit('update:modelValue', next)
   if (mode.value === 'inline') {
     const nextOpen = new Set()
@@ -193,6 +194,14 @@ function updateDist(idx, val) {
   const next = distributions.value.map((d, i) => i === idx ? val : d)
   emit('update:modelValue', next)
 }
+
+// Stable per-distribution keys — prevents DOM reuse when items are removed mid-list
+let _nextDistKey = 0
+const distKeys = ref([])
+
+watch(distributions, (newDists) => {
+  while (distKeys.value.length < newDists.length) distKeys.value.push(++_nextDistKey)
+}, { immediate: true })
 
 // ── Inline mode state ──
 const openCards = ref(new Set([0]))
