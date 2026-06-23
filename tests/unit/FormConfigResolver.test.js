@@ -1,0 +1,285 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { FormConfigResolver } from '../../src/services/FormConfigResolver.js'
+
+// ── Mock SHACLParser ──────────────────────────────────────────────────────────
+const SHACL_SHAPES = {
+  'http://example.org/Dataset': {
+    fields: {
+      'dct:title': {
+        id: 'dct:title',
+        type: 'langstring',
+        label: { de: 'Titel (SHACL)', en: 'Title (SHACL)' },
+        hint: { de: 'SHACL-Hinweis' },
+        visible: true,
+        order: 1
+      },
+      'dct:description': {
+        id: 'dct:description',
+        type: 'textarea',
+        label: { de: 'Beschreibung' },
+        hint: {},
+        visible: true,
+        order: 2
+      },
+      'dct:hidden': {
+        id: 'dct:hidden',
+        type: 'text',
+        label: { de: 'Versteckt' },
+        visible: false,
+        order: 3
+      }
+    }
+  }
+}
+
+vi.mock('../../src/services/SHACLParser.js', () => {
+  class SHACLParser {
+    async parse() { return SHACL_SHAPES }
+  }
+  return { SHACLParser }
+})
+
+// ── Mock VocabularyLoader ─────────────────────────────────────────────────────
+vi.mock('../../src/services/VocabularyLoader.js', () => {
+  class VocabularyLoader {
+    async load() {
+      return [
+        { value: 'http://vocab.example/a', label: { de: 'Option A' } },
+        { value: 'http://vocab.example/b', label: { de: 'Option B' } }
+      ]
+    }
+  }
+  return { VocabularyLoader }
+})
+
+// ── fetch mock helpers ────────────────────────────────────────────────────────
+
+function makeFetchOk(responseMap) {
+  return vi.fn().mockImplementation((url) => {
+    const entry = responseMap[url]
+    if (!entry) {
+      return Promise.resolve({ ok: false, status: 404, text: () => Promise.resolve(''), json: () => Promise.resolve({}) })
+    }
+    if (typeof entry === 'string') {
+      return Promise.resolve({ ok: true, text: () => Promise.resolve(entry), json: () => Promise.resolve({}) })
+    }
+    return Promise.resolve({ ok: true, text: () => Promise.resolve(''), json: () => Promise.resolve(entry) })
+  })
+}
+
+const SHACL_DUMMY = '# dummy turtle'
+
+const UI_CONFIG = {
+  version: '2.1.0',
+  fields: {
+    'dct:title': {
+      id: 'dct:title',
+      label: { de: 'Titel (UI)', fr: 'Titre (UI)' },
+      hint: { de: 'UI-Hinweis', en: 'UI hint' },
+      order: 10
+    },
+    'dcat:keyword': {
+      id: 'dcat:keyword',
+      type: 'text',
+      label: { de: 'Schlüsselwörter' },
+      visible: true,
+      order: 5
+    },
+    'dcat:theme': {
+      id: 'dcat:theme',
+      type: 'multiselect',
+      optionsSource: 'http://vocab.example/themes',
+      visible: true,
+      order: 6
+    }
+  },
+  groups: [
+    {
+      id: 'basic',
+      label: { de: 'Grunddaten' },
+      fields: ['dct:title', 'dct:description', 'dct:hidden', 'dcat:keyword', 'nonexistent']
+    }
+  ]
+}
+
+describe('FormConfigResolver', () => {
+  let resolver
+
+  beforeEach(() => {
+    resolver = new FormConfigResolver()
+  })
+
+  describe('merging SHACL fields with UI config', () => {
+    it('UI values override SHACL values for the same field', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      // UI order overrides SHACL order
+      expect(result.fields['dct:title'].order).toBe(10)
+    })
+
+    it('label is merged from both SHACL and UI (all languages present)', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      const label = result.fields['dct:title'].label
+      // SHACL provides 'en', UI provides 'de' and 'fr'
+      expect(label.en).toBe('Title (SHACL)')
+      expect(label.de).toBe('Titel (UI)')
+      expect(label.fr).toBe('Titre (UI)')
+    })
+
+    it('hint is merged from both SHACL and UI', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      const hint = result.fields['dct:title'].hint
+      expect(hint.de).toBe('UI-Hinweis')
+      expect(hint.en).toBe('UI hint')
+    })
+
+    it('field type comes from SHACL when UI does not redefine it', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      // dct:title type is 'langstring' from SHACL, UI config for dct:title has no `type`
+      expect(result.fields['dct:title'].type).toBe('langstring')
+    })
+  })
+
+  describe('UI-only fields (not in SHACL)', () => {
+    it('UI-defined type and order are preserved', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      // dcat:keyword is in UI only (SHACL mock does not include it)
+      const kw = result.fields['dcat:keyword']
+      expect(kw).toBeDefined()
+      expect(kw.type).toBe('text')
+      expect(kw.order).toBe(5)
+    })
+
+    it('UI-only field without type gets default type text and order 999', async () => {
+      const uiWithBare = {
+        ...UI_CONFIG,
+        fields: {
+          ...UI_CONFIG.fields,
+          'dcat:bareField': { id: 'dcat:bareField', label: { de: 'Bare' } }
+        }
+      }
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': uiWithBare
+      })
+      const result = await resolver.resolve('test')
+      expect(result.fields['dcat:bareField'].type).toBe('text')
+      expect(result.fields['dcat:bareField'].order).toBe(999)
+    })
+  })
+
+  describe('groups filtering', () => {
+    it('removes nonexistent field IDs from group.fields', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.groups[0].fields).not.toContain('nonexistent')
+    })
+
+    it('removes fields with visible === false from group.fields', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.groups[0].fields).not.toContain('dct:hidden')
+    })
+
+    it('keeps fields that exist and are visible', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.groups[0].fields).toContain('dct:title')
+      expect(result.groups[0].fields).toContain('dct:description')
+      expect(result.groups[0].fields).toContain('dcat:keyword')
+    })
+  })
+
+  describe('standard and version passthrough', () => {
+    it('returns the standard that was requested', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/dcat-ap.ttl': SHACL_DUMMY,
+        '/config/ui-config.dcat-ap.json': { ...UI_CONFIG, version: '3.0.0' }
+      })
+      const result = await resolver.resolve('dcat-ap')
+      expect(result.standard).toBe('dcat-ap')
+    })
+
+    it('returns the version from UI config', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.version).toBe('2.1.0')
+    })
+  })
+
+  describe('vocabulary resolution', () => {
+    it('populates options for fields with optionsSource', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      const themeField = result.fields['dcat:theme']
+      expect(themeField.options).toBeDefined()
+      expect(themeField.options.length).toBeGreaterThan(0)
+      expect(themeField.options[0].value).toBe('http://vocab.example/a')
+    })
+
+    it('fields without optionsSource do not get options injected', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.fields['dct:title'].options).toBeUndefined()
+    })
+  })
+
+  describe('error handling', () => {
+    it('rejects if SHACL fetch fails', async () => {
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.endsWith('.ttl')) {
+          return Promise.resolve({ ok: false, status: 404, text: () => Promise.resolve('') })
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve(UI_CONFIG) })
+      })
+      await expect(resolver.resolve('missing')).rejects.toThrow(/Failed to load SHACL/)
+    })
+
+    it('rejects if UI config fetch fails', async () => {
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.endsWith('.ttl')) {
+          return Promise.resolve({ ok: true, text: () => Promise.resolve(SHACL_DUMMY) })
+        }
+        return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) })
+      })
+      await expect(resolver.resolve('missing')).rejects.toThrow(/Failed to load UI config/)
+    })
+  })
+})
