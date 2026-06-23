@@ -7,6 +7,9 @@
  * Add new validators here and reference them by name in any UI config.
  * The same validator can be used across standards, or each standard can
  * use a different one for the same semantic field.
+ *
+ * Host apps can add their own validators via registerValidator() or
+ * configure({ extend: { validators: { … } } }).
  */
 
 export const fieldValidators = {
@@ -55,4 +58,24 @@ export const fieldValidators = {
       : [lang === 'de' ? 'Bitte WKT- oder GeoJSON-Geometrie eingeben.' : 'Please enter a WKT or GeoJSON geometry.']
   },
 
+}
+
+/**
+ * Register one or more custom validator functions.
+ * Existing built-in names cannot be overwritten to prevent accidental breakage.
+ *
+ * @param {string|Record<string, Function>} nameOrMap
+ * @param {Function} [fn]
+ */
+export function registerValidator(nameOrMap, fn) {
+  const entries = typeof nameOrMap === 'string'
+    ? { [nameOrMap]: fn }
+    : nameOrMap
+  for (const [name, func] of Object.entries(entries)) {
+    if (fieldValidators[name]) {
+      console.warn(`[fieldValidators] "${name}" already exists — skipping. Use a unique name.`)
+      continue
+    }
+    fieldValidators[name] = func
+  }
 }

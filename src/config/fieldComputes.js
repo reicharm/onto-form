@@ -9,6 +9,11 @@
  * Different standards can assign different compute functions to the same field.
  */
 
+/**
+ * Host apps can add compute functions via registerCompute() or
+ * configure({ extend: { computes: { … } } }).
+ */
+
 export const fieldComputeFns = {
 
   // Sets the field to today's date whenever a title is present.
@@ -76,4 +81,23 @@ export function applyComputes(config, formData, lang) {
   }
 
   return updated ? next : formData
+}
+
+/**
+ * Register one or more custom compute functions.
+ *
+ * @param {string|Record<string, Function>} nameOrMap
+ * @param {Function} [fn]
+ */
+export function registerCompute(nameOrMap, fn) {
+  const entries = typeof nameOrMap === 'string'
+    ? { [nameOrMap]: fn }
+    : nameOrMap
+  for (const [name, func] of Object.entries(entries)) {
+    if (fieldComputeFns[name]) {
+      console.warn(`[fieldComputes] "${name}" already exists — skipping. Use a unique name.`)
+      continue
+    }
+    fieldComputeFns[name] = func
+  }
 }

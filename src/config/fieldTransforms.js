@@ -12,6 +12,11 @@
  * Use "transformOptions": { ... } in the field config to pass extra options.
  */
 
+/**
+ * Host apps can add transforms via registerTransform() or
+ * configure({ extend: { transforms: { … } } }).
+ */
+
 export const fieldTransforms = {
 
   /**
@@ -83,6 +88,25 @@ export const fieldTransforms = {
  * Apply the display function of a named transform to a stored value.
  * Returns the raw stored value if the transform is unknown or absent.
  */
+/**
+ * Register one or more custom transforms ({ display, encode }).
+ *
+ * @param {string|Record<string, {display: Function, encode: Function}>} nameOrMap
+ * @param {{display: Function, encode: Function}} [transform]
+ */
+export function registerTransform(nameOrMap, transform) {
+  const entries = typeof nameOrMap === 'string'
+    ? { [nameOrMap]: transform }
+    : nameOrMap
+  for (const [name, t] of Object.entries(entries)) {
+    if (fieldTransforms[name]) {
+      console.warn(`[fieldTransforms] "${name}" already exists — skipping. Use a unique name.`)
+      continue
+    }
+    fieldTransforms[name] = t
+  }
+}
+
 export function applyDisplay(transformName, storedValue, opts) {
   const t = fieldTransforms[transformName]
   if (!t) {

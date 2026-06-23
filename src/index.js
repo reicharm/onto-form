@@ -20,8 +20,15 @@ export { SHACLValidationService }   from './services/SHACLValidationService.js'
 export { FileUploader }             from './services/FileUploader.js'
 
 // ── Configuration ─────────────────────────────────────────────────────────────
-export { configure, assetUrl } from './config/ontoFormConfig.js'
-export { BUILTIN_STANDARDS }   from './App.vue'
+export { configure, assetUrl }        from './config/ontoFormConfig.js'
+export { BUILTIN_STANDARDS }          from './App.vue'
+
+// ── Extension points ──────────────────────────────────────────────────────────
+// Use these for fine-grained registration, or pass all at once via configure({ extend }).
+export { registerValidator }  from './config/fieldValidators.js'
+export { registerCompute }    from './config/fieldComputes.js'
+export { registerTransform }  from './config/fieldTransforms.js'
+export { registerVisibility } from './config/fieldVisibility.js'
 
 // ── Vue plugin (optional: registers MetadataForm globally) ────────────────────
 import MetadataForm from './components/MetadataForm.vue'
