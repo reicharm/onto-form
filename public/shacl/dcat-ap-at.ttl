@@ -523,6 +523,7 @@ dcatap:Dataset_Shape
         ], [
             sh:nodeKind sh:Literal ;
             sh:path dct:identifier ;
+            sh:maxCount 1 ;
             sh:severity sh:Violation ;
             pv:mappingClass "StandardText" ;
             pv:mappingName "identifier"
