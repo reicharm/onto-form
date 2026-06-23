@@ -115,6 +115,63 @@ describe('remove', () => {
   })
 })
 
+// ── removeFor ──────────────────────────────────────────────────────────────
+
+describe('removeFor', () => {
+  const publisherField = {
+    id: 'dct:publisher',
+    remember: true,
+    suggestionsFrom: ['dcat:contactPoint'],
+    suggestionsMap: { 'vcard:fn': 'foaf:name', 'vcard:hasEmail': 'foaf:mbox' }
+  }
+
+  it('removes own stored suggestion by value', () => {
+    const val = { 'foaf:name': 'Stadt Wien' }
+    suggestionsStore.save('dct:publisher', val)
+    suggestionsStore.removeFor(publisherField, val)
+    expect(suggestionsStore.get('dct:publisher')).toEqual([])
+  })
+
+  it('removes cross-field suggestion from source field storage', () => {
+    // Stored in dcat:contactPoint with vcard: keys
+    const contact = { 'vcard:fn': 'Team', 'vcard:hasEmail': 'a@b.at' }
+    suggestionsStore.save('dcat:contactPoint', contact)
+
+    // getFor returns it remapped to foaf: keys
+    const remapped = { 'foaf:name': 'Team', 'foaf:mbox': 'a@b.at' }
+
+    suggestionsStore.removeFor(publisherField, remapped)
+    expect(suggestionsStore.get('dcat:contactPoint')).toEqual([])
+  })
+
+  it('prefers removing from own field if value exists there', () => {
+    // Same remapped value saved in both own and source
+    const own = { 'foaf:name': 'Wien' }
+    const contact = { 'vcard:fn': 'Wien' }
+    suggestionsStore.save('dct:publisher', own)
+    suggestionsStore.save('dcat:contactPoint', contact)
+
+    suggestionsStore.removeFor(publisherField, own)
+    // own removed; source untouched
+    expect(suggestionsStore.get('dct:publisher')).toEqual([])
+    expect(suggestionsStore.get('dcat:contactPoint')).toHaveLength(1)
+  })
+
+  it('is a no-op for user-context values (not in localStorage)', () => {
+    suggestionsStore.setUserContext({ 'dct:publisher': [{ 'foaf:name': 'Ctx' }] })
+    suggestionsStore.removeFor(publisherField, { 'foaf:name': 'Ctx' })
+    // Still visible via context
+    expect(suggestionsStore.get('dct:publisher')).toHaveLength(1)
+  })
+
+  it('works for fields without suggestionsFrom', () => {
+    const simpleField = { id: 'dct:publisher' }
+    suggestionsStore.save('dct:publisher', { 'foaf:name': 'A' })
+    suggestionsStore.removeFor(simpleField, { 'foaf:name': 'A' })
+    expect(suggestionsStore.get('dct:publisher')).toEqual([])
+  })
+})
+
 // ── clear ──────────────────────────────────────────────────────────────────
 
 describe('clear', () => {

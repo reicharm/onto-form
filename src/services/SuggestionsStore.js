@@ -186,6 +186,37 @@ export const suggestionsStore = {
   },
 
   /**
+   * Removes a suggestion that was returned by getFor(field).
+   * Handles cross-field suggestions correctly: if the value was remapped
+   * from a source field, the original (un-remapped) value is removed from
+   * the source field's storage. Own suggestions are removed first; if not
+   * found there, all suggestionsFrom sources are tried with the reversed map.
+   *
+   * User-context values (not in localStorage) are silently ignored.
+   *
+   * @param {object} field  — same field config object passed to getFor()
+   * @param {any}    value  — the value as returned by getFor() (may be remapped)
+   */
+  removeFor(field, value) {
+    // Try own storage first
+    const beforeOwn = loadStored(field.id)
+    this.remove(field.id, value)
+    const removedFromOwn = loadStored(field.id).length < beforeOwn.length
+
+    if (removedFromOwn || !field.suggestionsFrom?.length) return
+
+    // Value came from a cross-field source — reverse-remap and remove there
+    const forwardMap = field.suggestionsMap || {}
+    const reverseMap = Object.fromEntries(
+      Object.entries(forwardMap).map(([k, v]) => [v, k])
+    )
+    const original = remapKeys(value, reverseMap)
+    for (const srcId of field.suggestionsFrom) {
+      this.remove(srcId, original)
+    }
+  },
+
+  /**
    * Removes all stored suggestions for a field from localStorage.
    * User-context values are not affected.
    *

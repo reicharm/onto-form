@@ -46,9 +46,7 @@ watchEffect(() => {
 })
 
 function remove(item) {
-  // Remove from own field's stored suggestions only.
-  // Cross-field suggestions are owned by their source field and not removed here.
-  suggestionsStore.remove(props.field.id, item)
+  suggestionsStore.removeFor(props.field, item)
   suggestions.value = suggestionsStore.getFor(props.field)
 }
 </script>
