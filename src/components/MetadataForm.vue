@@ -1,5 +1,5 @@
 <template>
-  <div class="metadata-form">
+  <div class="metadata-form ontoform">
     <!-- WIZARD MODE -->
     <template v-if="wizard">
       <!-- Step Indicator -->

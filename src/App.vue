@@ -1,5 +1,5 @@
 <template>
-  <div class="app">
+  <div class="app ontoform">
     <header class="app-header">
       <h1>OntoForm</h1>
       <div class="header-controls">
