@@ -40,16 +40,20 @@ export class FormConfigResolver {
 
     await this.resolveVocabularies(mergedFields)
 
+    const vocabWarnings = await this.resolveVocabularies(mergedFields)
+
     return {
       standard,
       version: uiConfig.version,
       groups,
-      fields: mergedFields
+      fields: mergedFields,
+      vocabWarnings
     }
   }
 
   async resolveVocabularies(fields) {
     const loader = new VocabularyLoader()
+    const warnings = []
     const pending = []
 
     for (const [id, field] of Object.entries(fields)) {
@@ -57,11 +61,15 @@ export class FormConfigResolver {
       pending.push(
         loader.load(field.optionsSource, field.optionsSourceFallback)
           .then(options => { field.options = [...options, ...(field.options || [])] })
-          .catch(err => console.warn(`[VocabularyLoader] ${id}: ${err.message}`))
+          .catch(err => {
+            console.warn(`[VocabularyLoader] ${id}: ${err.message}`)
+            warnings.push({ field: id, message: err.message })
+          })
       )
     }
 
     await Promise.all(pending)
+    return warnings
   }
 
   async loadSHACL(standard) {

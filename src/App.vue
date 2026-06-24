@@ -24,6 +24,21 @@
       </div>
     </header>
 
+    <div v-if="vocabWarnings.length" class="app-warning" role="status" aria-live="polite">
+      <span aria-hidden="true">ℹ</span>
+      {{ lang === 'de'
+        ? `${vocabWarnings.length} Vokabular(e) konnten nicht geladen werden und wurden übersprungen.`
+        : `${vocabWarnings.length} vocabulary source(s) could not be loaded and were skipped.` }}
+    </div>
+
+    <div v-if="appError" class="app-error" role="alert">
+      <span class="app-error-icon" aria-hidden="true">⚠</span>
+      {{ appError }}
+      <button class="app-error-retry" @click="loadFormConfig(selectedStandard)">
+        {{ lang === 'de' ? 'Erneut versuchen' : 'Retry' }}
+      </button>
+    </div>
+
     <main class="app-main">
       <MetadataForm
         v-if="activeConfig"
@@ -33,7 +48,9 @@
         v-model="formData"
         @export="showExport = true"
       />
-      <div v-else-if="!formConfig" class="loading">Loading form configuration...</div>
+      <div v-else-if="!appError" class="loading">
+        {{ lang === 'de' ? 'Formular wird geladen…' : 'Loading form configuration…' }}
+      </div>
     </main>
 
     <ExportPanel
@@ -55,7 +72,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onErrorCaptured } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import ExportPanel from './components/ExportPanel.vue'
@@ -77,6 +94,7 @@ const showExport = ref(false)
 const showImport = ref(false)
 const wizardMode = ref(true)
 const distributionMode = ref('modal')
+const appError = ref(null)
 
 // Inject the active distributionMode back into the config without mutating formConfig
 const activeConfig = computed(() => {
@@ -120,12 +138,23 @@ function buildDefaultFormData(config) {
 }
 
 const hasDistributionEditor = ref(false)
+const vocabWarnings = ref([])
 
 async function loadFormConfig(standard, { preserveData = false } = {}) {
   formConfig.value = null
+  appError.value = null
   const resolver = new FormConfigResolver()
-  const config = await resolver.resolve(standard)
+  let config
+  try {
+    config = await resolver.resolve(standard)
+  } catch (err) {
+    appError.value = lang.value === 'de'
+      ? `Konfiguration konnte nicht geladen werden: ${err.message}`
+      : `Failed to load configuration: ${err.message}`
+    return
+  }
   formConfig.value = config
+  vocabWarnings.value = config.vocabWarnings || []
   if (!preserveData) {
     wizardMode.value = config?.wizard !== false
     const distField = config?.fields?.['dcat:distribution']
@@ -156,6 +185,13 @@ function onImport(importedData) {
   formData.value = { ...formData.value, ...importedData }
   showImport.value = false
 }
+
+onErrorCaptured((err) => {
+  appError.value = lang.value === 'de'
+    ? `Ein unerwarteter Fehler ist aufgetreten: ${err.message}`
+    : `An unexpected error occurred: ${err.message}`
+  return false
+})
 
 watch(selectedStandard, (std) => loadFormConfig(std, { preserveData: true }))
 onMounted(() => loadFormConfig(selectedStandard.value))
@@ -222,4 +258,39 @@ body {
 .app-main { flex: 1; padding: 2rem; max-width: 900px; margin: 0 auto; width: 100%; }
 
 .loading { text-align: center; padding: 2rem; color: var(--color-text-muted); }
+
+.app-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  color: #7a5800;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+}
+.app-error-icon { font-size: 1.1rem; flex-shrink: 0; }
+.app-error-retry {
+  margin-left: auto;
+  background: none;
+  border: 1px solid currentColor;
+  color: inherit;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: inherit;
+}
+.app-error-retry:hover { background: rgba(0,0,0,0.07); }
+.app-error-retry:focus { box-shadow: var(--focus-ring); outline: none; }
+
+.app-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #e8f4fd;
+  border-bottom: 1px solid #bee3f8;
+  color: #2c5282;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.85rem;
+}
 </style>
