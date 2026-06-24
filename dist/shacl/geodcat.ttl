@@ -1,0 +1,168 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix locn: <http://www.w3.org/ns/locn#> .
+@prefix geo: <http://www.opengis.net/ont/geosparql#> .
+@prefix ex: <http://example.org/shapes/> .
+
+ex:GeoDCATDatasetShape a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:name "GeoDCAT Dataset" ;
+
+  sh:property [
+    sh:path dct:title ;
+    sh:name "Titel"@de , "Title"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 1
+  ] ;
+
+  sh:property [
+    sh:path dct:description ;
+    sh:name "Beschreibung"@de , "Description"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 2
+  ] ;
+
+  sh:property [
+    sh:path dct:identifier ;
+    sh:name "Identifikator"@de , "Identifier"@en ;
+    sh:datatype xsd:string ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 3
+  ] ;
+
+  sh:property [
+    sh:path dct:issued ;
+    sh:name "Veröffentlichungsdatum"@de , "Issued"@en ;
+    sh:datatype xsd:date ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 4
+  ] ;
+
+  sh:property [
+    sh:path dct:modified ;
+    sh:name "Änderungsdatum"@de , "Modified"@en ;
+    sh:datatype xsd:date ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 5
+  ] ;
+
+  sh:property [
+    sh:path dct:publisher ;
+    sh:name "Herausgeber"@de , "Publisher"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:order 6
+  ] ;
+
+  sh:property [
+    sh:path dcat:keyword ;
+    sh:name "Schlagwörter"@de , "Keywords"@en ;
+    sh:datatype rdf:langString ;
+    sh:minCount 0 ;
+    sh:order 7
+  ] ;
+
+  sh:property [
+    sh:path dcat:theme ;
+    sh:name "Thema"@de , "Theme"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:order 8
+  ] ;
+
+  sh:property [
+    sh:path dct:spatial ;
+    sh:name "Räumliche Abdeckung"@de , "Spatial Coverage"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:order 9
+  ] ;
+
+  sh:property [
+    sh:path locn:geometry ;
+    sh:name "Geometrie"@de , "Geometry"@en ;
+    sh:description "WKT oder GeoJSON Geometrie"@de , "WKT or GeoJSON geometry"@en ;
+    sh:datatype geo:wktLiteral ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 10
+  ] ;
+
+  sh:property [
+    sh:path dct:type ;
+    sh:name "Ressourcentyp"@de , "Resource Type"@en ;
+    sh:description "INSPIRE Ressourcentyp"@de , "INSPIRE resource type"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 11 ;
+    sh:in (
+      <http://inspire.ec.europa.eu/metadata-codelist/ResourceType/dataset>
+      <http://inspire.ec.europa.eu/metadata-codelist/ResourceType/series>
+      <http://inspire.ec.europa.eu/metadata-codelist/ResourceType/service>
+    )
+  ] ;
+
+  sh:property [
+    sh:path dct:conformsTo ;
+    sh:name "Konformität"@de , "Conforms To"@en ;
+    sh:description "INSPIRE Spezifikation"@de , "INSPIRE specification"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 12
+  ] ;
+
+  sh:property [
+    sh:path dct:language ;
+    sh:name "Sprache"@de , "Language"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:order 13
+  ] ;
+
+  sh:property [
+    sh:path dct:temporal ;
+    sh:name "Zeitliche Abdeckung"@de , "Temporal Coverage"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:order 14
+  ] ;
+
+  sh:property [
+    sh:path dct:accrualPeriodicity ;
+    sh:name "Aktualisierungsfrequenz"@de , "Update Frequency"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 15
+  ] ;
+
+  sh:property [
+    sh:path dct:license ;
+    sh:name "Lizenz"@de , "License"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 0 ;
+    sh:maxCount 1 ;
+    sh:order 16
+  ] ;
+
+  sh:property [
+    sh:path dcat:contactPoint ;
+    sh:name "Kontaktstelle"@de , "Contact Point"@en ;
+    sh:nodeKind sh:IRI ;
+    sh:minCount 1 ;
+    sh:order 17
+  ] .
