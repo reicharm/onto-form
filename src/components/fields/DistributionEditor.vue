@@ -166,13 +166,13 @@ function emptyDist() {
 }
 
 function addDistribution() {
-  const next = [...distributions.value, emptyDist()]
-  emit('update:modelValue', next)
-  const newIdx = next.length - 1
   if (mode.value === 'inline') {
-    openCards.value = new Set([...openCards.value, newIdx])
+    const next = [...distributions.value, emptyDist()]
+    emit('update:modelValue', next)
+    openCards.value = new Set([...openCards.value, next.length - 1])
   } else {
-    editingIndex.value = newIdx
+    // Modal mode: open modal first — add to list only on save
+    editingIndex.value = -1
     editingDraft.value = emptyDist()
   }
 }

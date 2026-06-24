@@ -78,7 +78,7 @@ watch(() => props.modelValue, (val) => {
 watch(() => props.show, async (open) => {
   if (open) {
     await nextTick()
-    const first = panelEl.value?.querySelector('button, input, select, textarea, [tabindex]:not([tabindex="-1"])')
+    const first = panelEl.value?.querySelector('input, select, textarea, button, [tabindex]:not([tabindex="-1"])')
     first?.focus()
   }
 })
