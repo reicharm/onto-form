@@ -66,12 +66,12 @@ const props = defineProps({
 
 const emit = defineEmits(['save', 'cancel'])
 
-const draft   = ref(structuredClone(props.modelValue || {}))
+const draft   = ref({ ...(props.modelValue || {}) })
 const panelEl = ref(null)
 const headingId = 'dist-modal-heading'
 
 watch(() => props.modelValue, (val) => {
-  draft.value = structuredClone(val || {})
+  draft.value = { ...(val || {}) }
 }, { deep: true })
 
 // Focus first interactive element when modal opens
