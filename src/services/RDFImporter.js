@@ -1,5 +1,6 @@
 import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
+import { applyEncode } from '../config/fieldTransforms.js'
 
 function _isAbsoluteURI(s) {
   return typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'))
@@ -99,7 +100,7 @@ export class RDFImporter {
       const raw = normalised[fieldId]
       if (raw == null) continue
       const val = this._deserializeJSONLD(raw, field)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -194,7 +195,7 @@ export class RDFImporter {
       const objects = byPred[fieldId]
       if (!objects?.length) continue
       const val = this._deserializeTurtleObjects(objects, field, bySubject)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -229,8 +230,17 @@ export class RDFImporter {
           return { value: String(item), lang: 'de' }
         }).filter(i => i.value)
       }
-      if (typeof raw === 'object' && !Array.isArray(raw) && !('@value' in raw))
-        return raw
+      // Non-multiple: JSON-LD may provide an array of {@language,@value} objects
+      if (Array.isArray(raw)) {
+        const result = {}
+        for (const item of raw) {
+          if (item && typeof item === 'object' && '@value' in item) {
+            result[item['@language'] || 'de'] = item['@value']
+          }
+        }
+        return Object.keys(result).length ? result : { de: '' }
+      }
+      if (typeof raw === 'object' && !('@value' in raw)) return raw
       if (typeof raw === 'object' && '@value' in raw)
         return { [raw['@language'] || 'de']: raw['@value'] }
       return { de: String(raw) }
@@ -264,9 +274,13 @@ export class RDFImporter {
     }
 
     // text, textarea, uri, date, select — possibly multiple
-    const scalar = Array.isArray(raw)
-      ? (raw[0] ? this._scalarValue(raw[0], field) : '')
-      : (typeof raw === 'object' && '@value' in raw ? this._scalarValue(raw['@value'], field) : this._scalarValue(String(raw), field))
+    const _extractScalar = (v) => {
+      if (typeof v === 'string') return this._scalarValue(v, field)
+      if (v && typeof v === 'object' && '@value' in v) return this._scalarValue(v['@value'], field)
+      if (v && typeof v === 'object' && '@id' in v) return this._scalarValue(v['@id'], field)
+      return this._scalarValue(String(v), field)
+    }
+    const scalar = Array.isArray(raw) ? (raw[0] != null ? _extractScalar(raw[0]) : '') : _extractScalar(raw)
 
     if (multiple) return scalar ? [scalar] : ['']
     return scalar
@@ -322,7 +336,7 @@ export class RDFImporter {
       const objects = byPred[fieldId]
       if (!objects?.length) continue
       const val = this._deserializeTurtleObjects(objects, field, bySubject)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -472,6 +486,16 @@ export class RDFImporter {
       result[pred] = val
     }
     return result
+  }
+
+  // Apply encode transform so the stored form is validated, not the raw display form.
+  // uriSuffix.encode is idempotent when the value is already a full URI.
+  _encodeIfTransformed(coerced, field) {
+    if (!field.transform || coerced == null) return coerced
+    if (field.multiple && Array.isArray(coerced)) {
+      return coerced.map(v => applyEncode(field.transform, v, field.transformOptions, v))
+    }
+    return applyEncode(field.transform, coerced, field.transformOptions, coerced)
   }
 
   // Returns true if the value should be discarded (fails validation)
