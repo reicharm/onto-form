@@ -17,6 +17,9 @@
             ? (lang === 'de' ? 'Dist.: Inline' : 'Dist.: Inline')
             : (lang === 'de' ? 'Dist.: Modal' : 'Dist.: Modal') }}
         </button>
+        <button class="btn-preview-header" @click="showPreview = true" :title="lang === 'de' ? 'Aktuelle Daten als RDF ansehen (Debug)' : 'Preview current data as RDF (debug)'">
+          {{ lang === 'de' ? 'Vorschau' : 'Preview' }}
+        </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
           <button :class="{ active: lang === 'en' }" @click="lang = 'en'">EN</button>
@@ -62,6 +65,15 @@
       @close="showExport = false"
     />
 
+    <ExportPanel
+      v-if="showPreview"
+      :formData="formData"
+      :standard="selectedStandard"
+      :lang="lang"
+      :preview="true"
+      @close="showPreview = false"
+    />
+
     <ImportPanel
       v-if="showImport"
       :config="formConfig"
@@ -88,6 +100,7 @@ import ExportPanel from './components/ExportPanel.vue'
 import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
+import { applyEncode } from './config/fieldTransforms.js'
 
 const props = defineProps({
   standards: {
@@ -116,6 +129,7 @@ const showImport = ref(false)
 const wizardMode = ref(true)
 const distributionMode = ref('modal')
 const appError = ref(null)
+const showPreview = ref(false)
 
 // Inject the active distributionMode back into the config without mutating formConfig
 const activeConfig = computed(() => {
@@ -216,9 +230,23 @@ watch([formData, lang], ([data, l]) => {
   if (next !== data) formData.value = next
 }, { deep: true })
 
+function applyImportTransforms(data, config) {
+  if (!config?.fields) return data
+  const result = { ...data }
+  for (const [id, field] of Object.entries(config.fields)) {
+    if (!field.transform || result[id] == null) continue
+    if (field.multiple && Array.isArray(result[id])) {
+      result[id] = result[id].map(v => applyEncode(field.transform, v, field.transformOptions, v))
+    } else {
+      result[id] = applyEncode(field.transform, result[id], field.transformOptions, result[id])
+    }
+  }
+  return result
+}
+
 function onImport(importedData) {
-  // Merge imported values into current formData (keeps defaults for unimported fields)
-  formData.value = { ...formData.value, ...importedData }
+  const normalized = applyImportTransforms(importedData, formConfig.value)
+  formData.value = { ...formData.value, ...normalized }
   showImport.value = false
 }
 

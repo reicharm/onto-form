@@ -20,6 +20,12 @@
         >✕</button>
       </div>
 
+      <div v-if="preview" class="preview-notice" role="status">
+        {{ lang === 'de'
+          ? 'Vorschau-Modus: Daten können unvollständig oder ungültig sein.'
+          : 'Preview mode: data may be incomplete or invalid.' }}
+      </div>
+
       <div class="export-tabs" role="tablist" :aria-label="lang === 'de' ? 'Exportformat' : 'Export format'">
         <button
           role="tab"
@@ -84,7 +90,8 @@ import { RDFExporter } from '../services/RDFExporter.js'
 const props = defineProps({
   formData: Object,
   standard: String,
-  lang: String
+  lang: String,
+  preview: { type: Boolean, default: false }
 })
 defineEmits(['close'])
 
@@ -148,6 +155,14 @@ function download() {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.preview-notice {
+  background: #fff8e1;
+  border-bottom: 1px solid #ffe082;
+  color: #7a5800;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.85rem;
 }
 
 .export-header {
