@@ -45,6 +45,7 @@
         :config="activeConfig"
         :lang="lang"
         :wizard="wizardMode"
+        :labels="props.labels"
         v-model="formData"
         @export="showExport = true"
       />
@@ -96,6 +97,10 @@ const props = defineProps({
   initialStandard: {
     type: String,
     default: null   // falls back to first entry in standards
+  },
+  labels: {
+    type: Object,
+    default: () => ({})
   }
 })
 

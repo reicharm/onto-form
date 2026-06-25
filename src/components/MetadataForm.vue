@@ -128,17 +128,17 @@
             :disabled="validating"
             :aria-label="validating
               ? (lang === 'de' ? 'Validierung läuft …' : 'Validating …')
-              : (lang === 'de' ? 'SHACL-Validierung starten' : 'Run SHACL validation')"
+              : label('validateAriaLabel', { de: 'SHACL-Validierung starten', en: 'Run SHACL validation' })"
             @click="runValidation"
           >
-            {{ validating ? '…' : (lang === 'de' ? 'SHACL prüfen' : 'SHACL validate') }}
+            {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
           </button>
           <button
             class="btn-export"
             :disabled="!isValid"
             :class="{ disabled: !isValid }"
             @click="handleExport"
-          >Export JSON-LD / Turtle</button>
+          >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
         </div>
         <ValidationReport
           v-if="showReport"
@@ -178,14 +178,14 @@
           {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
         </span>
         <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
-          {{ validating ? '…' : (lang === 'de' ? 'SHACL prüfen' : 'SHACL validate') }}
+          {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
         </button>
         <button
           class="btn-export"
           :disabled="!isValid"
           :class="{ disabled: !isValid }"
           @click="handleExport"
-        >Export JSON-LD / Turtle</button>
+        >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
       </div>
       <ValidationReport
         v-if="showReport"
@@ -237,10 +237,21 @@ const props = defineProps({
   wizard: {
     type: Boolean,
     default: false
+  },
+  labels: {
+    type: Object,
+    default: () => ({})
   }
 })
 
 const emit = defineEmits(['update:modelValue', 'export'])
+
+function label(key, defaults) {
+  const override = props.labels?.[key]
+  if (!override) return defaults[props.lang] ?? defaults.en ?? defaults.de
+  if (typeof override === 'string') return override
+  return override[props.lang] ?? override.en ?? override.de ?? defaults[props.lang] ?? defaults.en
+}
 
 const componentMap = {
   textarea: TextareaField,
