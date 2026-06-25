@@ -29,10 +29,20 @@ export class RDFExporter {
       if (value == null || value === '' || key === '@id') continue
 
       if (Array.isArray(value)) {
-        // Repeatable field: array of { value, lang } or plain strings
+        // Repeatable field: array of { value, lang }, plain strings, or sub-objects
         const items = value.flatMap(item => {
           if (item && typeof item === 'object' && 'value' in item) {
             return item.value ? [{ '@value': item.value, '@language': item.lang }] : []
+          }
+          if (isSubObject(item)) {
+            // Distribution or other sub-object: emit as typed blank node
+            const node = { '@type': 'dcat:Distribution' }
+            for (const [subKey, subVal] of Object.entries(item)) {
+              if (!subKey.includes(':') || subKey === 'rdf:type') continue
+              if (!subVal) continue
+              node[subKey] = isURI(subVal) ? { '@id': subVal } : subVal
+            }
+            return Object.keys(node).length > 1 ? [node] : []
           }
           return item ? [item] : []
         })
@@ -82,7 +92,21 @@ export class RDFExporter {
         for (const item of value) {
           if (!item) continue
           if (typeof item === 'object' && 'value' in item) {
+            // langstring item {value, lang}
             if (item.value) lines.push(`    <${key} xml:lang="${item.lang}">${escapeXML(item.value)}</${key}>`)
+          } else if (isSubObject(item)) {
+            // distribution or other sub-object in an array → blank node
+            const subLines = []
+            for (const [subKey, subVal] of Object.entries(item)) {
+              if (!subKey.includes(':') || subKey === 'rdf:type') continue
+              if (!subVal) continue
+              if (isURI(subVal)) subLines.push(`        <${subKey} rdf:resource="${escapeXML(subVal)}"/>`)
+              else if (isDate(subVal)) subLines.push(`        <${subKey} rdf:datatype="http://www.w3.org/2001/XMLSchema#date">${escapeXML(subVal)}</${subKey}>`)
+              else subLines.push(`        <${subKey}>${escapeXML(String(subVal))}</${subKey}>`)
+            }
+            if (subLines.length > 0) {
+              lines.push(`    <${key}>\n      <dcat:Distribution>\n${subLines.join('\n')}\n      </dcat:Distribution>\n    </${key}>`)
+            }
           } else if (isURI(item)) {
             lines.push(`    <${key} rdf:resource="${escapeXML(item)}"/>`)
           } else if (item) {
@@ -160,7 +184,22 @@ export class RDFExporter {
         for (const item of value) {
           if (!item) continue
           if (typeof item === 'object' && 'value' in item) {
+            // langstring item {value, lang}
             if (item.value) lines.push(`    ${key} "${escapeTurtle(item.value)}"@${item.lang}`)
+          } else if (isSubObject(item)) {
+            // distribution or other sub-object in an array → blank node
+            const subLines = []
+            for (const [subKey, subVal] of Object.entries(item)) {
+              if (!subKey.includes(':') || subKey === 'rdf:type') continue
+              if (!subVal) continue
+              if (isURI(subVal)) subLines.push(`        ${subKey} <${subVal}>`)
+              else if (isDate(subVal)) subLines.push(`        ${subKey} "${subVal}"^^xsd:date`)
+              else subLines.push(`        ${subKey} "${escapeTurtle(String(subVal))}"`)
+            }
+            if (subLines.length > 0) {
+              const inner = subLines.map((l, i) => i < subLines.length - 1 ? l + ' ;' : l).join('\n')
+              lines.push(`    ${key} [\n${inner}\n    ]`)
+            }
           } else if (isURI(item)) {
             lines.push(`    ${key} <${item}>`)
           } else if (item) {
@@ -227,7 +266,8 @@ function escapeTurtle(s) {
 }
 
 function isURI(v) {
-  return typeof v === 'string' && (v.startsWith('http://') || v.startsWith('https://'))
+  if (typeof v !== 'string' || !v) return false
+  try { return Boolean(new URL(v)) } catch { return false }
 }
 
 function isDate(v) {
