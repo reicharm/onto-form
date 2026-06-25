@@ -114,7 +114,8 @@
       "visible": true
     },
     "dct:description": {
-      "type": "textarea",
+      "type": "langstring",
+      "multiline": true,
       "required": true,
       "label": {
         "de": "Beschreibung",
