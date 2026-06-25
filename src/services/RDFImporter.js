@@ -109,7 +109,7 @@ export class RDFImporter {
     if (!formData['dct:identifier'] && doc['@id'] && _isAbsoluteURI(doc['@id'])) {
       const field = fields['dct:identifier']
       if (!field || !this._isInvalid(doc['@id'], field)) {
-        formData['dct:identifier'] = doc['@id']
+        formData['dct:identifier'] = field?.multiple ? [doc['@id']] : doc['@id']
       }
     }
 
@@ -247,8 +247,20 @@ export class RDFImporter {
     }
 
     if (type === 'object') {
-      if (typeof raw === 'object' && !Array.isArray(raw)) return raw
-      return {}
+      if (typeof raw !== 'object' || Array.isArray(raw)) return {}
+      // Unwrap JSON-LD value wrappers (@id, @value) in each sub-field
+      const out = {}
+      for (const [k, v] of Object.entries(raw)) {
+        if (k.startsWith('@')) continue
+        let scalar
+        if (typeof v === 'string') scalar = v
+        else if (v && typeof v === 'object' && '@id' in v) scalar = v['@id']
+        else if (v && typeof v === 'object' && '@value' in v) scalar = v['@value']
+        else continue
+        const clean = SUBFIELD_CLEAN[k]
+        out[k] = clean ? clean(scalar) : scalar
+      }
+      return out
     }
 
     // text, textarea, uri, date, select — possibly multiple
