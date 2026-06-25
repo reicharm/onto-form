@@ -261,6 +261,12 @@ export class RDFImporter {
       // Unwrap JSON-LD value wrappers (@id, @value) in each sub-field
       const out = {}
       for (const [k, v] of Object.entries(raw)) {
+        if (k === '@type') {
+          // Preserve rdf:type for round-trip export
+          const typeVal = Array.isArray(v) ? v[0] : v
+          if (typeVal) out['rdf:type'] = this._toPrefixed(String(typeVal))
+          continue
+        }
         if (k.startsWith('@')) continue
         let scalar
         if (typeof v === 'string') scalar = v
@@ -462,7 +468,7 @@ export class RDFImporter {
 
   _importDistributionJSONLD(item) {
     if (!item || typeof item !== 'object') return {}
-    const result = {}
+    const result = { 'rdf:type': 'dcat:Distribution' }
     for (const key of DISTRIBUTION_FIELDS) {
       const raw = item[key]
       if (raw == null) continue
