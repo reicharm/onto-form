@@ -47,12 +47,22 @@ const emit = defineEmits(['update:modelValue'])
 function displayValue(field) {
   const stored = props.modelValue?.[field.id]
   if (!field.transform) return stored
+  if (field.multiple && Array.isArray(stored)) {
+    return stored.map(item => applyDisplay(field.transform, item, field.transformOptions))
+  }
   return applyDisplay(field.transform, stored, field.transformOptions)
 }
 
 function encodedPreview(field, currentDisplayValue) {
   if (!field.transform || !currentDisplayValue) return null
   const stored = props.modelValue?.[field.id]
+  if (field.multiple && Array.isArray(currentDisplayValue)) {
+    const encoded = currentDisplayValue.map((v, i) => {
+      const storedItem = Array.isArray(stored) ? stored[i] : stored
+      return applyEncode(field.transform, v, field.transformOptions, storedItem)
+    })
+    return encoded.some((e, i) => e !== currentDisplayValue[i]) ? encoded.join(', ') : null
+  }
   const encoded = applyEncode(field.transform, currentDisplayValue, field.transformOptions, stored)
   return encoded !== currentDisplayValue ? encoded : null
 }
@@ -61,7 +71,15 @@ function updateField(field, value) {
   const id = typeof field === 'string' ? field : field.id
   if (typeof field === 'object' && field.transform) {
     const stored = props.modelValue?.[id]
-    const encoded = applyEncode(field.transform, value, field.transformOptions, stored)
+    let encoded
+    if (field.multiple && Array.isArray(value)) {
+      encoded = value.map((v, i) => {
+        const storedItem = Array.isArray(stored) ? stored[i] : stored
+        return applyEncode(field.transform, v, field.transformOptions, storedItem)
+      })
+    } else {
+      encoded = applyEncode(field.transform, value, field.transformOptions, stored)
+    }
     emit('update:modelValue', { ...props.modelValue, [id]: encoded })
   } else {
     emit('update:modelValue', { ...props.modelValue, [id]: value })
