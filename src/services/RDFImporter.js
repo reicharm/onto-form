@@ -36,12 +36,67 @@ const SUBFIELD_CLEAN = {
 
 export class RDFImporter {
   fromJSONLD(text, config) {
-    const doc = JSON.parse(text)
+    const parsed = JSON.parse(text)
     const fields = config?.fields || {}
-    const formData = {}
 
+    // Unwrap @graph: find the dcat:Dataset node and build a lookup table for sub-nodes
+    let doc = parsed
+    let graphIndex = {}
+    if (Array.isArray(parsed['@graph'])) {
+      for (const node of parsed['@graph']) {
+        if (node['@id']) graphIndex[node['@id']] = node
+      }
+      const DATASET_TYPES = [
+        'dcat:Dataset',
+        'http://www.w3.org/ns/dcat#Dataset',
+      ]
+      const isDataset = (node) => {
+        const t = node['@type']
+        const types = Array.isArray(t) ? t : t ? [t] : []
+        return types.some(x => DATASET_TYPES.includes(x))
+      }
+      doc = parsed['@graph'].find(isDataset)
+        ?? parsed['@graph'].find(n => {
+          const t = n['@type']
+          const types = Array.isArray(t) ? t : t ? [t] : []
+          return !types.some(x => x === 'rdfs:Resource' || x.endsWith('#Resource') || x.endsWith('/Resource'))
+        })
+        ?? parsed['@graph'][0]
+        ?? parsed
+    }
+
+    // Normalise a key that may be a full URI to its prefixed form
+    const toKey = (k) => {
+      if (!k.startsWith('http')) return k
+      for (const [prefix, ns] of Object.entries(PREFIXES)) {
+        if (k.startsWith(ns)) return `${prefix}:${k.slice(ns.length)}`
+      }
+      return k
+    }
+
+    // Inline @id references to their full objects from the graph index
+    const inlineRefs = (val) => {
+      if (Array.isArray(val)) return val.map(inlineRefs)
+      if (val && typeof val === 'object') {
+        if (Object.keys(val).length === 1 && val['@id'] && graphIndex[val['@id']]) {
+          return inlineRefs(graphIndex[val['@id']])
+        }
+        const out = {}
+        for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v)
+        return out
+      }
+      return val
+    }
+
+    // Build a normalised flat document with prefixed keys
+    const normalised = {}
+    for (const [k, v] of Object.entries(doc)) {
+      normalised[toKey(k)] = inlineRefs(v)
+    }
+
+    const formData = {}
     for (const [fieldId, field] of Object.entries(fields)) {
-      const raw = doc[fieldId]
+      const raw = normalised[fieldId]
       if (raw == null) continue
       const val = this._deserializeJSONLD(raw, field)
       const coerced = this._coerceToFieldType(val, field)
@@ -50,7 +105,7 @@ export class RDFImporter {
       }
     }
 
-    // Fallback: use @id as dct:identifier if field is missing (e.g. not in doc)
+    // Fallback: use @id as dct:identifier if field is missing
     if (!formData['dct:identifier'] && doc['@id'] && _isAbsoluteURI(doc['@id'])) {
       const field = fields['dct:identifier']
       if (!field || !this._isInvalid(doc['@id'], field)) {
