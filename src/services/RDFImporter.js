@@ -74,12 +74,17 @@ export class RDFImporter {
       return k
     }
 
-    // Inline @id references to their full objects from the graph index
+    // Inline @id references to their full objects from the graph index.
+    // External URIs not in the graph ({"@id": "https://..."}) become plain strings.
     const inlineRefs = (val) => {
       if (Array.isArray(val)) return val.map(inlineRefs)
       if (val && typeof val === 'object') {
-        if (Object.keys(val).length === 1 && val['@id'] && graphIndex[val['@id']]) {
-          return inlineRefs(graphIndex[val['@id']])
+        const keys = Object.keys(val)
+        if (keys.length === 1 && val['@id']) {
+          // Known blank/named node → inline recursively
+          if (graphIndex[val['@id']]) return inlineRefs(graphIndex[val['@id']])
+          // External URI reference → plain string (URIField expects String)
+          return val['@id']
         }
         const out = {}
         for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v)
