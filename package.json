@@ -1,6 +1,29 @@
 {
-  "name": "onto-form",
+  "name": "@reicharm/onto-form",
   "version": "1.0.0",
+  "description": "Vue 3 metadata editor for DCAT-AP datasets — supports DCAT-AP.at, GeoDCAT-AP and DCAT-AP 3.0 with JSON-LD / Turtle / RDF-XML import and export",
+  "author": "Michael Reichart",
+  "license": "MIT",
+  "keywords": [
+    "vue",
+    "dcat",
+    "dcat-ap",
+    "rdf",
+    "metadata",
+    "open-data",
+    "linked-data",
+    "semantic-web",
+    "json-ld",
+    "turtle"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reicharm/onto-form.git"
+  },
+  "homepage": "https://github.com/reicharm/onto-form#readme",
+  "bugs": {
+    "url": "https://github.com/reicharm/onto-form/issues"
+  },
   "type": "module",
   "main": "./dist/onto-form.umd.cjs",
   "module": "./dist/onto-form.es.js",
@@ -11,8 +34,32 @@
     },
     "./style.css": "./dist/onto-form.css"
   },
-  "files": ["dist", "src", "public"],
+  "sideEffects": ["*.css"],
+  "files": [
+    "dist",
+    "public",
+    "LICENSE"
+  ],
   "peerDependencies": {
+    "vue": "^3.4.0"
+  },
+  "peerDependenciesMeta": {
+    "leaflet": { "optional": true },
+    "@geoman-io/leaflet-geoman-free": { "optional": true }
+  },
+  "dependencies": {
+    "@geoman-io/leaflet-geoman-free": "^2.19.3",
+    "jsonld": "^8.3.0",
+    "leaflet": "^1.9.4",
+    "n3": "^1.17.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.11",
+    "jsdom": "^29.1.1",
+    "vite": "^5.0.0",
+    "vitest": "^4.1.9",
     "vue": "^3.4.0"
   },
   "scripts": {
@@ -22,21 +69,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
-  },
-  "dependencies": {
-    "@geoman-io/leaflet-geoman-free": "^2.19.3",
-    "jsonld": "^8.3.0",
-    "leaflet": "^1.9.4",
-    "n3": "^1.17.0",
-    "vue": "^3.4.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.61.0",
-    "@vitejs/plugin-vue": "^5.0.0",
-    "@vue/test-utils": "^2.4.11",
-    "jsdom": "^29.1.1",
-    "vite": "^5.0.0",
-    "vitest": "^4.1.9"
+    "test:e2e": "playwright test",
+    "prepublishOnly": "npm run build:lib"
   }
 }
