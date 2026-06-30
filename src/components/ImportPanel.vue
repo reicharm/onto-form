@@ -91,8 +91,9 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { RDFImporter } from '../services/RDFImporter.js'
+import { useFocusFirstOnShow } from '../composables/useFocusFirstOnShow.js'
 
 const props = defineProps({
   config: Object,
@@ -107,11 +108,7 @@ const filename  = ref('')
 const error     = ref('')
 const panelEl   = ref(null)
 
-onMounted(async () => {
-  await nextTick()
-  const firstTab = panelEl.value?.querySelector('[role="tab"]')
-  ;(firstTab || panelEl.value?.querySelector('button'))?.focus()
-})
+useFocusFirstOnShow(panelEl, { selectors: ['[role="tab"]', 'button'] })
 
 const placeholder = computed(() => {
   if (activeTab.value === 'jsonld')

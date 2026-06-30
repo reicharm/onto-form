@@ -84,8 +84,9 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { RDFExporter } from '../services/RDFExporter.js'
+import { useFocusFirstOnShow } from '../composables/useFocusFirstOnShow.js'
 
 const props = defineProps({
   formData: Object,
@@ -100,12 +101,8 @@ const copied    = ref(false)
 const panelEl   = ref(null)
 const exporter  = new RDFExporter()
 
-onMounted(async () => {
-  await nextTick()
-  // Focus first tab, not the close button which is the first button in DOM order
-  const firstTab = panelEl.value?.querySelector('[role="tab"]')
-  ;(firstTab || panelEl.value?.querySelector('button'))?.focus()
-})
+// Focus first tab, not the close button which is the first button in DOM order
+useFocusFirstOnShow(panelEl, { selectors: ['[role="tab"]', 'button'] })
 
 const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard))
 const turtle = computed(() => exporter.toTurtle(props.formData, props.standard))

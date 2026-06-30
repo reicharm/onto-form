@@ -52,8 +52,9 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, toRef } from 'vue'
 import DistributionForm from './fields/DistributionForm.vue'
+import { useFocusFirstOnShow } from '../composables/useFocusFirstOnShow.js'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -74,13 +75,9 @@ watch(() => props.modelValue, (val) => {
   draft.value = { ...(val || {}) }
 }, { deep: true })
 
-// Focus first interactive element when modal opens
-watch(() => props.show, async (open) => {
-  if (open) {
-    await nextTick()
-    const first = panelEl.value?.querySelector('input, select, textarea, button, [tabindex]:not([tabindex="-1"])')
-    first?.focus()
-  }
+useFocusFirstOnShow(panelEl, {
+  selectors: ['input, select, textarea, button, [tabindex]:not([tabindex="-1"])'],
+  show: toRef(props, 'show')
 })
 
 function save() {
