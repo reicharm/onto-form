@@ -74,18 +74,22 @@ export class RDFImporter {
 
     // Inline @id references to their full objects from the graph index.
     // External URIs not in the graph ({"@id": "https://..."}) become plain strings.
-    const inlineRefs = (val) => {
-      if (Array.isArray(val)) return val.map(inlineRefs)
+    // `seen` guards against cyclic references (e.g. a node pointing back to itself
+    // or to an ancestor) which would otherwise recurse infinitely.
+    const inlineRefs = (val, seen = new Set()) => {
+      if (Array.isArray(val)) return val.map(v => inlineRefs(v, seen))
       if (val && typeof val === 'object') {
         const keys = Object.keys(val)
         if (keys.length === 1 && val['@id']) {
-          // Known blank/named node → inline recursively
-          if (graphIndex[val['@id']]) return inlineRefs(graphIndex[val['@id']])
-          // External URI reference → plain string (URIField expects String)
+          // Known blank/named node → inline recursively, unless already on the path
+          if (graphIndex[val['@id']] && !seen.has(val['@id'])) {
+            return inlineRefs(graphIndex[val['@id']], new Set(seen).add(val['@id']))
+          }
+          // External URI reference, or a cycle back to an already-visited node → plain string
           return val['@id']
         }
         const out = {}
-        for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v)
+        for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v, seen)
         return out
       }
       return val
