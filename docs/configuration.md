@@ -58,6 +58,22 @@ Wählt aus, welche SHACL-`NodeShape` als Wurzel des Formulars dient, wenn die Sh
 - `rootClass` wird zusätzlich an `RDFExporter`/`RDFImporter` weitergereicht und bestimmt dort den `@type`/`rdf:type` des Wurzelknotens beim Export bzw. welcher RDF-Typ beim Import als Wurzelsubjekt erkannt wird.
 - Eingebettete Shapes (z. B. `dcat:Distribution`, referenziert über `pv:mappingLink`, siehe [technical.md](./technical.md#pvmappinglink)) werden unabhängig von `rootClass` immer als Unterfelder aufgelöst, nicht als eigenständige Root-Kandidaten.
 
+### `shaclSource`
+
+Überschreibt, welche SHACL-Datei geladen wird, falls sie nicht `shacl/${standard}.ttl` heißt. Damit können mehrere UI-Configs (z. B. ein Dataset- und ein Catalogue-Formular) dieselbe SHACL-Datei teilen, ohne sie zu duplizieren:
+
+```json
+{
+  "standard": "dcat-ap-at-catalogue",
+  "rootClass": "dcat:Catalog",
+  "shaclSource": "dcat-ap-at"
+}
+```
+
+- `FormConfigResolver` lädt dann `shacl/dcat-ap-at.ttl` statt `shacl/dcat-ap-at-catalogue.ttl` (welche nicht existieren müsste).
+- Fehlt `shaclSource`, wird wie bisher `shacl/${standard}.ttl` geladen.
+- In Kombination mit `rootClass` lässt sich so z. B. eine `dcat:Catalog`-Shape aus derselben SHACL-Datei wie das Dataset-Formular als eigenständiges Formular anbieten (siehe `public/config/ui-config.dcat-ap-at-catalogue.json`).
+
 ---
 
 ## Gruppen (`groups`)

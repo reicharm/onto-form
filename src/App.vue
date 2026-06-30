@@ -3,7 +3,16 @@
     <header class="app-header">
       <h1>OntoForm</h1>
       <div class="header-controls">
-        <StandardSelector :standards="standards" v-model="selectedStandard" />
+        <StandardSelector
+          :standards="entityTypes"
+          v-model="entityType"
+          :label="lang === 'de' ? 'Art:' : 'Type:'"
+        />
+        <StandardSelector
+          v-if="entityType === 'dataset'"
+          :standards="standards"
+          v-model="selectedStandard"
+        />
         <button class="btn-import-header" @click="showImport = true">
           {{ lang === 'de' ? 'Importieren' : 'Import' }}
         </button>
@@ -37,7 +46,7 @@
     <div v-if="appError" class="app-error" role="alert">
       <span class="app-error-icon" aria-hidden="true">⚠</span>
       {{ appError }}
-      <button class="app-error-retry" @click="loadFormConfig(selectedStandard)">
+      <button class="app-error-retry" @click="loadFormConfig(effectiveStandard)">
         {{ lang === 'de' ? 'Erneut versuchen' : 'Retry' }}
       </button>
     </div>
@@ -60,7 +69,8 @@
     <ExportPanel
       v-if="showExport"
       :formData="formData"
-      :standard="selectedStandard"
+      :standard="effectiveStandard"
+      :rootClass="formConfig?.rootClass"
       :lang="lang"
       @close="showExport = false"
     />
@@ -68,7 +78,8 @@
     <ExportPanel
       v-if="showPreview"
       :formData="formData"
-      :standard="selectedStandard"
+      :standard="effectiveStandard"
+      :rootClass="formConfig?.rootClass"
       :lang="lang"
       :preview="true"
       @close="showPreview = false"
@@ -122,6 +133,19 @@ const standards = computed(() => props.standards)
 
 const selectedStandard = ref(props.initialStandard ?? props.standards[0]?.id ?? 'dcat-ap-at')
 const lang = ref('de')
+
+// Catalogue editing currently has a single, fixed config (reusing the
+// dcat-ap-at SHACL via shaclSource) rather than one per standard, so the
+// standard selector is hidden while entityType is 'catalogue'.
+const entityType = ref('dataset')
+const entityTypes = computed(() => [
+  { id: 'dataset', label: lang.value === 'de' ? 'Datensatz' : 'Dataset' },
+  { id: 'catalogue', label: lang.value === 'de' ? 'Katalog' : 'Catalogue' }
+])
+const CATALOGUE_STANDARD = 'dcat-ap-at-catalogue'
+const effectiveStandard = computed(() =>
+  entityType.value === 'catalogue' ? CATALOGUE_STANDARD : selectedStandard.value
+)
 const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
@@ -257,8 +281,8 @@ onErrorCaptured((err) => {
   return false
 })
 
-watch(selectedStandard, (std) => loadFormConfig(std, { preserveData: true }))
-onMounted(() => loadFormConfig(selectedStandard.value))
+watch(effectiveStandard, (std) => loadFormConfig(std, { preserveData: true }))
+onMounted(() => loadFormConfig(effectiveStandard.value))
 </script>
 
 <style>

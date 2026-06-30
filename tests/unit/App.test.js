@@ -77,3 +77,59 @@ describe('App error UI', () => {
     expect(w.find('.app-warning').exists()).toBe(false)
   })
 })
+
+describe('App entity type selector', () => {
+  it('loads the dataset standard by default', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    mount(App)
+    await flushPromises()
+
+    expect(resolveMock).toHaveBeenCalledWith('dcat-ap-at')
+  })
+
+  it('loads the fixed catalogue config when switching entityType to catalogue', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    const w = mount(App)
+    await flushPromises()
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'dcat-ap-at-catalogue', rootClass: 'dcat:Catalog' }))
+    w.vm.entityType = 'catalogue'
+    await flushPromises()
+
+    expect(resolveMock).toHaveBeenLastCalledWith('dcat-ap-at-catalogue')
+  })
+
+  it('hides the standard selector while editing a catalogue', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    const w = mount(App)
+    await flushPromises()
+
+    expect(w.findAll('.standard-selector').length).toBe(2)
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'dcat-ap-at-catalogue', rootClass: 'dcat:Catalog' }))
+    w.vm.entityType = 'catalogue'
+    await flushPromises()
+
+    expect(w.findAll('.standard-selector').length).toBe(1)
+  })
+
+  it('reverts to the previously selected dataset standard when switching back', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    const w = mount(App)
+    await flushPromises()
+
+    w.vm.selectedStandard = 'geodcat'
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'geodcat' }))
+    await flushPromises()
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'dcat-ap-at-catalogue', rootClass: 'dcat:Catalog' }))
+    w.vm.entityType = 'catalogue'
+    await flushPromises()
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'geodcat' }))
+    w.vm.entityType = 'dataset'
+    await flushPromises()
+
+    expect(resolveMock).toHaveBeenLastCalledWith('geodcat')
+  })
+})

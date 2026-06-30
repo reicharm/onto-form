@@ -65,6 +65,7 @@ import TabBar from './TabBar.vue'
 const props = defineProps({
   formData: Object,
   standard: String,
+  rootClass: { type: String, default: 'dcat:Dataset' },
   lang: String,
   preview: { type: Boolean, default: false }
 })
@@ -74,9 +75,9 @@ const activeTab = ref('jsonld')
 const copied    = ref(false)
 const exporter  = new RDFExporter()
 
-const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard))
-const turtle = computed(() => exporter.toTurtle(props.formData, props.standard))
-const rdfxml = computed(() => exporter.toRDFXML(props.formData, props.standard))
+const jsonld = computed(() => exporter.toJSONLD(props.formData, props.standard, props.rootClass))
+const turtle = computed(() => exporter.toTurtle(props.formData, props.standard, props.rootClass))
+const rdfxml = computed(() => exporter.toRDFXML(props.formData, props.standard, props.rootClass))
 
 const currentContent = computed(() => {
   if (activeTab.value === 'jsonld') return jsonld.value

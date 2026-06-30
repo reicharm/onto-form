@@ -5,10 +5,8 @@ import { compactIRI } from './rdfUtils.js'
 
 export class FormConfigResolver {
   async resolve(standard) {
-    const [shaclContent, uiConfig] = await Promise.all([
-      this.loadSHACL(standard),
-      this.loadUIConfig(standard)
-    ])
+    const uiConfig = await this.loadUIConfig(standard)
+    const shaclContent = await this.loadSHACL(uiConfig.shaclSource || standard)
 
     const parser = new SHACLParser()
     const shapes = await parser.parse(shaclContent)

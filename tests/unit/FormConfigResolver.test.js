@@ -344,6 +344,26 @@ describe('FormConfigResolver', () => {
     })
   })
 
+  describe('shaclSource override', () => {
+    it('fetches the SHACL named by shaclSource instead of the standard itself', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test-catalogue.json': { ...UI_CONFIG, shaclSource: 'test' }
+      })
+      const result = await resolver.resolve('test-catalogue')
+      expect(result.fields['dct:title']).toBeDefined()
+    })
+
+    it('falls back to the standard name when shaclSource is not set', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.fields['dct:title']).toBeDefined()
+    })
+  })
+
   describe('error handling', () => {
     it('rejects if SHACL fetch fails', async () => {
       global.fetch = vi.fn().mockImplementation((url) => {

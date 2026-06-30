@@ -2,6 +2,7 @@
   "standard": "dcat-ap-at-catalogue",
   "version": "2.1",
   "rootClass": "dcat:Catalog",
+  "shaclSource": "dcat-ap-at",
   "wizard": false,
   "groups": [
     {

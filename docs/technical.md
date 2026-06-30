@@ -87,6 +87,15 @@ Beim Standardwechsel wird `FormConfigResolver.resolve(standard)` aufgerufen, dan
 
 Beide Banner sind rein informativ; `vocabWarnings` blockiert das Formular nicht, `appError` verhindert lediglich das Rendern von `MetadataForm`, solange `formConfig` `null` ist.
 
+#### Datensatz-/Katalog-Auswahl (`entityType`)
+
+Neben dem Standard-Selector zeigt der Header einen zweiten `StandardSelector` für `entityType` (`"dataset"` | `"catalogue"`, Standard: `"dataset"`):
+
+- `effectiveStandard` (computed) liefert den tatsächlich zu ladenden Standard: bei `entityType === 'catalogue'` immer die feste Konstante `'dcat-ap-at-catalogue'`, sonst `selectedStandard`. `loadFormConfig` reagiert per Watcher auf `effectiveStandard`, nicht direkt auf `selectedStandard`.
+- Der Standard-Selector (`standards`-Prop) wird ausgeblendet, solange `entityType === 'catalogue'` ist, da die Katalog-Konfiguration aktuell standard-unabhängig fest verdrahtet ist (`ui-config.dcat-ap-at-catalogue.json`, siehe [configuration.md](./configuration.md#shaclsource)).
+- Beim Zurückschalten auf `entityType = 'dataset'` wird wieder der zuletzt gewählte `selectedStandard` geladen (Wert bleibt während der Katalog-Bearbeitung erhalten, wird aber nicht aktiv verwendet).
+- `ExportPanel` erhält zusätzlich die `rootClass`-Prop aus `formConfig.rootClass`, damit Export/Vorschau für `dcat:Catalog` auch tatsächlich `@type: "dcat:Catalog"` statt des Default `dcat:Dataset` ausgeben (vorher ein Bug: `RDFExporter`-Methoden wurden ohne `rootClass`-Argument aufgerufen).
+
 ### MetadataForm.vue
 
 Props: `config`, `lang`, `modelValue`, `wizard`
