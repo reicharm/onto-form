@@ -14,14 +14,15 @@ const CONTEXT = {
   'dcat:downloadURL': { '@type': '@id' },
   'dct:publisher': { '@type': '@id' },
   'dcat:theme': { '@type': '@id' },
-  'dct:spatial': { '@type': '@id' }
+  'dct:spatial': { '@type': '@id' },
+  dcatapatdmp: 'http://dcat-ap.at/dev/dmp/'
 }
 
 export class RDFExporter {
-  toJSONLD(formData, standard) {
+  toJSONLD(formData, standard, rootClass = 'dcat:Dataset') {
     const doc = {
       '@context': CONTEXT,
-      '@type': 'dcat:Dataset',
+      '@type': rootClass,
       '@id': formData['dct:identifier'] || `_:dataset_${Date.now()}`
     }
 
@@ -58,7 +59,7 @@ export class RDFExporter {
     return JSON.stringify(doc, null, 2)
   }
 
-  toRDFXML(formData, standard) {
+  toRDFXML(formData, standard, rootClass = 'dcat:Dataset') {
     const nsDecls = [
       '  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"',
       '  xmlns:dct="http://purl.org/dc/terms/"',
@@ -68,6 +69,7 @@ export class RDFExporter {
       '  xmlns:vcard="http://www.w3.org/2006/vcard/ns#"',
       '  xmlns:xsd="http://www.w3.org/2001/XMLSchema#"',
       '  xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"',
+      '  xmlns:dcatapatdmp="http://dcat-ap.at/dev/dmp/"',
     ].join('\n')
 
     const id = formData['dct:identifier']
@@ -125,14 +127,14 @@ export class RDFExporter {
     return [
       '<?xml version="1.0" encoding="UTF-8"?>',
       `<rdf:RDF\n${nsDecls}>`,
-      `  <dcat:Dataset${aboutAttr}>`,
+      `  <${rootClass}${aboutAttr}>`,
       ...lines,
-      '  </dcat:Dataset>',
+      `  </${rootClass}>`,
       '</rdf:RDF>',
     ].join('\n')
   }
 
-  toTurtle(formData, standard) {
+  toTurtle(formData, standard, rootClass = 'dcat:Dataset') {
     const prefixes = [
       '@prefix dct: <http://purl.org/dc/terms/> .',
       '@prefix dcat: <http://www.w3.org/ns/dcat#> .',
@@ -143,6 +145,7 @@ export class RDFExporter {
       '@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .',
       '@prefix geo: <http://www.opengis.net/ont/geosparql#> .',
       '@prefix locn: <http://www.w3.org/ns/locn#> .',
+      '@prefix dcatapatdmp: <http://dcat-ap.at/dev/dmp/> .',
       ''
     ]
 
@@ -203,14 +206,14 @@ export class RDFExporter {
     }
 
     if (lines.length === 0) {
-      return [...prefixes, `${subject} a dcat:Dataset .`].join('\n')
+      return [...prefixes, `${subject} a ${rootClass} .`].join('\n')
     }
 
     const body = lines.map((l, i) =>
       i < lines.length - 1 ? l + ' ;' : l + ' .'
     )
 
-    return [...prefixes, `${subject} a dcat:Dataset ;`, ...body].join('\n')
+    return [...prefixes, `${subject} a ${rootClass} ;`, ...body].join('\n')
   }
 }
 
