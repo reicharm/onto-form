@@ -88,18 +88,19 @@ function emptyItem() {
 }
 
 function updateItem(index, val) {
-  const arr = [...(props.modelValue || [])]
+  const arr = Array.isArray(props.modelValue) ? [...props.modelValue] : []
   while (arr.length <= index) arr.push(emptyItem())
   arr[index] = val
   emit('update:modelValue', arr)
 }
 
 function addItem() {
-  emit('update:modelValue', [...(props.modelValue || [emptyItem()]), emptyItem()])
+  const base = Array.isArray(props.modelValue) && props.modelValue.length ? props.modelValue : [emptyItem()]
+  emit('update:modelValue', [...base, emptyItem()])
 }
 
 function removeItem(index) {
-  const arr = [...(props.modelValue || [])]
+  const arr = Array.isArray(props.modelValue) ? [...props.modelValue] : []
   arr.splice(index, 1)
   itemKeys.value.splice(index, 1)
   emit('update:modelValue', arr.length ? arr : [emptyItem()])

@@ -24,7 +24,36 @@ Ein browserbasierter Metadaten-Editor für DCAT-AP-konforme Datensatzbeschreibun
 - [Technische Dokumentation](docs/technical.md)
 - [Tests](docs/testing.md)
 
-## Schnellstart
+## Als Bibliothek einbinden
+
+```bash
+npm install @reicharm/onto-form
+```
+
+```js
+// main.js
+import { configure } from '@reicharm/onto-form'
+import '@reicharm/onto-form/style.css'
+
+configure({ assetsBaseUrl: '/onto-form/' })  // Pfad zu public/-Inhalten
+```
+
+```vue
+<script setup>
+import { MetadataForm } from '@reicharm/onto-form'
+</script>
+
+<template>
+  <MetadataForm standard="dcat-ap-at" lang="de" v-model="formData" />
+</template>
+```
+
+> **Hinweis:** Die Dateien aus dem `public/`-Verzeichnis des Pakets (SHACL-Shapes, Vokabulare, UI-Konfigs)
+> müssen vom Webserver der Host-App ausgeliefert werden. Kopiere den Inhalt von
+> `node_modules/@reicharm/onto-form/public/` in dein `public/`-Verzeichnis
+> (oder ein Unterverzeichnis) und passe `assetsBaseUrl` entsprechend an.
+
+## Lokale Entwicklung
 
 ```bash
 npm install

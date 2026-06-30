@@ -20,8 +20,8 @@ export default defineConfig({
       lib: {
         entry: resolve(__dirname, 'src/index.js'),
         name: 'OntoForm',
-        // Vite emits both ESM (.js) and UMD (.umd.cjs) by default
-        fileName: (format) => `onto-form.${format}.js`
+        // ESM → .es.js  |  UMD → .umd.cjs (package.json type:module requires .cjs for CommonJS)
+        fileName: (format) => format === 'umd' ? 'onto-form.umd.cjs' : `onto-form.${format}.js`
       },
       rollupOptions: {
         // Vue is a peer dependency — never bundle it

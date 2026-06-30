@@ -1,6 +1,7 @@
 import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
 import { expandIRI } from './rdfUtils.js'
+import { applyEncode } from '../config/fieldTransforms.js'
 
 function _isAbsoluteURI(s) {
   return typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'))
@@ -104,7 +105,7 @@ export class RDFImporter {
       const raw = normalised[fieldId]
       if (raw == null) continue
       const val = this._deserializeJSONLD(raw, field)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -114,7 +115,7 @@ export class RDFImporter {
     if (!formData['dct:identifier'] && doc['@id'] && _isAbsoluteURI(doc['@id'])) {
       const field = fields['dct:identifier']
       if (!field || !this._isInvalid(doc['@id'], field)) {
-        formData['dct:identifier'] = doc['@id']
+        formData['dct:identifier'] = field?.multiple ? [doc['@id']] : doc['@id']
       }
     }
 
@@ -199,7 +200,7 @@ export class RDFImporter {
       const objects = byPred[fieldId]
       if (!objects?.length) continue
       const val = this._deserializeTurtleObjects(objects, field, bySubject)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -234,8 +235,17 @@ export class RDFImporter {
           return { value: String(item), lang: 'de' }
         }).filter(i => i.value)
       }
-      if (typeof raw === 'object' && !Array.isArray(raw) && !('@value' in raw))
-        return raw
+      // Non-multiple: JSON-LD may provide an array of {@language,@value} objects
+      if (Array.isArray(raw)) {
+        const result = {}
+        for (const item of raw) {
+          if (item && typeof item === 'object' && '@value' in item) {
+            result[item['@language'] || 'de'] = item['@value']
+          }
+        }
+        return Object.keys(result).length ? result : { de: '' }
+      }
+      if (typeof raw === 'object' && !('@value' in raw)) return raw
       if (typeof raw === 'object' && '@value' in raw)
         return { [raw['@language'] || 'de']: raw['@value'] }
       return { de: String(raw) }
@@ -252,14 +262,36 @@ export class RDFImporter {
     }
 
     if (type === 'object') {
-      if (typeof raw === 'object' && !Array.isArray(raw)) return raw
-      return {}
+      if (typeof raw !== 'object' || Array.isArray(raw)) return {}
+      // Unwrap JSON-LD value wrappers (@id, @value) in each sub-field
+      const out = {}
+      for (const [k, v] of Object.entries(raw)) {
+        if (k === '@type') {
+          // Preserve rdf:type for round-trip export
+          const typeVal = Array.isArray(v) ? v[0] : v
+          if (typeVal) out['rdf:type'] = this._toPrefixed(String(typeVal))
+          continue
+        }
+        if (k.startsWith('@')) continue
+        let scalar
+        if (typeof v === 'string') scalar = v
+        else if (v && typeof v === 'object' && '@id' in v) scalar = v['@id']
+        else if (v && typeof v === 'object' && '@value' in v) scalar = v['@value']
+        else continue
+        const clean = SUBFIELD_CLEAN[k]
+        out[k] = clean ? clean(scalar) : scalar
+      }
+      return out
     }
 
     // text, textarea, uri, date, select — possibly multiple
-    const scalar = Array.isArray(raw)
-      ? (raw[0] ? this._scalarValue(raw[0], field) : '')
-      : (typeof raw === 'object' && '@value' in raw ? this._scalarValue(raw['@value'], field) : this._scalarValue(String(raw), field))
+    const _extractScalar = (v) => {
+      if (typeof v === 'string') return this._scalarValue(v, field)
+      if (v && typeof v === 'object' && '@value' in v) return this._scalarValue(v['@value'], field)
+      if (v && typeof v === 'object' && '@id' in v) return this._scalarValue(v['@id'], field)
+      return this._scalarValue(String(v), field)
+    }
+    const scalar = Array.isArray(raw) ? (raw[0] != null ? _extractScalar(raw[0]) : '') : _extractScalar(raw)
 
     if (multiple) return scalar ? [scalar] : ['']
     return scalar
@@ -315,7 +347,7 @@ export class RDFImporter {
       const objects = byPred[fieldId]
       if (!objects?.length) continue
       const val = this._deserializeTurtleObjects(objects, field, bySubject)
-      const coerced = this._coerceToFieldType(val, field)
+      const coerced = this._encodeIfTransformed(this._coerceToFieldType(val, field), field)
       if (coerced != null && !this._isInvalid(coerced, field)) {
         formData[fieldId] = coerced
       }
@@ -441,7 +473,7 @@ export class RDFImporter {
 
   _importDistributionJSONLD(item) {
     if (!item || typeof item !== 'object') return {}
-    const result = {}
+    const result = { 'rdf:type': 'dcat:Distribution' }
     for (const key of DISTRIBUTION_FIELDS) {
       const raw = item[key]
       if (raw == null) continue
@@ -465,6 +497,16 @@ export class RDFImporter {
       result[pred] = val
     }
     return result
+  }
+
+  // Apply encode transform so the stored form is validated, not the raw display form.
+  // uriSuffix.encode is idempotent when the value is already a full URI.
+  _encodeIfTransformed(coerced, field) {
+    if (!field.transform || coerced == null) return coerced
+    if (field.multiple && Array.isArray(coerced)) {
+      return coerced.map(v => applyEncode(field.transform, v, field.transformOptions, v))
+    }
+    return applyEncode(field.transform, coerced, field.transformOptions, coerced)
   }
 
   // Returns true if the value should be discarded (fails validation)

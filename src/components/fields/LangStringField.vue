@@ -2,9 +2,17 @@
   <div class="field">
     <label :class="{ required: field.required }">{{ label }}</label>
     <div class="lang-inputs">
-      <div v-for="l in activeLangs" :key="l" class="lang-row">
+      <div v-for="l in activeLangs" :key="l" class="lang-row" :class="{ 'lang-row--multiline': field.multiline }">
         <span class="lang-tag">{{ l }}</span>
+        <textarea
+          v-if="field.multiline"
+          :value="(modelValue || {})[l] || ''"
+          :placeholder="placeholder"
+          :rows="field.rows || 4"
+          @input="update(l, $event.target.value)"
+        />
         <input
+          v-else
           type="text"
           :value="(modelValue || {})[l] || ''"
           :placeholder="placeholder"
@@ -52,13 +60,16 @@ label.required::after { content: ' *'; color: var(--color-error); }
   min-width: 2rem;
   text-align: center;
 }
-input {
+input, textarea {
   flex: 1;
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);
+  font-family: inherit;
 }
-input:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+input:focus, textarea:focus { outline: none; border-color: var(--color-primary); box-shadow: var(--focus-ring); }
+textarea { resize: vertical; }
+.lang-row--multiline { align-items: flex-start; }
 .hint { font-size: var(--font-size-sm); color: var(--color-text-subtle); }
 </style>
