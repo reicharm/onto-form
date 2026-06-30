@@ -37,6 +37,7 @@ const PREFIXES = {
   'http://www.w3.org/ns/adms#':            'adms:',
   'http://www.w3.org/ns/prov#':            'prov:',
   'http://purl.org/dc/elements/1.1/':      'dc:',
+  'http://dcat-ap.at/dev/dmp/':            'dcatapatdmp:',
 }
 
 /**
@@ -49,6 +50,23 @@ export function compactIRI(iri) {
     if (iri.startsWith(ns)) return prefix + iri.slice(ns.length)
   }
   return iri.split(/[#/]/).at(-1) || iri
+}
+
+/**
+ * Expand a prefixed IRI (e.g. "dcat:Catalog") to its full form, using the
+ * inverse of the compactIRI() prefix table. Returns the input unchanged if
+ * no known prefix matches.
+ * @param {string} compact
+ * @returns {string}
+ */
+export function expandIRI(compact) {
+  const i = compact.indexOf(':')
+  if (i === -1) return compact
+  const prefix = compact.slice(0, i + 1)
+  for (const [ns, p] of Object.entries(PREFIXES)) {
+    if (p === prefix) return ns + compact.slice(i + 1)
+  }
+  return compact
 }
 
 /**

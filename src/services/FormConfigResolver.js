@@ -49,6 +49,7 @@ export class FormConfigResolver {
     return {
       standard,
       version: uiConfig.version,
+      rootClass: rootClass || 'dcat:Dataset',
       groups,
       fields: mergedFields,
       vocabWarnings

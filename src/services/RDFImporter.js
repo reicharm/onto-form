@@ -1,5 +1,6 @@
 import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
+import { expandIRI } from './rdfUtils.js'
 
 function _isAbsoluteURI(s) {
   return typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'))
@@ -18,6 +19,7 @@ const PREFIXES = {
   geo:    'http://www.opengis.net/ont/geosparql#',
   locn:   'http://www.w3.org/ns/locn#',
   odrl:   'http://www.w3.org/ns/odrl/2/',
+  dcatapatdmp: 'http://dcat-ap.at/dev/dmp/',
 }
 
 const DISTRIBUTION_FIELDS = [
@@ -39,23 +41,21 @@ export class RDFImporter {
     const parsed = JSON.parse(text)
     const fields = config?.fields || {}
 
-    // Unwrap @graph: find the dcat:Dataset node and build a lookup table for sub-nodes
+    // Unwrap @graph: find the root-class node and build a lookup table for sub-nodes
     let doc = parsed
     let graphIndex = {}
     if (Array.isArray(parsed['@graph'])) {
       for (const node of parsed['@graph']) {
         if (node['@id']) graphIndex[node['@id']] = node
       }
-      const DATASET_TYPES = [
-        'dcat:Dataset',
-        'http://www.w3.org/ns/dcat#Dataset',
-      ]
-      const isDataset = (node) => {
+      const rootClass = config?.rootClass || 'dcat:Dataset'
+      const ROOT_TYPES = [rootClass, expandIRI(rootClass)]
+      const isRoot = (node) => {
         const t = node['@type']
         const types = Array.isArray(t) ? t : t ? [t] : []
-        return types.some(x => DATASET_TYPES.includes(x))
+        return types.some(x => ROOT_TYPES.includes(x))
       }
-      doc = parsed['@graph'].find(isDataset)
+      doc = parsed['@graph'].find(isRoot)
         ?? parsed['@graph'].find(n => {
           const t = n['@type']
           const types = Array.isArray(t) ? t : t ? [t] : []
@@ -287,12 +287,12 @@ export class RDFImporter {
       bySubject.get(s).push(q)
     }
 
-    // Find the main dcat:Dataset subject
-    const DCAT_DATASET = 'http://www.w3.org/ns/dcat#Dataset'
-    const RDF_TYPE     = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    // Find the main subject whose rdf:type matches the configured root class
+    const ROOT_TYPE = expandIRI(config?.rootClass || 'dcat:Dataset')
+    const RDF_TYPE  = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
     let mainSubject = null
     for (const [subj, qs] of bySubject) {
-      if (qs.some(q => q.predicate.value === RDF_TYPE && q.object.value === DCAT_DATASET)) {
+      if (qs.some(q => q.predicate.value === RDF_TYPE && q.object.value === ROOT_TYPE)) {
         mainSubject = subj
         break
       }
