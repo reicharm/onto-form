@@ -42,8 +42,6 @@ export class FormConfigResolver {
       fields: group.fields.filter(fid => mergedFields[fid] && mergedFields[fid].visible !== false)
     }))
 
-    await this.resolveVocabularies(mergedFields)
-
     const vocabWarnings = await this.resolveVocabularies(mergedFields)
 
     return {

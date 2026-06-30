@@ -261,6 +261,19 @@ describe('FormConfigResolver', () => {
       const result = await resolver.resolve('test')
       expect(result.fields['dct:title'].options).toBeUndefined()
     })
+
+    it('does not load vocabularies twice (no duplicate options)', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      const themeField = result.fields['dcat:theme']
+      expect(themeField.options).toEqual([
+        { value: 'http://vocab.example/a', label: { de: 'Option A' } },
+        { value: 'http://vocab.example/b', label: { de: 'Option B' } }
+      ])
+    })
   })
 
   describe('rootClass filtering', () => {
