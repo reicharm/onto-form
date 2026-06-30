@@ -113,6 +113,31 @@ describe('App entity type selector', () => {
     expect(w.findAll('.standard-selector').length).toBe(1)
   })
 
+  it('resets a field whose type changed between profiles instead of reusing the old shape', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig({
+      fields: {
+        'dct:description': { id: 'dct:description', type: 'langstring', multiple: true, label: { de: 'Beschreibung' } }
+      }
+    }))
+    const w = mount(App)
+    await flushPromises()
+    // Dataset profile starts with a langstring item for dct:description
+    expect(w.vm.formData['dct:description']).toEqual([{ value: '', lang: 'de' }])
+
+    resolveMock.mockResolvedValueOnce(okConfig({
+      standard: 'dcat-ap-at-catalogue',
+      rootClass: 'dcat:Catalog',
+      fields: {
+        'dct:description': { id: 'dct:description', type: 'textarea', multiple: true, label: { de: 'Beschreibung' } }
+      }
+    }))
+    w.vm.entityType = 'catalogue'
+    await flushPromises()
+
+    // The catalogue profile's textarea field must not inherit the dataset's langstring object
+    expect(w.vm.formData['dct:description']).toEqual([''])
+  })
+
   it('reverts to the previously selected dataset standard when switching back', async () => {
     resolveMock.mockResolvedValueOnce(okConfig())
     const w = mount(App)

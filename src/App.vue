@@ -202,6 +202,7 @@ const hasDistributionEditor = ref(false)
 const vocabWarnings = ref([])
 
 async function loadFormConfig(standard, { preserveData = false } = {}) {
+  const prevConfig = formConfig.value
   formConfig.value = null
   appError.value = null
   const resolver = new FormConfigResolver()
@@ -231,6 +232,13 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
     // Normalize values whose cardinality changed between profiles
     for (const [id, field] of Object.entries(config.fields || {})) {
       if (field.type === 'distribution-editor') continue
+      // If the field's type changed between profiles (e.g. langstring -> textarea),
+      // the old value's shape is incompatible even though cardinality matches.
+      const prevField = prevConfig?.fields?.[id]
+      if (prevField && prevField.type !== field.type) {
+        merged[id] = defaults[id]
+        continue
+      }
       const val = merged[id]
       if (field.multiple && !Array.isArray(val)) {
         merged[id] = val !== '' && val != null ? [val] : ['']
