@@ -42,6 +42,22 @@ Die Formularkonfiguration setzt sich aus zwei Quellen zusammen:
 - Der Balken aktualisiert sich reaktiv bei jeder Eingabe
 - Standardmäßig `false` (nicht angezeigt)
 
+### `rootClass`
+
+Wählt aus, welche SHACL-`NodeShape` als Wurzel des Formulars dient, wenn die Shape-Datei mehrere `NodeShape`s mit `sh:targetClass` definiert (z. B. zusätzlich zu `dcat:Dataset` eine `dcat:Catalog`-Shape in derselben Datei).
+
+```json
+{
+  "standard": "dcat-ap-at-catalogue",
+  "rootClass": "dcat:Catalog"
+}
+```
+
+- `FormConfigResolver` übernimmt nur Felder aus `NodeShape`s, deren `sh:targetClass` (kompaktiert) mit `rootClass` übereinstimmt; alle anderen Top-Level-Shapes in derselben Datei werden ignoriert.
+- Fehlt `rootClass`, wird `dcat:Dataset` als Default verwendet.
+- `rootClass` wird zusätzlich an `RDFExporter`/`RDFImporter` weitergereicht und bestimmt dort den `@type`/`rdf:type` des Wurzelknotens beim Export bzw. welcher RDF-Typ beim Import als Wurzelsubjekt erkannt wird.
+- Eingebettete Shapes (z. B. `dcat:Distribution`, referenziert über `pv:mappingLink`, siehe [technical.md](./technical.md#pvmappinglink)) werden unabhängig von `rootClass` immer als Unterfelder aufgelöst, nicht als eigenständige Root-Kandidaten.
+
 ---
 
 ## Gruppen (`groups`)
@@ -634,7 +650,7 @@ UI-Config-Werte überschreiben SHACL-Werte bei Konflikten. Labels und Hints werd
 
 ## `distribution-editor` – Distributions-Liste
 
-Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal).
+Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal). Verfügbar für alle drei eingebauten Standards (`dcat-ap-at`, `geodcat`, `dcat-ap-3`), nicht auf einen einzelnen Standard beschränkt.
 
 ```json
 "dcat:distribution": {

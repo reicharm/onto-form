@@ -189,6 +189,15 @@ const imported = await importer.fromTurtle(turtleText, formConfig)
 formData.value = { ...formData.value, ...imported }
 ```
 
+#### `fromJSONLD()` und `@graph`
+
+`fromJSONLD()` akzeptiert sowohl ein einzelnes JSON-LD-Dokument als auch ein Dokument mit `@graph`-Array (mehrere Knoten in einer Datei, z. B. Export aus einem Triple-Store):
+
+- Ist `@graph` ein Array, baut der Importer zunächst einen Index aller Knoten nach `@id` auf.
+- Der Wurzelknoten wird gesucht, indem zuerst nach `@type` passend zu `config.rootClass` (Default `dcat:Dataset`, kompaktiert oder als volle IRI) gefiltert wird; gibt es keinen Treffer, wird ersatzweise der erste Knoten genommen, dessen Typ nicht `rdfs:Resource` ist; als letzter Fallback dient schlicht der erste Knoten im Graph.
+- `{"@id": "..."}`-Referenzen auf andere Knoten im Graph werden rekursiv zu ihrem vollen Objekt aufgelöst (inline). Referenzen auf URIs außerhalb des Graphs bleiben als einfacher String-Wert erhalten (z. B. für `uri`-Felder).
+- Fehlt `dct:identifier` im aufgelösten Formular, wird `@id` des Wurzelknotens als Fallback verwendet, sofern es eine gültige absolute URI ist (siehe `isURI()` in `rdfTypeUtils.js`).
+
 ### RDF-Export
 
 ```js
@@ -199,6 +208,29 @@ const jsonld  = await exporter.toJSONLD(formData.value, formConfig)
 const turtle  = await exporter.toTurtle(formData.value, formConfig)
 const rdfxml  = await exporter.toRDFXML(formData.value, formConfig)
 ```
+
+---
+
+## 6a. Eigene Beschriftungen (`labels`-Prop)
+
+`MetadataForm` (und `App`, das es durchreicht) akzeptiert eine `labels`-Prop, um einzelne UI-Texte zu überschreiben, ohne die gesamte Komponente neu zu bauen:
+
+```vue
+<MetadataForm
+  v-model="formData"
+  :config="formConfig"
+  lang="de"
+  :labels="{
+    validate: 'Prüfen',
+    validateAriaLabel: 'Validierung starten',
+    export: { de: 'Exportieren', en: 'Export' }
+  }"
+/>
+```
+
+- Jeder Schlüssel kann entweder ein einfacher String (für beide Sprachen) oder ein `{ de, en }`-Objekt sein.
+- Fehlt ein Schlüssel in `labels`, wird der eingebaute Default für die aktuelle Sprache verwendet.
+- Bekannte Schlüssel: `validate`, `validateAriaLabel`, `export`. Weitere können bei Bedarf in `MetadataForm.vue` (Funktion `label()`) ergänzt werden.
 
 ---
 

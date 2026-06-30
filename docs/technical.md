@@ -78,6 +78,15 @@ Beim Standardwechsel wird `FormConfigResolver.resolve(standard)` aufgerufen, dan
 
 `buildDefaultFormData` initialisiert **alle** Feldtypen auf leere Werte (inkl. `date`, `text`, `uri`, `select`).
 
+#### Fehler- und Warnungsanzeige
+
+`App.vue` zeigt zwei unabhängige, nicht-blockierende Hinweis-Banner oberhalb des Formulars:
+
+- **`appError`** (rot, `role="alert"`): wird gesetzt, wenn `FormConfigResolver.resolve(standard)` in `loadFormConfig()` einen Fehler wirft (z. B. SHACL- oder UI-Config-Datei nicht erreichbar/parsbar). Enthält einen „Erneut versuchen"-Button, der `loadFormConfig(selectedStandard)` erneut aufruft. Zusätzlich fängt `onErrorCaptured` unbehandelte Fehler aus Kindkomponenten ab und zeigt sie über dasselbe Banner an, statt die App abstürzen zu lassen.
+- **`vocabWarnings`** (blau, `role="status"`): zeigt die Anzahl der Vokabulare, die beim Auflösen der Konfiguration nicht geladen werden konnten (`config.vocabWarnings`, siehe [`VocabularyLoader.js`](#vocabularyloaderjs)). Die betroffenen Felder bleiben nutzbar, zeigen aber keine externen Optionen an.
+
+Beide Banner sind rein informativ; `vocabWarnings` blockiert das Formular nicht, `appError` verhindert lediglich das Rendern von `MetadataForm`, solange `formConfig` `null` ist.
+
 ### MetadataForm.vue
 
 Props: `config`, `lang`, `modelValue`, `wizard`
@@ -283,6 +292,14 @@ Parst Turtle-SHACL-Shapes (via n3.js) und extrahiert Felddefinitionen:
 - `sh:minCount 1` → `required: true`
 - `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 → `multiple: true`; kein `sh:maxCount` → `multiple: false` (unbegrenzte Felder werden nur durch explizites `"multiple": true` in der UI-Config wiederholbar)
 - `sh:message` → Fehlermeldungen
+
+#### `pv:mappingLink`
+
+Eigenschafts-Shapes können `pv:mappingLink <weitere NodeShape>` referenzieren, um ein eingebettetes Objektfeld zu beschreiben (z. B. `dcat:distribution` → `Distribution_Shape`).
+
+- Erster Parse-Durchlauf: `SHACLParser` liest alle `NodeShape`s in der Datei unabhängig voneinander in `rawShapes` ein.
+- Zweiter Durchlauf: Für jedes Feld mit `pv:mappingLink` wird die referenzierte `NodeShape` nachgeschlagen; ihre Felder werden als `field.subFields` an das verlinkende Feld gehängt, und der Feldtyp wird auf `object` gesetzt.
+- Die verlinkte `NodeShape` wird zusätzlich als `embedded` markiert und dadurch von `FormConfigResolver` aus der Top-Level-Feldliste ausgeschlossen — sie taucht im Formular ausschließlich als `subFields` des verlinkenden Felds auf, nicht als eigenständiges Root-Feld (siehe auch [`rootClass`](./configuration.md#rootclass) in der Konfigurationsreferenz).
 
 ---
 
