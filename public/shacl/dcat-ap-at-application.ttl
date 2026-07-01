@@ -1,0 +1,148 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix cc: <http://creativecommons.org/ns#> .
+@prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix lcon: <http://www.w3.org/ns/locn#> .
+@prefix org: <http://www.w3.org/ns/org#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix schema: <http://schema.org/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ckan: <https://ckan.org/def/> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+@prefix dcatde: <http://dcat-ap.de/def/dcatde/> .
+@prefix pv: <https://piveau.eu/ns/voc#> .
+@prefix dcatapde: <http://dcat-ap.de/def/dcatde/> .
+@prefix senias: <http://senias.de/ns/sis#> .
+@prefix stat: <http://data.europa.eu/s1n/> .
+@prefix dcatapat: <http://dcat-ap.at/> .
+@prefix dcatapatdmp: <http://dcat-ap.at/dev/dmp/> .
+@prefix dext: <https://data.europa.eu/ns/ext#> .
+@prefix edp: <https://europeandataportal.eu/voc#> .
+@prefix gsp: <http://www.opengis.net/ont/geosparql#> .
+
+
+pv:DCAT_AP_AT
+    a pv:PiveauProfile ;
+    pv:profileVersion "1.1" ;
+    dct:title "A DCAT-AP-AT profile for piveau"@en ;
+    dct:description "Based and inspired by DCAT-AP 2.2.0-HVD"@en ;
+    foaf:maker [
+        foaf:mbox <mailto:data@brz.gv.at> ;
+        foaf:name "OpenData Österreich" ;
+    ] ;
+    owl:versionInfo "0.0.1" .
+
+dcatapat:Application_Shape
+    a sh:NodeShape ;
+    sh:name "Applikation in data.gv.at"@de ;
+    sh:property [
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:path dct:title ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "SimpleMultiLangTitle" ;
+            pv:mappingName "title"
+        ], [
+            sh:nodeKind sh:Literal ;
+            sh:path dct:description ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "SimpleMultiLang" ;
+            pv:mappingName "description"
+        ], [
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:path dct:identifier ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardText" ;
+            pv:mappingName "identifier"
+        ], [
+            sh:maxCount 1 ;
+            sh:path dct:issued ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "DateTime" ;
+            pv:mappingName "issued"
+        ], [
+            sh:maxCount 1 ;
+            sh:path dct:created ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "DateTime" ;
+            pv:mappingName "created"
+        ], [
+            sh:path dct:modified ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "DateTime" ;
+            pv:mappingName "modified"
+        ], [
+            sh:path dcat:theme ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "Theme" ;
+            pv:mappingName "themes"
+        ], [
+            sh:nodeKind sh:IRI ;
+            sh:path dcat:servesDataset ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "LabeledResource" ;
+            pv:mappingName "serves_dataset"
+        ], [
+            sh:nodeKind sh:Literal ;
+            sh:path dct:publisher ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardKeyword" ;
+            pv:mappingName "publisher"
+        ], [
+            sh:path dcat:contactPoint ;
+            sh:severity sh:Violation ;
+            sh:node dcatapat:Application_ContactPoint_Shape ;
+            pv:mappingClass "ContactPoint" ;
+            pv:mappingName "contact_point"
+        ], [
+            sh:path foaf:homepage ;
+            pv:mappingClass "StandardText" ;
+            pv:mappingName "homepage"
+        ], [
+            sh:path ckan:urlLabel ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardText" ;
+            pv:mappingName "url_label"
+        ], [
+            sh:path ckan:sourceUrl ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardText" ;
+            pv:mappingName "source_url"
+        ] ;
+    sh:targetClass dcatapat:Application .
+
+dcatapat:Application_ContactPoint_Shape
+    a sh:NodeShape ;
+    sh:name "Application contact point"@en ;
+    sh:property [
+            sh:nodeKind sh:Literal ;
+            sh:path vcard:fn ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardText" ;
+            pv:mappingName "full_name"
+        ], [
+            sh:nodeKind sh:IRI ;
+            sh:path vcard:hasEmail ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardDisabled" ;
+            pv:mappingName "email"
+        ], [
+            sh:nodeKind sh:IRI ;
+            sh:path vcard:hasURL ;
+            sh:severity sh:Violation ;
+            pv:mappingClass "StandardDisabled" ;
+            pv:mappingName "url"
+        ] ;
+    sh:targetClass vcard:Kind .

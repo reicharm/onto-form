@@ -13,6 +13,7 @@
           :standards="standards"
           v-model="selectedStandard"
         />
+
         <button class="btn-import-header" @click="showImport = true">
           {{ lang === 'de' ? 'Importieren' : 'Import' }}
         </button>
@@ -140,12 +141,16 @@ const lang = ref('de')
 const entityType = ref('dataset')
 const entityTypes = computed(() => [
   { id: 'dataset', label: lang.value === 'de' ? 'Datensatz' : 'Dataset' },
-  { id: 'catalogue', label: lang.value === 'de' ? 'Katalog' : 'Catalogue' }
+  { id: 'catalogue', label: lang.value === 'de' ? 'Katalog' : 'Catalogue' },
+  { id: 'application', label: lang.value === 'de' ? 'Applikation' : 'Application' }
 ])
 const CATALOGUE_STANDARD = 'dcat-ap-at-catalogue'
-const effectiveStandard = computed(() =>
-  entityType.value === 'catalogue' ? CATALOGUE_STANDARD : selectedStandard.value
-)
+const APPLICATION_STANDARD = 'dcat-ap-at-application'
+const effectiveStandard = computed(() => {
+  if (entityType.value === 'catalogue') return CATALOGUE_STANDARD
+  if (entityType.value === 'application') return APPLICATION_STANDARD
+  return selectedStandard.value
+})
 const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
