@@ -87,6 +87,32 @@ describe('App entity type selector', () => {
     expect(resolveMock).toHaveBeenCalledWith('dcat-ap-at')
   })
 
+  it('loads the application config when switching entityType to application', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    const w = mount(App)
+    await flushPromises()
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'dcat-ap-at-application', rootClass: 'dcatapat:Application' }))
+    w.vm.entityType = 'application'
+    await flushPromises()
+
+    expect(resolveMock).toHaveBeenLastCalledWith('dcat-ap-at-application')
+  })
+
+  it('hides the standard selector while editing an application', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig())
+    const w = mount(App)
+    await flushPromises()
+
+    expect(w.findAll('.standard-selector').length).toBe(2)
+
+    resolveMock.mockResolvedValueOnce(okConfig({ standard: 'dcat-ap-at-application', rootClass: 'dcatapat:Application' }))
+    w.vm.entityType = 'application'
+    await flushPromises()
+
+    expect(w.findAll('.standard-selector').length).toBe(1)
+  })
+
   it('loads the fixed catalogue config when switching entityType to catalogue', async () => {
     resolveMock.mockResolvedValueOnce(okConfig())
     const w = mount(App)
@@ -111,6 +137,31 @@ describe('App entity type selector', () => {
     await flushPromises()
 
     expect(w.findAll('.standard-selector').length).toBe(1)
+  })
+
+  it('resets a field whose type changed between profiles instead of reusing the old shape', async () => {
+    resolveMock.mockResolvedValueOnce(okConfig({
+      fields: {
+        'dct:description': { id: 'dct:description', type: 'langstring', multiple: true, label: { de: 'Beschreibung' } }
+      }
+    }))
+    const w = mount(App)
+    await flushPromises()
+    // Dataset profile starts with a langstring item for dct:description
+    expect(w.vm.formData['dct:description']).toEqual([{ value: '', lang: 'de' }])
+
+    resolveMock.mockResolvedValueOnce(okConfig({
+      standard: 'dcat-ap-at-catalogue',
+      rootClass: 'dcat:Catalog',
+      fields: {
+        'dct:description': { id: 'dct:description', type: 'textarea', multiple: true, label: { de: 'Beschreibung' } }
+      }
+    }))
+    w.vm.entityType = 'catalogue'
+    await flushPromises()
+
+    // The catalogue profile's textarea field must not inherit the dataset's langstring object
+    expect(w.vm.formData['dct:description']).toEqual([''])
   })
 
   it('reverts to the previously selected dataset standard when switching back', async () => {
