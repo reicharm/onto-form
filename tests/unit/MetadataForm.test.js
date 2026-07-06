@@ -66,3 +66,33 @@ describe('MetadataForm labels prop', () => {
     expect(w.find('.btn-export').text()).toBe('Export JSON-LD / Turtle')
   })
 })
+
+describe('MetadataForm cssClass', () => {
+  it('applies config.cssClass to the root element', () => {
+    const config = { ...makeConfig(), cssClass: 'my-form theme-dark' }
+    const w = mount(MetadataForm, {
+      props: { config, lang: 'de', wizard: false, modelValue: { 'dct:title': '' } }
+    })
+    expect(w.find('.metadata-form').classes()).toContain('my-form')
+    expect(w.find('.metadata-form').classes()).toContain('theme-dark')
+  })
+
+  it('applies group.cssClass to the form-group element in single-page mode', () => {
+    const config = {
+      ...makeConfig(),
+      groups: [
+        { id: 'main', label: { de: 'Allgemein', en: 'General' }, fields: ['dct:title'], cssClass: 'highlight-group' }
+      ]
+    }
+    const w = mount(MetadataForm, {
+      props: { config, lang: 'de', wizard: false, modelValue: { 'dct:title': '' } }
+    })
+    expect(w.find('.form-group').classes()).toContain('highlight-group')
+  })
+
+  it('does not break when cssClass is absent', () => {
+    const w = makeWrapper()
+    expect(w.find('.metadata-form').classes()).not.toContain('undefined')
+    expect(w.find('.metadata-form').classes()).not.toContain('null')
+  })
+})
