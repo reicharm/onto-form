@@ -74,6 +74,21 @@ Wählt aus, welche SHACL-`NodeShape` als Wurzel des Formulars dient, wenn die Sh
 - Fehlt `shaclSource`, wird wie bisher `shacl/${standard}.ttl` geladen.
 - In Kombination mit `rootClass` lässt sich so z. B. eine `dcat:Catalog`-Shape aus derselben SHACL-Datei wie das Dataset-Formular als eigenständiges Formular anbieten (siehe `public/config/ui-config.dcat-ap-at-catalogue.json`).
 
+### `cssClass`
+
+Fügt dem Wurzel-Element des gesamten Formulars (`<div class="metadata-form ontoform">`) eine oder mehrere zusätzliche CSS-Klassen hinzu. Damit lässt sich das Erscheinungsbild pro Standard anpassen, ohne den internen HTML-Baum zu verändern.
+
+```json
+{
+  "standard": "dcat-ap-at",
+  "cssClass": "my-form theme-compact"
+}
+```
+
+- Mehrere Klassen werden als leerzeichengetrennter String angegeben.
+- Fehlt `cssClass`, werden keine zusätzlichen Klassen gesetzt.
+- `cssClass` kann auch auf Gruppen- und Feldebene gesetzt werden (siehe unten).
+
 ---
 
 ## Gruppen (`groups`)
@@ -95,6 +110,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `label` | `{de, en}` | Angezeigter Name |
 | `fields` | string[] | Geordnete Liste der Feld-IDs |
 | `visible` | boolean | `false` blendet die Gruppe aus (Standard: `true`) |
+| `cssClass` | string | Zusätzliche CSS-Klasse(n) für das `<div class="form-group">` dieser Gruppe |
 
 ---
 
@@ -139,6 +155,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `generate` | string | Name eines ID-Generators (siehe unten) |
 | `generateOptions` | object | Optionen für den Generator (z. B. `prefix`) |
 | `remember` | boolean | Frühere Eingaben als Vorschläge anbieten (siehe unten) |
+| `cssClass` | string | Zusätzliche CSS-Klasse(n) für das `<div class="field-wrapper">` dieses Feldes |
 
 ### Feldtypen
 

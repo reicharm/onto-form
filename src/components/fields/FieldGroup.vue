@@ -1,7 +1,7 @@
 <template>
   <div class="group-fields">
     <template v-for="field in fields" :key="field.id">
-      <div :id="'field-' + field.id" class="field-wrapper" :class="{ 'has-error': showErrors && fieldErrors[field.id]?.length }">
+      <div :id="'field-' + field.id" class="field-wrapper" :class="[{ 'has-error': showErrors && fieldErrors[field.id]?.length }, field.cssClass]">
         <RepeatableField
           v-if="field.multiple && field.type !== 'multiselect' && field.type !== 'distribution-editor' && field.type !== 'object'"
           :field="field"

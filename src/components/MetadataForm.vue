@@ -1,5 +1,5 @@
 <template>
-  <div class="metadata-form ontoform">
+  <div class="metadata-form ontoform" :class="config?.cssClass">
     <!-- WIZARD MODE -->
     <template v-if="wizard">
       <!-- Step Indicator -->
@@ -56,7 +56,7 @@
 
       <!-- Per-Step View -->
       <template v-if="currentStep < visibleGroups.length">
-        <div class="form-group">
+        <div class="form-group" :class="currentGroup.cssClass">
           <h2 class="group-title">{{ currentGroup.label[lang] || currentGroup.label.en }}</h2>
           <FieldGroup
             :fields="groupFields(currentGroup)"
@@ -90,7 +90,7 @@
             v-for="(group, idx) in visibleGroups"
             :key="group.id"
             class="form-group summary-group"
-            :class="{ 'summary-group-has-error': groupHasErrors(group) }"
+            :class="[{ 'summary-group-has-error': groupHasErrors(group) }, group.cssClass]"
           >
             <div class="summary-group-header">
               <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
@@ -160,7 +160,7 @@
 
     <!-- SINGLE PAGE MODE -->
     <template v-else>
-      <div v-for="group in visibleGroups" :key="group.id" class="form-group">
+      <div v-for="group in visibleGroups" :key="group.id" class="form-group" :class="group.cssClass">
         <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
         <FieldGroup
           :fields="groupFields(group)"

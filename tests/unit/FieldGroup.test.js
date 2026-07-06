@@ -97,3 +97,17 @@ describe('FieldGroup', () => {
     expect(emitted[0][0]['dct:title']).toBe('Changed')
   })
 })
+
+describe('FieldGroup field.cssClass', () => {
+  it('applies field.cssClass to the field-wrapper element', () => {
+    const fields = [{ id: 'dct:title', type: 'text', label: { de: 'Titel' }, visible: true, cssClass: 'wide-field' }]
+    const w = makeWrapper(fields, { 'dct:title': '' })
+    expect(w.find('.field-wrapper').classes()).toContain('wide-field')
+  })
+
+  it('does not add a class when cssClass is absent', () => {
+    const fields = [{ id: 'dct:title', type: 'text', label: { de: 'Titel' }, visible: true }]
+    const w = makeWrapper(fields, { 'dct:title': '' })
+    expect(w.find('.field-wrapper').classes()).not.toContain('undefined')
+  })
+})
