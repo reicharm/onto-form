@@ -18792,7 +18792,8 @@ const E_ = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
 }, Symbol.toStringTag, { value: "Module" })), F_ = [
   { id: "dcat-ap-at", label: "DCAT-AP.at" },
   { id: "geodcat", label: "GeoDCAT" },
-  { id: "dcat-ap-3", label: "DCAT-AP 3.0" }
+  { id: "dcat-ap-3", label: "DCAT-AP 3.0" },
+  { id: "dcat-ap-at-application", label: "Application (DCAT-AP.at)" }
 ], R_ = {
   install(u) {
     u.component("MetadataForm", Kp), u.component("OntoViewer", w_);
