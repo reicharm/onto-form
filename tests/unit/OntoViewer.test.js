@@ -192,6 +192,42 @@ describe('OntoViewer', () => {
     })
   })
 
+  describe('dataUrl with format: json', () => {
+    it('uses res.json() directly and skips RDFImporter when dataFormat is json', async () => {
+      const jsonData = { 'dct:title': 'Direct JSON title' }
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.includes('translations')) {
+          return Promise.resolve({ ok: false })
+        }
+        return Promise.resolve({
+          ok: true,
+          headers: { get: () => 'application/json' },
+          json: () => Promise.resolve(jsonData),
+          text: () => Promise.resolve('should not be called')
+        })
+      })
+      const wrapper = makeWrapper({ config: MOCK_VIEW_CONFIG, dataUrl: '/api/dataset.json', dataFormat: 'json' })
+      await flushPromises()
+      expect(wrapper.text()).toContain('Direct JSON title')
+    })
+
+    it('auto-detects application/json Content-Type and skips RDFImporter', async () => {
+      const jsonData = { 'dct:title': 'Auto-detected JSON' }
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.includes('translations')) return Promise.resolve({ ok: false })
+        return Promise.resolve({
+          ok: true,
+          headers: { get: () => 'application/json; charset=utf-8' },
+          json: () => Promise.resolve(jsonData),
+          text: () => Promise.resolve('should not be called')
+        })
+      })
+      const wrapper = makeWrapper({ config: MOCK_VIEW_CONFIG, dataUrl: '/api/dataset.json' })
+      await flushPromises()
+      expect(wrapper.text()).toContain('Auto-detected JSON')
+    })
+  })
+
   describe('provide context', () => {
     it('provides onto-form:lang to child components', async () => {
       let injectedLang
