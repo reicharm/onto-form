@@ -52,7 +52,7 @@
     <main class="app-main">
       <OntoViewer
         v-if="activeConfig && viewMode"
-        :config="activeViewConfig"
+        :standard="effectiveStandard"
         :data="formData"
         :lang="lang"
       />
@@ -183,17 +183,6 @@ const activeConfig = computed(() => {
       ...formConfig.value.fields,
       'dcat:distribution': { ...distField, distributionMode: distributionMode.value }
     }
-  }
-})
-
-// Convert the form config's groups into OntoViewer sections on the fly so the
-// viewer works for all standards without needing separate ui-view-config files.
-const activeViewConfig = computed(() => {
-  const cfg = activeConfig.value
-  if (!cfg) return null
-  return {
-    ...cfg,
-    sections: (cfg.groups || []).map(g => ({ ...g, type: 'section' }))
   }
 })
 

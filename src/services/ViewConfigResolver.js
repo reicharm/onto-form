@@ -51,8 +51,20 @@ export class ViewConfigResolver extends BaseConfigResolver {
   }
 
   async loadUIConfig(standard) {
-    const response = await fetch(assetUrl(`config/ui-view-config.${standard}.json`))
-    if (!response.ok) throw new Error(`Failed to load UI view config for ${standard}`)
-    return response.json()
+    const viewRes = await fetch(assetUrl(`config/ui-view-config.${standard}.json`))
+    if (viewRes.ok) return viewRes.json()
+
+    // Fall back to the form ui-config and convert groups → flat sections
+    const formRes = await fetch(assetUrl(`config/ui-config.${standard}.json`))
+    if (!formRes.ok) throw new Error(`No view config found for ${standard}`)
+    const formConfig = await formRes.json()
+    return {
+      standard,
+      version: formConfig.version,
+      rootClass: formConfig.rootClass,
+      shaclSource: formConfig.shaclSource ?? standard,
+      sections: (formConfig.groups || []).map(g => ({ ...g, type: 'section' })),
+      fields: formConfig.fields ?? {}
+    }
   }
 }
