@@ -3,22 +3,31 @@
     <header class="app-header">
       <h1>OntoForm</h1>
       <div class="header-controls">
-        <StandardSelector :standards="standards" v-model="selectedStandard" />
+        <StandardSelector
+          :standards="entityTypes"
+          v-model="entityType"
+          :label="t('header.type-label')"
+        />
+        <StandardSelector
+          v-if="entityType === 'dataset'"
+          :standards="standards"
+          v-model="selectedStandard"
+        />
+
         <button class="btn-import-header" @click="showImport = true">
-          {{ lang === 'de' ? 'Importieren' : 'Import' }}
+          {{ t('btn.import') }}
         </button>
-        <button class="btn-mode-toggle" @click="wizardMode = !wizardMode">
-          {{ wizardMode
-            ? (lang === 'de' ? 'Einzel-Seite' : 'Single page')
-            : (lang === 'de' ? 'Schritt-Assistent' : 'Wizard') }}
+        <button class="btn-mode-toggle" @click="viewMode = !viewMode">
+          {{ viewMode ? t('btn.view-toggle.to-edit') : t('btn.view-toggle.to-view') }}
+        </button>
+        <button v-if="!viewMode" class="btn-mode-toggle" @click="wizardMode = !wizardMode">
+          {{ wizardMode ? t('btn.wizard-toggle.to-single') : t('btn.wizard-toggle.to-wizard') }}
         </button>
         <button v-if="hasDistributionEditor" class="btn-mode-toggle" @click="toggleDistributionMode">
-          {{ distributionMode === 'modal'
-            ? (lang === 'de' ? 'Dist.: Inline' : 'Dist.: Inline')
-            : (lang === 'de' ? 'Dist.: Modal' : 'Dist.: Modal') }}
+          {{ distributionMode === 'modal' ? 'Dist.: Inline' : 'Dist.: Modal' }}
         </button>
-        <button class="btn-preview-header" @click="showPreview = true" :title="lang === 'de' ? 'Aktuelle Daten als RDF ansehen (Debug)' : 'Preview current data as RDF (debug)'">
-          {{ lang === 'de' ? 'Vorschau' : 'Preview' }}
+        <button class="btn-preview-header" @click="showPreview = true">
+          {{ t('btn.preview') }}
         </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
@@ -29,22 +38,26 @@
 
     <div v-if="vocabWarnings.length" class="app-warning" role="status" aria-live="polite">
       <span aria-hidden="true">ℹ</span>
-      {{ lang === 'de'
-        ? `${vocabWarnings.length} Vokabular(e) konnten nicht geladen werden und wurden übersprungen.`
-        : `${vocabWarnings.length} vocabulary source(s) could not be loaded and were skipped.` }}
+      {{ vocabWarnings.length }} {{ t('app.vocab-warning') }}
     </div>
 
     <div v-if="appError" class="app-error" role="alert">
       <span class="app-error-icon" aria-hidden="true">⚠</span>
       {{ appError }}
-      <button class="app-error-retry" @click="loadFormConfig(selectedStandard)">
-        {{ lang === 'de' ? 'Erneut versuchen' : 'Retry' }}
+      <button class="app-error-retry" @click="loadFormConfig(effectiveStandard)">
+        {{ t('btn.retry') }}
       </button>
     </div>
 
     <main class="app-main">
+      <OntoViewer
+        v-if="activeConfig && viewMode"
+        :standard="effectiveStandard"
+        :data="formData"
+        :lang="lang"
+      />
       <MetadataForm
-        v-if="activeConfig"
+        v-else-if="activeConfig"
         :config="activeConfig"
         :lang="lang"
         :wizard="wizardMode"
@@ -53,14 +66,15 @@
         @export="showExport = true"
       />
       <div v-else-if="!appError" class="loading">
-        {{ lang === 'de' ? 'Formular wird geladen…' : 'Loading form configuration…' }}
+        {{ t('app.loading') }}
       </div>
     </main>
 
     <ExportPanel
       v-if="showExport"
       :formData="formData"
-      :standard="selectedStandard"
+      :standard="effectiveStandard"
+      :rootClass="formConfig?.rootClass"
       :lang="lang"
       @close="showExport = false"
     />
@@ -68,7 +82,8 @@
     <ExportPanel
       v-if="showPreview"
       :formData="formData"
-      :standard="selectedStandard"
+      :standard="effectiveStandard"
+      :rootClass="formConfig?.rootClass"
       :lang="lang"
       :preview="true"
       @close="showPreview = false"
@@ -96,11 +111,14 @@ export const BUILTIN_STANDARDS = [
 import { ref, computed, watch, onMounted, onErrorCaptured } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
+import OntoViewer from './components/viewer/OntoViewer.vue'
 import ExportPanel from './components/ExportPanel.vue'
 import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
 import { applyEncode } from './config/fieldTransforms.js'
+import { useTranslations } from './composables/useTranslations.js'
+import { useTranslationProvider } from './composables/useTranslationProvider.js'
 
 const props = defineProps({
   standards: {
@@ -122,11 +140,34 @@ const standards = computed(() => props.standards)
 
 const selectedStandard = ref(props.initialStandard ?? props.standards[0]?.id ?? 'dcat-ap-at')
 const lang = ref('de')
+
+// Provide lang and current-language translations for all child components
+const { allTranslations, loadTranslations } = useTranslationProvider(lang)
+
+const { t } = useTranslations()
+
+// Catalogue editing currently has a single, fixed config (reusing the
+// dcat-ap-at SHACL via shaclSource) rather than one per standard, so the
+// standard selector is hidden while entityType is 'catalogue'.
+const entityType = ref('dataset')
+const entityTypes = computed(() => [
+  { id: 'dataset', label: t('entity.dataset') },
+  { id: 'catalogue', label: t('entity.catalogue') },
+  { id: 'application', label: t('entity.application') }
+])
+const CATALOGUE_STANDARD = 'dcat-ap-at-catalogue'
+const APPLICATION_STANDARD = 'dcat-ap-at-application'
+const effectiveStandard = computed(() => {
+  if (entityType.value === 'catalogue') return CATALOGUE_STANDARD
+  if (entityType.value === 'application') return APPLICATION_STANDARD
+  return selectedStandard.value
+})
 const formConfig = ref(null)
 const formData = ref({})
 const showExport = ref(false)
 const showImport = ref(false)
 const wizardMode = ref(true)
+const viewMode = ref(false)
 const distributionMode = ref('modal')
 const appError = ref(null)
 const showPreview = ref(false)
@@ -178,12 +219,13 @@ const hasDistributionEditor = ref(false)
 const vocabWarnings = ref([])
 
 async function loadFormConfig(standard, { preserveData = false } = {}) {
+  const prevConfig = formConfig.value
   formConfig.value = null
   appError.value = null
   const resolver = new FormConfigResolver()
   let config
   try {
-    config = await resolver.resolve(standard)
+    config = await resolver.resolve(standard, { translations: allTranslations.value })
   } catch (err) {
     appError.value = lang.value === 'de'
       ? `Konfiguration konnte nicht geladen werden: ${err.message}`
@@ -207,6 +249,13 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
     // Normalize values whose cardinality changed between profiles
     for (const [id, field] of Object.entries(config.fields || {})) {
       if (field.type === 'distribution-editor') continue
+      // If the field's type changed between profiles (e.g. langstring -> textarea),
+      // the old value's shape is incompatible even though cardinality matches.
+      const prevField = prevConfig?.fields?.[id]
+      if (prevField && prevField.type !== field.type) {
+        merged[id] = defaults[id]
+        continue
+      }
       const val = merged[id]
       if (field.multiple && !Array.isArray(val)) {
         merged[id] = val !== '' && val != null ? [val] : ['']
@@ -251,14 +300,19 @@ function onImport(importedData) {
 }
 
 onErrorCaptured((err) => {
-  appError.value = lang.value === 'de'
-    ? `Ein unerwarteter Fehler ist aufgetreten: ${err.message}`
-    : `An unexpected error occurred: ${err.message}`
+  appError.value = `${t('app.error-prefix')}: ${err.message}`
   return false
 })
 
-watch(selectedStandard, (std) => loadFormConfig(std, { preserveData: true }))
-onMounted(() => loadFormConfig(selectedStandard.value))
+watch(lang, async (l) => {
+  await loadTranslations(l)
+})
+
+watch(effectiveStandard, (std) => loadFormConfig(std, { preserveData: true }))
+onMounted(async () => {
+  await loadTranslations(lang.value)
+  await loadFormConfig(effectiveStandard.value)
+})
 </script>
 
 <style>

@@ -1,5 +1,5 @@
 <template>
-  <div class="metadata-form ontoform">
+  <div class="metadata-form ontoform" :class="config?.cssClass">
     <!-- WIZARD MODE -->
     <template v-if="wizard">
       <!-- Step Indicator -->
@@ -18,11 +18,11 @@
           <div class="step-connector left" v-if="idx > 0" :class="{ done: idx <= currentStep }"></div>
           <button
             class="step-circle"
-            :aria-label="(lang === 'de' ? 'Schritt ' : 'Step ') + (idx + 1) + ': ' + (group.label[lang] || group.label.en)"
+            :aria-label="t('wizard.step-aria') + (idx + 1) + ': ' + (group.label?.[lang] || group.label?.en)"
             :aria-current="idx === currentStep ? 'step' : undefined"
             @click="jumpToStep(idx)"
           >{{ idx + 1 }}</button>
-          <div class="step-label">{{ group.label[lang] || group.label.en }}</div>
+          <div class="step-label">{{ group.label?.[lang] || group.label?.en }}</div>
           <div class="step-connector right" v-if="idx < visibleGroups.length - 1" :class="{ done: idx < currentStep }"></div>
         </div>
         <!-- Summary step -->
@@ -35,7 +35,7 @@
         >
           <div class="step-connector left" :class="{ done: currentStep >= visibleGroups.length }"></div>
           <div class="step-circle">&#10003;</div>
-          <div class="step-label">{{ lang === 'de' ? 'Übersicht' : 'Summary' }}</div>
+          <div class="step-label">{{ t('wizard.summary') }}</div>
         </div>
       </div>
 
@@ -47,7 +47,7 @@
           :aria-valuenow="progressPct"
           aria-valuemin="0"
           aria-valuemax="100"
-          :aria-label="(lang === 'de' ? 'Fortschritt: ' : 'Progress: ') + progressFilled + ' / ' + progressTotal"
+          :aria-label="t('wizard.progress-aria') + progressFilled + ' / ' + progressTotal"
         >
           <div class="progress-bar-fill" :style="{ width: progressPct + '%' }"></div>
         </div>
@@ -56,8 +56,8 @@
 
       <!-- Per-Step View -->
       <template v-if="currentStep < visibleGroups.length">
-        <div class="form-group">
-          <h2 class="group-title">{{ currentGroup.label[lang] || currentGroup.label.en }}</h2>
+        <div class="form-group" :class="currentGroup.cssClass">
+          <h2 class="group-title">{{ currentGroup.label?.[lang] || currentGroup.label?.en }}</h2>
           <FieldGroup
             :fields="groupFields(currentGroup)"
             :lang="lang"
@@ -72,13 +72,13 @@
         <!-- Navigation -->
         <div class="wizard-nav">
           <button v-if="currentStep > 0" class="btn-back" @click="prevStep">
-            {{ lang === 'de' ? 'Zurück' : 'Back' }}
+            {{ t('wizard.nav.back') }}
           </button>
           <span v-else></span>
           <button class="btn-export" @click="nextStep">
             {{ currentStep < visibleGroups.length - 1
-              ? (lang === 'de' ? 'Weiter' : 'Next')
-              : (lang === 'de' ? 'Zur Übersicht' : 'Summary') }}
+              ? t('wizard.nav.next')
+              : t('wizard.nav.to-summary') }}
           </button>
         </div>
       </template>
@@ -90,16 +90,16 @@
             v-for="(group, idx) in visibleGroups"
             :key="group.id"
             class="form-group summary-group"
-            :class="{ 'summary-group-has-error': groupHasErrors(group) }"
+            :class="[{ 'summary-group-has-error': groupHasErrors(group) }, group.cssClass]"
           >
             <div class="summary-group-header">
-              <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
+              <h2 class="group-title">{{ group.label?.[lang] || group.label?.en }}</h2>
               <div class="summary-group-header-right">
                 <span v-if="groupHasErrors(group)" class="group-error-badge">
-                  {{ lang === 'de' ? 'Fehlende Pflichtfelder' : 'Required fields missing' }}
+                  {{ t('wizard.summary.error-badge') }}
                 </span>
                 <button class="btn-edit" @click="jumpToStep(idx)">
-                  {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
+                  {{ t('wizard.summary.edit') }}
                 </button>
               </div>
             </div>
@@ -112,7 +112,7 @@
                   </template>
                 </div>
               </template>
-              <span v-else class="no-data">{{ lang === 'de' ? 'Keine Angaben' : 'No data' }}</span>
+              <span v-else class="no-data">{{ t('wizard.summary.no-data') }}</span>
             </div>
           </div>
         </div>
@@ -120,25 +120,25 @@
         <!-- Export actions in summary -->
         <div class="form-actions">
           <span v-if="!isValid" class="validation-hint">
-            {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
+            {{ t('form.validation-hint') }}
           </span>
           <button
             class="btn-validate"
             type="button"
             :disabled="validating"
             :aria-label="validating
-              ? (lang === 'de' ? 'Validierung läuft …' : 'Validating …')
+              ? t('btn.validating')
               : label('validateAriaLabel', { de: 'SHACL-Validierung starten', en: 'Run SHACL validation' })"
             @click="runValidation"
           >
-            {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
+            {{ validating ? '…' : label('validate', { de: DEFAULTS.de['btn.validate'], en: DEFAULTS.en['btn.validate'] }) }}
           </button>
           <button
             class="btn-export"
             :disabled="!isValid"
             :class="{ disabled: !isValid }"
             @click="handleExport"
-          >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
+          >{{ label('export', { de: DEFAULTS.de['btn.export'], en: DEFAULTS.en['btn.export'] }) }}</button>
         </div>
         <ValidationReport
           v-if="showReport"
@@ -151,7 +151,7 @@
         <!-- Back navigation -->
         <div class="wizard-nav">
           <button class="btn-back" @click="prevStep">
-            {{ lang === 'de' ? 'Zurück' : 'Back' }}
+            {{ t('wizard.nav.back') }}
           </button>
           <span></span>
         </div>
@@ -160,8 +160,8 @@
 
     <!-- SINGLE PAGE MODE -->
     <template v-else>
-      <div v-for="group in visibleGroups" :key="group.id" class="form-group">
-        <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
+      <div v-for="group in visibleGroups" :key="group.id" class="form-group" :class="group.cssClass">
+        <h2 class="group-title">{{ group.label?.[lang] || group.label?.en }}</h2>
         <FieldGroup
           :fields="groupFields(group)"
           :lang="lang"
@@ -175,17 +175,17 @@
 
       <div class="form-actions">
         <span v-if="!isValid" class="validation-hint">
-          {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
+          {{ t('form.validation-hint') }}
         </span>
         <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
-          {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
+          {{ validating ? '…' : label('validate', { de: DEFAULTS.de['btn.validate'], en: DEFAULTS.en['btn.validate'] }) }}
         </button>
         <button
           class="btn-export"
           :disabled="!isValid"
           :class="{ disabled: !isValid }"
           @click="handleExport"
-        >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
+        >{{ label('export', { de: DEFAULTS.de['btn.export'], en: DEFAULTS.en['btn.export'] }) }}</button>
       </div>
       <ValidationReport
         v-if="showReport"
@@ -200,6 +200,7 @@
 
 <script setup>
 import { computed, ref, watch, nextTick } from 'vue'
+import { useTranslations, DEFAULTS } from '../composables/useTranslations.js'
 import TextField from './fields/TextField.vue'
 import TextareaField from './fields/TextareaField.vue'
 import SelectField from './fields/SelectField.vue'
@@ -216,7 +217,7 @@ import SearchSelectField from './fields/SearchSelectField.vue'
 import ValidationReport from './ValidationReport.vue'
 import { assetUrl } from '../config/ontoFormConfig.js'
 import { validateForm, hasValue } from '../composables/useValidation.js'
-import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
+import { applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 import { suggestionsStore } from '../services/SuggestionsStore.js'
 import { SHACLValidationService } from '../services/SHACLValidationService.js'
@@ -245,6 +246,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'export'])
+
+const { t } = useTranslations()
 
 function label(key, defaults) {
   const override = props.labels?.[key]
@@ -280,33 +283,6 @@ function groupFields(group) {
     .map(id => props.config.fields[id])
     .filter(f => f && f.visible !== false && evaluateVisibleIf(f.visibleIf, props.modelValue))
     .sort((a, b) => (a.order || 0) - (b.order || 0))
-}
-
-// Returns the value to show in the form field (applies display transform if configured)
-function displayValue(field) {
-  const stored = props.modelValue?.[field.id]
-  if (!field.transform) return stored
-  return applyDisplay(field.transform, stored, field.transformOptions)
-}
-
-// Returns the encoded preview URI (shown as hint below the field)
-function encodedPreview(field, currentDisplayValue) {
-  if (!field.transform || !currentDisplayValue) return null
-  const stored = props.modelValue?.[field.id]
-  const encoded = applyEncode(field.transform, currentDisplayValue, field.transformOptions, stored)
-  // Only show preview when it differs from what the user typed
-  return encoded !== currentDisplayValue ? encoded : null
-}
-
-function updateField(field, value) {
-  const id = typeof field === 'string' ? field : field.id
-  if (typeof field === 'object' && field.transform) {
-    const stored = props.modelValue?.[id]
-    const encoded = applyEncode(field.transform, value, field.transformOptions, stored)
-    emit('update:modelValue', { ...props.modelValue, [id]: encoded })
-  } else {
-    emit('update:modelValue', { ...props.modelValue, [id]: value })
-  }
 }
 
 const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))

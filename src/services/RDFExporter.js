@@ -1,3 +1,5 @@
+import { isURI, isDate, isWKT } from './rdfTypeUtils.js'
+
 const CONTEXT = {
   dct: 'http://purl.org/dc/terms/',
   dcat: 'http://www.w3.org/ns/dcat#',
@@ -276,19 +278,6 @@ function escapeXML(s) {
 
 function escapeTurtle(s) {
   return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\n/g, '\\n')
-}
-
-function isURI(v) {
-  if (typeof v !== 'string' || !v) return false
-  try { return Boolean(new URL(v)) } catch { return false }
-}
-
-function isDate(v) {
-  return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v)
-}
-
-function isWKT(v) {
-  return typeof v === 'string' && /^(POLYGON|POINT|LINESTRING|MULTIPOLYGON|MULTIPOINT|MULTILINESTRING|GEOMETRYCOLLECTION)\s*\(/i.test(v.trim())
 }
 
 // Sub-objects have prefixed property keys like "foaf:name", "vcard:fn"

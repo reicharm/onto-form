@@ -42,6 +42,53 @@ Die Formularkonfiguration setzt sich aus zwei Quellen zusammen:
 - Der Balken aktualisiert sich reaktiv bei jeder Eingabe
 - Standardmäßig `false` (nicht angezeigt)
 
+### `rootClass`
+
+Wählt aus, welche SHACL-`NodeShape` als Wurzel des Formulars dient, wenn die Shape-Datei mehrere `NodeShape`s mit `sh:targetClass` definiert (z. B. zusätzlich zu `dcat:Dataset` eine `dcat:Catalog`-Shape in derselben Datei).
+
+```json
+{
+  "standard": "dcat-ap-at-catalogue",
+  "rootClass": "dcat:Catalog"
+}
+```
+
+- `FormConfigResolver` übernimmt nur Felder aus `NodeShape`s, deren `sh:targetClass` (kompaktiert) mit `rootClass` übereinstimmt; alle anderen Top-Level-Shapes in derselben Datei werden ignoriert.
+- Fehlt `rootClass`, wird `dcat:Dataset` als Default verwendet.
+- `rootClass` wird zusätzlich an `RDFExporter`/`RDFImporter` weitergereicht und bestimmt dort den `@type`/`rdf:type` des Wurzelknotens beim Export bzw. welcher RDF-Typ beim Import als Wurzelsubjekt erkannt wird.
+- Eingebettete Shapes (z. B. `dcat:Distribution`, referenziert über `pv:mappingLink`, siehe [technical.md](./technical.md#pvmappinglink)) werden unabhängig von `rootClass` immer als Unterfelder aufgelöst, nicht als eigenständige Root-Kandidaten.
+
+### `shaclSource`
+
+Überschreibt, welche SHACL-Datei geladen wird, falls sie nicht `shacl/${standard}.ttl` heißt. Damit können mehrere UI-Configs (z. B. ein Dataset- und ein Catalogue-Formular) dieselbe SHACL-Datei teilen, ohne sie zu duplizieren:
+
+```json
+{
+  "standard": "dcat-ap-at-catalogue",
+  "rootClass": "dcat:Catalog",
+  "shaclSource": "dcat-ap-at"
+}
+```
+
+- `FormConfigResolver` lädt dann `shacl/dcat-ap-at.ttl` statt `shacl/dcat-ap-at-catalogue.ttl` (welche nicht existieren müsste).
+- Fehlt `shaclSource`, wird wie bisher `shacl/${standard}.ttl` geladen.
+- In Kombination mit `rootClass` lässt sich so z. B. eine `dcat:Catalog`-Shape aus derselben SHACL-Datei wie das Dataset-Formular als eigenständiges Formular anbieten (siehe `public/config/ui-config.dcat-ap-at-catalogue.json`).
+
+### `cssClass`
+
+Fügt dem Wurzel-Element des gesamten Formulars (`<div class="metadata-form ontoform">`) eine oder mehrere zusätzliche CSS-Klassen hinzu. Damit lässt sich das Erscheinungsbild pro Standard anpassen, ohne den internen HTML-Baum zu verändern.
+
+```json
+{
+  "standard": "dcat-ap-at",
+  "cssClass": "my-form theme-compact"
+}
+```
+
+- Mehrere Klassen werden als leerzeichengetrennter String angegeben.
+- Fehlt `cssClass`, werden keine zusätzlichen Klassen gesetzt.
+- `cssClass` kann auch auf Gruppen- und Feldebene gesetzt werden (siehe unten).
+
 ---
 
 ## Gruppen (`groups`)
@@ -63,6 +110,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `label` | `{de, en}` | Angezeigter Name |
 | `fields` | string[] | Geordnete Liste der Feld-IDs |
 | `visible` | boolean | `false` blendet die Gruppe aus (Standard: `true`) |
+| `cssClass` | string | Zusätzliche CSS-Klasse(n) für das `<div class="form-group">` dieser Gruppe |
 
 ---
 
@@ -107,6 +155,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 | `generate` | string | Name eines ID-Generators (siehe unten) |
 | `generateOptions` | object | Optionen für den Generator (z. B. `prefix`) |
 | `remember` | boolean | Frühere Eingaben als Vorschläge anbieten (siehe unten) |
+| `cssClass` | string | Zusätzliche CSS-Klasse(n) für das `<div class="field-wrapper">` dieses Feldes |
 
 ### Feldtypen
 
@@ -634,7 +683,7 @@ UI-Config-Werte überschreiben SHACL-Werte bei Konflikten. Labels und Hints werd
 
 ## `distribution-editor` – Distributions-Liste
 
-Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal).
+Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal). Verfügbar für alle drei eingebauten Standards (`dcat-ap-at`, `geodcat`, `dcat-ap-3`), nicht auf einen einzelnen Standard beschränkt.
 
 ```json
 "dcat:distribution": {

@@ -17,13 +17,13 @@
       @keydown.space.prevent="open"
     >
       <span v-if="selectedLabel" class="ss-value">{{ selectedLabel }}</span>
-      <span v-else class="ss-placeholder">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</span>
+      <span v-else class="ss-placeholder">{{ t('select.placeholder') }}</span>
       <span class="ss-caret" aria-hidden="true">▾</span>
       <button
         v-if="modelValue"
         type="button"
         class="ss-clear"
-        :aria-label="lang === 'de' ? `${label} Auswahl aufheben` : `Clear ${label} selection`"
+        :aria-label="`Clear ${label} selection`"
         @click.stop="clear"
       >×</button>
     </div>
@@ -40,8 +40,8 @@
         ref="searchInput"
         v-model="query"
         class="ss-search"
-        :placeholder="lang === 'de' ? 'Suchen …' : 'Search …'"
-        :aria-label="lang === 'de' ? `${label} durchsuchen` : `Search ${label}`"
+        :placeholder="t('searchselect.search-placeholder')"
+        :aria-label="`Search ${label}`"
         autocomplete="off"
         @keydown.down.prevent="moveHighlight(1)"
         @keydown.up.prevent="moveHighlight(-1)"
@@ -53,7 +53,7 @@
           v-if="!filtered.length"
           class="ss-empty"
           role="alert"
-        >{{ lang === 'de' ? 'Keine Treffer' : 'No results' }}</li>
+        >{{ t('searchselect.empty') }}</li>
         <li
           v-for="(opt, idx) in filtered"
           :key="opt.value"
@@ -63,7 +63,7 @@
           :aria-selected="opt.value === modelValue"
           @mousedown.prevent="select(opt)"
           @mousemove="highlightIdx = idx"
-        >{{ opt.label?.[lang] || opt.label?.en || opt.value }}</li>
+        >{{ opt.label?.[lang] || opt.label?.de || opt.label?.en || opt.value }}</li>
       </ul>
     </div>
 
@@ -73,6 +73,8 @@
 
 <script setup>
 import { ref, computed, nextTick, onBeforeUnmount } from 'vue'
+import { useTranslations } from '../../composables/useTranslations.js'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 
 const props = defineProps({
   field: Object,
@@ -81,7 +83,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const label    = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
+const { t } = useTranslations()
+const { label } = useFieldLabels(computed(() => props.field), computed(() => props.lang))
 const options  = computed(() => props.field.options || [])
 
 // ── Search & filter ────────────────────────────────────────────────────────
@@ -92,7 +95,7 @@ const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return options.value
   return options.value.filter(opt => {
-    const text = (opt.label?.[props.lang] || opt.label?.en || opt.value || '').toLowerCase()
+    const text = (opt.label?.[props.lang] || opt.label?.de || opt.label?.en || opt.value || '').toLowerCase()
     return text.includes(q)
   })
 })
@@ -100,7 +103,7 @@ const filtered = computed(() => {
 const selectedLabel = computed(() => {
   if (!props.modelValue) return ''
   const opt = options.value.find(o => o.value === props.modelValue)
-  return opt ? (opt.label?.[props.lang] || opt.label?.en || opt.value) : props.modelValue
+  return opt ? (opt.label?.[props.lang] || opt.label?.de || opt.label?.en || opt.value) : props.modelValue
 })
 
 // ── Open / close ───────────────────────────────────────────────────────────

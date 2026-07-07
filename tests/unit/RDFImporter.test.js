@@ -104,6 +104,88 @@ describe('RDFImporter', () => {
       const result = importer.fromJSONLD(jsonld, basicConfig)
       expect(result['unknown:field']).toBeUndefined()
     })
+
+    describe('@graph', () => {
+      it('finds the root node by rootClass among multiple graph nodes', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            { '@id': '_:catalog1', '@type': 'dcat:Catalog', 'dct:title': { de: 'Katalog' } },
+            { '@id': 'https://example.org/dataset/1', '@type': 'dcat:Dataset', 'dct:title': { de: 'Datensatz' } }
+          ]
+        })
+        const result = importer.fromJSONLD(jsonld, basicConfig)
+        expect(result['dct:title']).toEqual({ de: 'Datensatz' })
+      })
+
+      it('respects a custom rootClass when selecting the root node', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            { '@id': '_:dataset1', '@type': 'dcat:Dataset', 'dct:title': { de: 'Datensatz' } },
+            { '@id': 'https://example.org/catalog/1', '@type': 'dcat:Catalog', 'dct:title': { de: 'Katalog' } }
+          ]
+        })
+        const result = importer.fromJSONLD(jsonld, { ...basicConfig, rootClass: 'dcat:Catalog' })
+        expect(result['dct:title']).toEqual({ de: 'Katalog' })
+      })
+
+      it('inlines @id references to other nodes within the graph', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            { '@id': '_:contact1', 'vcard:fn': 'Jane Doe', 'vcard:hasEmail': 'mailto:jane@example.org' },
+            {
+              '@id': 'https://example.org/dataset/1',
+              '@type': 'dcat:Dataset',
+              'dct:title': { de: 'Datensatz' },
+              'dcat:contactPoint': { '@id': '_:contact1' }
+            }
+          ]
+        })
+        const result = importer.fromJSONLD(jsonld, basicConfig)
+        expect(result['dcat:contactPoint']).toEqual({
+          'vcard:fn': 'Jane Doe',
+          'vcard:hasEmail': 'jane@example.org'
+        })
+      })
+
+      it('keeps @id references to nodes outside the graph as plain strings', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            {
+              '@id': 'https://example.org/dataset/1',
+              '@type': 'dcat:Dataset',
+              'dct:title': { de: 'Datensatz' },
+              'dct:identifier': { '@id': 'https://example.org/external-identifier' }
+            }
+          ]
+        })
+        const result = importer.fromJSONLD(jsonld, basicConfig)
+        expect(result['dct:identifier']).toBe('https://example.org/external-identifier')
+      })
+
+      it('does not recurse infinitely on a node that references itself by @id', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            {
+              '@id': 'https://example.org/dataset/1',
+              '@type': 'dcat:Dataset',
+              'dct:title': { de: 'Datensatz' },
+              'dcat:contactPoint': { '@id': 'https://example.org/dataset/1' }
+            }
+          ]
+        })
+        expect(() => importer.fromJSONLD(jsonld, basicConfig)).not.toThrow()
+      })
+
+      it('falls back to the root node @id as dct:identifier when missing', () => {
+        const jsonld = JSON.stringify({
+          '@graph': [
+            { '@id': 'https://example.org/dataset/1', '@type': 'dcat:Dataset', 'dct:title': { de: 'Datensatz' } }
+          ]
+        })
+        const result = importer.fromJSONLD(jsonld, basicConfig)
+        expect(result['dct:identifier']).toBe('https://example.org/dataset/1')
+      })
+    })
   })
 
   describe('fromTurtle', () => {

@@ -1,98 +1,74 @@
 <template>
-  <div
-    class="import-overlay"
-    @click.self="$emit('close')"
-    @keydown.esc="$emit('close')"
+  <BaseModal
+    heading-id="import-heading"
+    :title="t('btn.import')"
+    :close-label="lang === 'de' ? 'Import schließen' : 'Close import'"
+    max-width="700px"
+    :focus-selectors="['[role=\'tab\']', 'button']"
+    @close="$emit('close')"
   >
-    <div
-      class="import-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="import-heading"
-      ref="panelEl"
-    >
-      <div class="import-header">
-        <h2 id="import-heading">{{ lang === 'de' ? 'Importieren' : 'Import' }}</h2>
-        <button
-          class="close-btn"
-          :aria-label="lang === 'de' ? 'Import schließen' : 'Close import'"
-          @click="$emit('close')"
-        >✕</button>
+    <template #tabs>
+      <TabBar
+        v-model="activeTab"
+        :aria-label="lang === 'de' ? 'Importformat' : 'Import format'"
+        :tabs="[
+          { id: 'jsonld', label: 'JSON-LD', controls: 'import-panel-jsonld' },
+          { id: 'turtle', label: 'Turtle', controls: 'import-panel-turtle' },
+          { id: 'rdfxml', label: 'RDF/XML', controls: 'import-panel-rdfxml' }
+        ]"
+      />
+    </template>
+
+    <div class="import-body">
+      <div class="file-row">
+        <label class="btn-file">
+          {{ t('btn.open-file') }}
+          <input
+            type="file"
+            :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'"
+            :aria-label="lang === 'de' ? 'RDF-Datei auswählen' : 'Select RDF file'"
+            @change="loadFile"
+          />
+        </label>
+        <span v-if="filename" class="filename" aria-live="polite">{{ filename }}</span>
       </div>
 
-      <div class="import-tabs" role="tablist" :aria-label="lang === 'de' ? 'Importformat' : 'Import format'">
-        <button
-          role="tab"
-          :aria-selected="activeTab === 'jsonld'"
-          aria-controls="import-panel-jsonld"
-          :class="{ active: activeTab === 'jsonld' }"
-          :tabindex="activeTab === 'jsonld' ? 0 : -1"
-          @click="activeTab = 'jsonld'"
-        >JSON-LD</button>
-        <button
-          role="tab"
-          :aria-selected="activeTab === 'turtle'"
-          aria-controls="import-panel-turtle"
-          :class="{ active: activeTab === 'turtle' }"
-          :tabindex="activeTab === 'turtle' ? 0 : -1"
-          @click="activeTab = 'turtle'"
-        >Turtle</button>
-        <button
-          role="tab"
-          :aria-selected="activeTab === 'rdfxml'"
-          aria-controls="import-panel-rdfxml"
-          :class="{ active: activeTab === 'rdfxml' }"
-          :tabindex="activeTab === 'rdfxml' ? 0 : -1"
-          @click="activeTab = 'rdfxml'"
-        >RDF/XML</button>
-      </div>
+      <textarea
+        v-model="text"
+        class="import-textarea"
+        :placeholder="placeholder"
+        :aria-label="lang === 'de' ? 'RDF-Inhalt zum Importieren' : 'RDF content to import'"
+        :aria-describedby="error ? 'import-error' : undefined"
+        spellcheck="false"
+      />
 
-      <div class="import-body">
-        <div class="file-row">
-          <label class="btn-file">
-            {{ lang === 'de' ? 'Datei öffnen …' : 'Open file …' }}
-            <input
-              type="file"
-              :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'"
-              :aria-label="lang === 'de' ? 'RDF-Datei auswählen' : 'Select RDF file'"
-              @change="loadFile"
-            />
-          </label>
-          <span v-if="filename" class="filename" aria-live="polite">{{ filename }}</span>
-        </div>
-
-        <textarea
-          v-model="text"
-          class="import-textarea"
-          :placeholder="placeholder"
-          :aria-label="lang === 'de' ? 'RDF-Inhalt zum Importieren' : 'RDF content to import'"
-          :aria-describedby="error ? 'import-error' : undefined"
-          spellcheck="false"
-        />
-
-        <div
-          v-if="error"
-          id="import-error"
-          class="import-error"
-          role="alert"
-        >⚠ {{ error }}</div>
-      </div>
-
-      <div class="import-actions">
-        <button class="btn-cancel" @click="$emit('close')">
-          {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
-        </button>
-        <button class="btn-import" :disabled="!text.trim()" @click="doImport">
-          {{ lang === 'de' ? 'Importieren' : 'Import' }}
-        </button>
-      </div>
+      <div
+        v-if="error"
+        id="import-error"
+        class="import-error"
+        role="alert"
+      >⚠ {{ error }}</div>
     </div>
-  </div>
+
+    <template #actions>
+      <button class="btn-cancel" @click="$emit('close')">
+        {{ t('btn.cancel') }}
+      </button>
+      <button class="btn-import" :disabled="!text.trim()" @click="doImport">
+        {{ t('btn.import') }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { RDFImporter } from '../services/RDFImporter.js'
+import BaseModal from './BaseModal.vue'
+import TabBar from './TabBar.vue'
+import { useTranslations } from '../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   config: Object,
@@ -105,13 +81,6 @@ const activeTab = ref('jsonld')
 const text      = ref('')
 const filename  = ref('')
 const error     = ref('')
-const panelEl   = ref(null)
-
-onMounted(async () => {
-  await nextTick()
-  const firstTab = panelEl.value?.querySelector('[role="tab"]')
-  ;(firstTab || panelEl.value?.querySelector('button'))?.focus()
-})
 
 const placeholder = computed(() => {
   if (activeTab.value === 'jsonld')
@@ -152,50 +121,6 @@ async function doImport() {
 </script>
 
 <style scoped>
-.import-overlay {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-}
-
-.import-panel {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 700px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
-
-.import-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-}
-.import-header h2 { font-size: var(--font-size-heading); color: var(--color-primary); }
-
-.close-btn {
-  background: none; border: none; font-size: 1.2rem;
-  cursor: pointer; color: var(--color-text-subtle); line-height: 1;
-  padding: 0.2rem 0.4rem; border-radius: var(--radius-sm);
-}
-.close-btn:hover { color: var(--color-error); }
-.close-btn:focus { outline: none; box-shadow: var(--focus-ring); }
-
-.import-tabs { display: flex; padding: 0 1.5rem; border-bottom: 1px solid var(--color-border); }
-.import-tabs button {
-  background: none; border: none; border-bottom: 3px solid transparent;
-  padding: 0.7rem 1rem; cursor: pointer; font-size: 0.9rem; color: var(--color-text-muted);
-  margin-bottom: -1px;
-}
-.import-tabs button.active { border-bottom-color: var(--color-primary); color: var(--color-primary); font-weight: 600; }
-.import-tabs button:focus { outline: none; box-shadow: var(--focus-ring); }
-
 .import-body {
   flex: 1;
   overflow: auto;
@@ -244,14 +169,6 @@ async function doImport() {
   border: 1px solid #f5c6cb;
   border-radius: var(--radius-sm);
   padding: 0.5rem 0.75rem;
-}
-
-.import-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid var(--color-border);
 }
 
 .btn-cancel, .btn-import {

@@ -2,10 +2,7 @@ import { Parser } from 'n3'
 import { fieldValidators } from '../config/fieldValidators.js'
 import { expandIRI } from './rdfUtils.js'
 import { applyEncode } from '../config/fieldTransforms.js'
-
-function _isAbsoluteURI(s) {
-  return typeof s === 'string' && (s.startsWith('http://') || s.startsWith('https://'))
-}
+import { isURI } from './rdfTypeUtils.js'
 
 const PREFIXES = {
   rdf:    'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
@@ -77,18 +74,22 @@ export class RDFImporter {
 
     // Inline @id references to their full objects from the graph index.
     // External URIs not in the graph ({"@id": "https://..."}) become plain strings.
-    const inlineRefs = (val) => {
-      if (Array.isArray(val)) return val.map(inlineRefs)
+    // `seen` guards against cyclic references (e.g. a node pointing back to itself
+    // or to an ancestor) which would otherwise recurse infinitely.
+    const inlineRefs = (val, seen = new Set()) => {
+      if (Array.isArray(val)) return val.map(v => inlineRefs(v, seen))
       if (val && typeof val === 'object') {
         const keys = Object.keys(val)
         if (keys.length === 1 && val['@id']) {
-          // Known blank/named node → inline recursively
-          if (graphIndex[val['@id']]) return inlineRefs(graphIndex[val['@id']])
-          // External URI reference → plain string (URIField expects String)
+          // Known blank/named node → inline recursively, unless already on the path
+          if (graphIndex[val['@id']] && !seen.has(val['@id'])) {
+            return inlineRefs(graphIndex[val['@id']], new Set(seen).add(val['@id']))
+          }
+          // External URI reference, or a cycle back to an already-visited node → plain string
           return val['@id']
         }
         const out = {}
-        for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v)
+        for (const [k, v] of Object.entries(val)) out[k] = inlineRefs(v, seen)
         return out
       }
       return val
@@ -112,7 +113,7 @@ export class RDFImporter {
     }
 
     // Fallback: use @id as dct:identifier if field is missing
-    if (!formData['dct:identifier'] && doc['@id'] && _isAbsoluteURI(doc['@id'])) {
+    if (!formData['dct:identifier'] && doc['@id'] && isURI(doc['@id'])) {
       const field = fields['dct:identifier']
       if (!field || !this._isInvalid(doc['@id'], field)) {
         formData['dct:identifier'] = field?.multiple ? [doc['@id']] : doc['@id']
@@ -355,7 +356,7 @@ export class RDFImporter {
 
     // Fallback: if dct:identifier was discarded (non-URI literal) but the dataset
     // subject itself is a URI, use that as the identifier
-    if (!formData['dct:identifier'] && mainSubject && _isAbsoluteURI(mainSubject)) {
+    if (!formData['dct:identifier'] && mainSubject && isURI(mainSubject)) {
       const field = fields['dct:identifier']
       if (!field || !this._isInvalid(mainSubject, field)) {
         formData['dct:identifier'] = mainSubject

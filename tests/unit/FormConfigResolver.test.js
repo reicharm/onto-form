@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FormConfigResolver } from '../../src/services/FormConfigResolver.js'
+import { makeFetchOk } from './helpers/mockFetch.js'
 
 // ── Mock SHACLParser ──────────────────────────────────────────────────────────
 const SHACL_SHAPES = {
@@ -55,19 +56,6 @@ vi.mock('../../src/services/VocabularyLoader.js', () => {
 })
 
 // ── fetch mock helpers ────────────────────────────────────────────────────────
-
-function makeFetchOk(responseMap) {
-  return vi.fn().mockImplementation((url) => {
-    const entry = responseMap[url]
-    if (!entry) {
-      return Promise.resolve({ ok: false, status: 404, text: () => Promise.resolve(''), json: () => Promise.resolve({}) })
-    }
-    if (typeof entry === 'string') {
-      return Promise.resolve({ ok: true, text: () => Promise.resolve(entry), json: () => Promise.resolve({}) })
-    }
-    return Promise.resolve({ ok: true, text: () => Promise.resolve(''), json: () => Promise.resolve(entry) })
-  })
-}
 
 const SHACL_DUMMY = '# dummy turtle'
 
@@ -261,6 +249,19 @@ describe('FormConfigResolver', () => {
       const result = await resolver.resolve('test')
       expect(result.fields['dct:title'].options).toBeUndefined()
     })
+
+    it('does not load vocabularies twice (no duplicate options)', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      const themeField = result.fields['dcat:theme']
+      expect(themeField.options).toEqual([
+        { value: 'http://vocab.example/a', label: { de: 'Option A' } },
+        { value: 'http://vocab.example/b', label: { de: 'Option B' } }
+      ])
+    })
   })
 
   describe('rootClass filtering', () => {
@@ -284,6 +285,7 @@ describe('FormConfigResolver', () => {
     }
 
     it('with rootClass set: excludes fields from non-root shapes', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }
@@ -301,6 +303,7 @@ describe('FormConfigResolver', () => {
     })
 
     it('with rootClass set: dct:title comes from Dataset shape, not Distribution shape', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }
@@ -316,6 +319,7 @@ describe('FormConfigResolver', () => {
     })
 
     it('without rootClass: all non-embedded shapes are included (backward compat)', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }
@@ -328,6 +332,82 @@ describe('FormConfigResolver', () => {
       })
       const result = await r.resolve('test')
       expect(result.fields['dcat:accessURL']).toBeDefined()
+    })
+  })
+
+  describe('shaclSource override', () => {
+    it('fetches the SHACL named by shaclSource instead of the standard itself', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test-catalogue.json': { ...UI_CONFIG, shaclSource: 'test' }
+      })
+      const result = await resolver.resolve('test-catalogue')
+      expect(result.fields['dct:title']).toBeDefined()
+    })
+
+    it('falls back to the standard name when shaclSource is not set', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test')
+      expect(result.fields['dct:title']).toBeDefined()
+    })
+  })
+
+  describe('translation overrides', () => {
+    it('generic field label override sets field label for that language', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: { de: { 'field.dct:title.label': 'Überschrift' } }
+      })
+      expect(result.fields['dct:title'].label.de).toBe('Überschrift')
+    })
+
+    it('standard-scoped field label takes priority over generic', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: {
+          de: {
+            'field.dct:title.label': 'Generisch',
+            'test.field.dct:title.label': 'Vorrang'
+          }
+        }
+      })
+      expect(result.fields['dct:title'].label.de).toBe('Vorrang')
+    })
+
+    it('generic group label override sets group label for that language', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: { de: { 'group.basic.label': 'Grunddaten Übersetzt' } }
+      })
+      expect(result.groups[0].label.de).toBe('Grunddaten Übersetzt')
+    })
+
+    it('standard-scoped group label takes priority over generic', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: {
+          de: {
+            'group.basic.label': 'Generisch',
+            'test.group.basic.label': 'Vorrang'
+          }
+        }
+      })
+      expect(result.groups[0].label.de).toBe('Vorrang')
     })
   })
 

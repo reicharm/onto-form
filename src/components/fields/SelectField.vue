@@ -2,9 +2,9 @@
   <div class="field">
     <label :for="field.id" :class="{ required: field.required }">{{ label }}</label>
     <select :id="field.id" :value="modelValue || ''" @change="$emit('update:modelValue', $event.target.value)">
-      <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
+      <option value="">{{ t('select.placeholder') }}</option>
       <option v-for="opt in field.options" :key="opt.value" :value="opt.value">
-        {{ opt.label?.[lang] || opt.label?.en || opt.value }}
+        {{ opt.label?.[lang] || opt.label?.de || opt.label?.en || opt.value }}
       </option>
     </select>
     <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
@@ -13,6 +13,8 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useTranslations } from '../../composables/useTranslations.js'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 
 const props = defineProps({
   field: Object,
@@ -21,7 +23,8 @@ const props = defineProps({
 })
 defineEmits(['update:modelValue'])
 
-const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
+const { t } = useTranslations()
+const { label } = useFieldLabels(computed(() => props.field), computed(() => props.lang))
 </script>
 
 <style scoped>

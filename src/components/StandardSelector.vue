@@ -1,6 +1,6 @@
 <template>
   <div class="standard-selector">
-    <label>Standard:</label>
+    <label>{{ label }}</label>
     <select :value="modelValue" @change="$emit('update:modelValue', $event.target.value)">
       <option v-for="s in standards" :key="s.id" :value="s.id">{{ s.label }}</option>
     </select>
@@ -10,7 +10,8 @@
 <script setup>
 defineProps({
   standards: Array,
-  modelValue: String
+  modelValue: String,
+  label: { type: String, default: 'Standard:' }
 })
 defineEmits(['update:modelValue'])
 </script>
