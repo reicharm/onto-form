@@ -66,5 +66,12 @@
   "validation.sev.warning": "Warnungen",
   "validation.sev.info": "Hinweise",
   "btn.navigate-to-field": "Zum Feld",
-  "field.stored-as": "Gespeichert als:"
+  "field.stored-as": "Gespeichert als:",
+  "viewer.loading": "Ansicht wird geladen…",
+  "viewer.error": "Fehler beim Laden der Ansicht",
+  "viewer.no-data": "Keine Daten vorhanden.",
+  "viewer.copy-wkt": "WKT kopieren",
+  "viewer.wkt-copied": "Kopiert!",
+  "viewer.bounds": "Koordinaten",
+  "viewer.other-langs": "Weitere Sprachen"
 }

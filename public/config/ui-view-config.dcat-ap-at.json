@@ -1,0 +1,48 @@
+{
+  "standard": "dcat-ap-at",
+  "shaclSource": "dcat-ap-at",
+  "version": "2.1",
+  "rootClass": "dcat:Dataset",
+  "sections": [
+    {
+      "id": "basic",
+      "type": "section",
+      "label": { "de": "Grunddaten", "en": "Basic Information" },
+      "fields": ["dct:title", "dct:description", "dct:identifier", "dct:publisher", "dct:creator"]
+    },
+    {
+      "id": "classification",
+      "type": "tabs",
+      "tabs": [
+        {
+          "id": "themes",
+          "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
+          "fields": ["dcat:theme", "dct:subject", "dct:type", "dct:accessRights", "dcatap:hvdCategory"]
+        },
+        {
+          "id": "temporal",
+          "label": { "de": "Zeitraum", "en": "Temporal" },
+          "fields": ["dct:issued", "dct:modified", "dct:temporal"]
+        },
+        {
+          "id": "spatial",
+          "label": { "de": "Geographisch", "en": "Spatial" },
+          "fields": ["dct:spatial", "locn:geometry", "dcat:bbox"]
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "type": "section",
+      "label": { "de": "Zugang & Rechte", "en": "Access & Rights" },
+      "fields": ["dcat:landingPage", "dct:license", "dct:rights", "dcatap:applicableLegislation", "dct:language", "dcat:contactPoint"]
+    },
+    {
+      "id": "distributions",
+      "type": "section",
+      "label": { "de": "Distributionen", "en": "Distributions" },
+      "fields": ["dcat:distribution"]
+    }
+  ],
+  "fields": {}
+}
