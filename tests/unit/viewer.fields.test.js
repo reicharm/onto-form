@@ -7,7 +7,6 @@ import SelectView from '../../src/components/viewer/fields/SelectView.vue'
 import MultiSelectView from '../../src/components/viewer/fields/MultiSelectView.vue'
 import LangStringView from '../../src/components/viewer/fields/LangStringView.vue'
 import ObjectView from '../../src/components/viewer/fields/ObjectView.vue'
-import SearchSelectView from '../../src/components/viewer/fields/SearchSelectView.vue'
 import DistributionView from '../../src/components/viewer/fields/DistributionView.vue'
 
 // ── TextView ──────────────────────────────────────────────────────────────────
@@ -124,15 +123,15 @@ describe('SelectView', () => {
   })
 })
 
-// ── SearchSelectView ──────────────────────────────────────────────────────────
-describe('SearchSelectView', () => {
+// ── SelectView ──────────────────────────────────────────────────────────
+describe('SelectView', () => {
   const options = [
     { value: 'http://vocab.example/a', label: { de: 'Option A', en: 'Option A EN' } },
     { value: 'http://vocab.example/b', label: { de: 'Option B' } }
   ]
 
   it('shows the resolved option label for a matching value', () => {
-    const w = mount(SearchSelectView, {
+    const w = mount(SelectView, {
       props: {
         field: { options },
         modelValue: 'http://vocab.example/a',
@@ -143,7 +142,7 @@ describe('SearchSelectView', () => {
   })
 
   it('falls back to raw value when no option matches', () => {
-    const w = mount(SearchSelectView, {
+    const w = mount(SelectView, {
       props: {
         field: { options },
         modelValue: 'http://vocab.example/unknown',
@@ -154,7 +153,7 @@ describe('SearchSelectView', () => {
   })
 
   it('handles label as a plain string (not an object)', () => {
-    const w = mount(SearchSelectView, {
+    const w = mount(SelectView, {
       props: {
         field: { options: [{ value: 'x', label: 'Plain Label' }] },
         modelValue: 'x',

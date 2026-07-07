@@ -18,11 +18,11 @@
           <div class="step-connector left" v-if="idx > 0" :class="{ done: idx <= currentStep }"></div>
           <button
             class="step-circle"
-            :aria-label="(lang === 'de' ? 'Schritt ' : 'Step ') + (idx + 1) + ': ' + (group.label[lang] || group.label.en)"
+            :aria-label="t('wizard.step-aria') + (idx + 1) + ': ' + (group.label?.[lang] || group.label?.en)"
             :aria-current="idx === currentStep ? 'step' : undefined"
             @click="jumpToStep(idx)"
           >{{ idx + 1 }}</button>
-          <div class="step-label">{{ group.label[lang] || group.label.en }}</div>
+          <div class="step-label">{{ group.label?.[lang] || group.label?.en }}</div>
           <div class="step-connector right" v-if="idx < visibleGroups.length - 1" :class="{ done: idx < currentStep }"></div>
         </div>
         <!-- Summary step -->
@@ -47,7 +47,7 @@
           :aria-valuenow="progressPct"
           aria-valuemin="0"
           aria-valuemax="100"
-          :aria-label="(lang === 'de' ? 'Fortschritt: ' : 'Progress: ') + progressFilled + ' / ' + progressTotal"
+          :aria-label="t('wizard.progress-aria') + progressFilled + ' / ' + progressTotal"
         >
           <div class="progress-bar-fill" :style="{ width: progressPct + '%' }"></div>
         </div>
@@ -57,7 +57,7 @@
       <!-- Per-Step View -->
       <template v-if="currentStep < visibleGroups.length">
         <div class="form-group" :class="currentGroup.cssClass">
-          <h2 class="group-title">{{ currentGroup.label[lang] || currentGroup.label.en }}</h2>
+          <h2 class="group-title">{{ currentGroup.label?.[lang] || currentGroup.label?.en }}</h2>
           <FieldGroup
             :fields="groupFields(currentGroup)"
             :lang="lang"
@@ -93,7 +93,7 @@
             :class="[{ 'summary-group-has-error': groupHasErrors(group) }, group.cssClass]"
           >
             <div class="summary-group-header">
-              <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
+              <h2 class="group-title">{{ group.label?.[lang] || group.label?.en }}</h2>
               <div class="summary-group-header-right">
                 <span v-if="groupHasErrors(group)" class="group-error-badge">
                   {{ t('wizard.summary.error-badge') }}
@@ -127,7 +127,7 @@
             type="button"
             :disabled="validating"
             :aria-label="validating
-              ? (lang === 'de' ? 'Validierung läuft …' : 'Validating …')
+              ? t('btn.validating')
               : label('validateAriaLabel', { de: 'SHACL-Validierung starten', en: 'Run SHACL validation' })"
             @click="runValidation"
           >
@@ -161,7 +161,7 @@
     <!-- SINGLE PAGE MODE -->
     <template v-else>
       <div v-for="group in visibleGroups" :key="group.id" class="form-group" :class="group.cssClass">
-        <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
+        <h2 class="group-title">{{ group.label?.[lang] || group.label?.en }}</h2>
         <FieldGroup
           :fields="groupFields(group)"
           :lang="lang"

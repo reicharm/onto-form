@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FormConfigResolver } from '../../src/services/FormConfigResolver.js'
+import { makeFetchOk } from './helpers/mockFetch.js'
 
 // ── Mock SHACLParser ──────────────────────────────────────────────────────────
 const SHACL_SHAPES = {
@@ -55,19 +56,6 @@ vi.mock('../../src/services/VocabularyLoader.js', () => {
 })
 
 // ── fetch mock helpers ────────────────────────────────────────────────────────
-
-function makeFetchOk(responseMap) {
-  return vi.fn().mockImplementation((url) => {
-    const entry = responseMap[url]
-    if (!entry) {
-      return Promise.resolve({ ok: false, status: 404, text: () => Promise.resolve(''), json: () => Promise.resolve({}) })
-    }
-    if (typeof entry === 'string') {
-      return Promise.resolve({ ok: true, text: () => Promise.resolve(entry), json: () => Promise.resolve({}) })
-    }
-    return Promise.resolve({ ok: true, text: () => Promise.resolve(''), json: () => Promise.resolve(entry) })
-  })
-}
 
 const SHACL_DUMMY = '# dummy turtle'
 
