@@ -91,6 +91,7 @@ function detectFormat(contentType) {
   if (contentType.includes('application/ld+json')) return 'jsonld'
   if (contentType.includes('text/turtle')) return 'turtle'
   if (contentType.includes('application/rdf+xml')) return 'rdfxml'
+  if (contentType.includes('application/json')) return 'json'
   return null
 }
 
@@ -110,8 +111,12 @@ async function loadData() {
   try {
     const res = await fetch(props.dataUrl)
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
-    const text = await res.text()
     const format = props.dataFormat || detectFormat(res.headers.get('content-type'))
+    if (format === 'json') {
+      resolvedData.value = await res.json()
+      return
+    }
+    const text = await res.text()
     const importer = new RDFImporter()
     if (format === 'turtle') {
       resolvedData.value = await importer.fromTurtle(text, viewConfig.value)
