@@ -26,7 +26,13 @@ export class ViewConfigResolver extends BaseConfigResolver {
         const tabs = (section.tabs || []).map(tab => {
           const t = {
             ...tab,
-            fields: (tab.fields || []).filter(fid => mergedFields[fid] && mergedFields[fid].visible !== false)
+            fields: (tab.fields || []).filter(fid => mergedFields[fid] && mergedFields[fid].visible !== false),
+            sections: tab.sections
+              ? tab.sections.map(sec => ({
+                  ...sec,
+                  fields: (sec.fields || []).filter(fid => mergedFields[fid] && mergedFields[fid].visible !== false)
+                }))
+              : undefined
           }
           // Apply translation overrides for tab labels
           for (const [lang, map] of Object.entries(translations)) {
