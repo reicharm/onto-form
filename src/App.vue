@@ -17,7 +17,10 @@
         <button class="btn-import-header" @click="showImport = true">
           {{ t('btn.import') }}
         </button>
-        <button class="btn-mode-toggle" @click="wizardMode = !wizardMode">
+        <button class="btn-mode-toggle" @click="viewMode = !viewMode">
+          {{ viewMode ? t('btn.view-toggle.to-edit') : t('btn.view-toggle.to-view') }}
+        </button>
+        <button v-if="!viewMode" class="btn-mode-toggle" @click="wizardMode = !wizardMode">
           {{ wizardMode ? t('btn.wizard-toggle.to-single') : t('btn.wizard-toggle.to-wizard') }}
         </button>
         <button v-if="hasDistributionEditor" class="btn-mode-toggle" @click="toggleDistributionMode">
@@ -47,8 +50,14 @@
     </div>
 
     <main class="app-main">
+      <OntoViewer
+        v-if="activeConfig && viewMode"
+        :config="activeViewConfig"
+        :data="formData"
+        :lang="lang"
+      />
       <MetadataForm
-        v-if="activeConfig"
+        v-else-if="activeConfig"
         :config="activeConfig"
         :lang="lang"
         :wizard="wizardMode"
@@ -57,7 +66,7 @@
         @export="showExport = true"
       />
       <div v-else-if="!appError" class="loading">
-        {{ lang === 'de' ? 'Formular wird geladen…' : 'Loading form configuration…' }}
+        {{ t('app.loading') }}
       </div>
     </main>
 
@@ -102,6 +111,7 @@ export const BUILTIN_STANDARDS = [
 import { ref, computed, watch, onMounted, onErrorCaptured, provide } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
+import OntoViewer from './components/viewer/OntoViewer.vue'
 import ExportPanel from './components/ExportPanel.vue'
 import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
@@ -169,6 +179,7 @@ const formData = ref({})
 const showExport = ref(false)
 const showImport = ref(false)
 const wizardMode = ref(true)
+const viewMode = ref(false)
 const distributionMode = ref('modal')
 const appError = ref(null)
 const showPreview = ref(false)
@@ -184,6 +195,17 @@ const activeConfig = computed(() => {
       ...formConfig.value.fields,
       'dcat:distribution': { ...distField, distributionMode: distributionMode.value }
     }
+  }
+})
+
+// Convert the form config's groups into OntoViewer sections on the fly so the
+// viewer works for all standards without needing separate ui-view-config files.
+const activeViewConfig = computed(() => {
+  const cfg = activeConfig.value
+  if (!cfg) return null
+  return {
+    ...cfg,
+    sections: (cfg.groups || []).map(g => ({ ...g, type: 'section' }))
   }
 })
 
