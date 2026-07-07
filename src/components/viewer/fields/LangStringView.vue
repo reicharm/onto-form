@@ -20,6 +20,14 @@
       </template>
     </template>
 
+    <!-- Single { value, lang } object (from RDF import) — treat as one-item array -->
+    <template v-else-if="modelValue && typeof modelValue === 'object' && 'value' in modelValue && 'lang' in modelValue">
+      <div class="langstring-item">
+        <span class="langstring-value">{{ modelValue.value }}</span>
+        <span class="langstring-lang" v-if="modelValue.lang !== lang">({{ modelValue.lang }})</span>
+      </div>
+    </template>
+
     <!-- Object { de: "...", en: "..." } -->
     <template v-else-if="modelValue && typeof modelValue === 'object'">
       <span class="langstring-value">{{ primaryValue }}</span>

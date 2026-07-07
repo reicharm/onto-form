@@ -47,12 +47,14 @@ function subComponent(sf) {
   return componentMap[sf.type] ?? TextView
 }
 
-const visibleSubFields = computed(() =>
-  (props.field.subFields || []).filter(sf => {
+const visibleSubFields = computed(() => {
+  const raw = props.field.subFields
+  const arr = Array.isArray(raw) ? raw : (raw && typeof raw === 'object' ? Object.values(raw) : [])
+  return arr.filter(sf => {
     const val = props.modelValue?.[sf.id]
     return val !== undefined && val !== null && val !== ''
   })
-)
+})
 </script>
 
 <style scoped>
