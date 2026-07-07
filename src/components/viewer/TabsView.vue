@@ -13,15 +13,36 @@
       </button>
     </div>
     <div class="tab-content" role="tabpanel">
-      <FieldGroupView
-        v-for="tab in section.tabs"
-        v-show="activeTab === tab.id"
-        :key="tab.id"
-        :fieldIds="tab.fields"
-        :fields="fields"
-        :data="data"
-        :lang="lang"
-      />
+      <template v-for="tab in section.tabs" :key="tab.id">
+        <div v-show="activeTab === tab.id" class="tab-panel">
+          <!-- Tab with multiple named sections -->
+          <template v-if="tab.sections && tab.sections.length">
+            <div
+              v-for="(sec, i) in tab.sections"
+              :key="sec.id || i"
+              :class="['tab-section', { 'tab-section--first': i === 0 }]"
+            >
+              <div v-if="sec.label" class="tab-section-label">
+                {{ sec.label?.[lang] || sec.label?.de || sec.label?.en || sec.id }}
+              </div>
+              <FieldGroupView
+                :fieldIds="sec.fields || []"
+                :fields="fields"
+                :data="data"
+                :lang="lang"
+              />
+            </div>
+          </template>
+          <!-- Tab with a flat field list (existing behaviour) -->
+          <FieldGroupView
+            v-else
+            :fieldIds="tab.fields || []"
+            :fields="fields"
+            :data="data"
+            :lang="lang"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -82,5 +103,32 @@ const activeTab = ref(props.section.tabs?.[0]?.id)
 
 .tab-content {
   padding: 1.5rem;
+}
+
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.tab-section--first {
+  padding-top: 0;
+  border-top: none;
+}
+
+.tab-section-label {
+  font-size: var(--font-size-label);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 </style>

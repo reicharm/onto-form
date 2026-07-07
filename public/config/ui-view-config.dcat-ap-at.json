@@ -17,7 +17,18 @@
         {
           "id": "classification",
           "label": { "de": "Klassifizierung", "en": "Classification" },
-          "fields": ["dcat:theme", "dct:type", "dct:accessRights", "dct:language", "dcat:keyword", "dcatap:applicableLegislation", "dcatap:hvdCategory"]
+          "sections": [
+            {
+              "id": "themes",
+              "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
+              "fields": ["dcat:theme", "dct:type", "dcat:keyword"]
+            },
+            {
+              "id": "legal",
+              "label": { "de": "Zugang & Recht", "en": "Access & Legal" },
+              "fields": ["dct:accessRights", "dct:language", "dcatap:applicableLegislation", "dcatap:hvdCategory"]
+            }
+          ]
         },
         {
           "id": "dates",
