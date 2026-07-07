@@ -285,6 +285,7 @@ describe('FormConfigResolver', () => {
     }
 
     it('with rootClass set: excludes fields from non-root shapes', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }
@@ -302,6 +303,7 @@ describe('FormConfigResolver', () => {
     })
 
     it('with rootClass set: dct:title comes from Dataset shape, not Distribution shape', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }
@@ -317,6 +319,7 @@ describe('FormConfigResolver', () => {
     })
 
     it('without rootClass: all non-embedded shapes are included (backward compat)', async () => {
+      vi.resetModules()
       vi.doMock('../../src/services/SHACLParser.js', () => {
         class SHACLParser { async parse() { return SHAPES_WITH_DIST } }
         return { SHACLParser }

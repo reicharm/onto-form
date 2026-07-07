@@ -8,13 +8,13 @@ export function useFieldLabels(fieldRef, langRef) {
   const label = computed(() => {
     const f = fieldRef.value ?? fieldRef   // accept both ref and plain object
     const l = langRef.value  ?? langRef
-    return f?.label?.[l] || f?.label?.en || f?.id || ''
+    return f?.label?.[l] || f?.label?.de || f?.label?.en || f?.id || ''
   })
 
   const placeholder = computed(() => {
     const f = fieldRef.value ?? fieldRef
     const l = langRef.value  ?? langRef
-    return f?.placeholder?.[l] || f?.placeholder?.en || ''
+    return f?.placeholder?.[l] || f?.placeholder?.de || f?.placeholder?.en || ''
   })
 
   const hint = computed(() => {

@@ -43,11 +43,11 @@
         </template>
         <template v-if="dist['dct:issued']">
           <dt>{{ t('dist.field.issued') }}</dt>
-          <dd>{{ formatDate(dist['dct:issued']) }}</dd>
+          <dd>{{ fmtDate(dist['dct:issued']) }}</dd>
         </template>
         <template v-if="dist['dct:modified']">
           <dt>{{ t('dist.field.modified') }}</dt>
-          <dd>{{ formatDate(dist['dct:modified']) }}</dd>
+          <dd>{{ fmtDate(dist['dct:modified']) }}</dd>
         </template>
       </dl>
     </div>
@@ -57,6 +57,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useTranslations } from '../../../composables/useTranslations.js'
+import { formatDate } from '../../../utils/formatDate.js'
+import { resolveLangValue } from '../../../utils/resolveLangValue.js'
 
 const props = defineProps({
   field: { type: Object, required: true },
@@ -71,29 +73,11 @@ const items = computed(() =>
 )
 
 function resolveTitle(dist) {
-  const title = dist['dct:title']
-  if (!title) return ''
-  if (typeof title === 'string') return title
-  if (typeof title === 'object' && !Array.isArray(title)) {
-    return title[props.lang] || title.de || title.en || Object.values(title)[0] || ''
-  }
-  if (Array.isArray(title)) {
-    const match = title.find(t => t.lang === props.lang)
-    return (match || title[0])?.value || ''
-  }
-  return String(title)
+  return resolveLangValue(dist['dct:title'], props.lang)
 }
 
-function formatDate(val) {
-  if (!val) return ''
-  try {
-    const d = new Date(val)
-    if (isNaN(d.getTime())) return val
-    const locale = props.lang === 'de' ? 'de-AT' : 'en-GB'
-    return d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
-  } catch {
-    return val
-  }
+function fmtDate(val) {
+  return formatDate(val, props.lang)
 }
 
 function hasMeta(dist) {

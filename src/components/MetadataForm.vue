@@ -217,7 +217,7 @@ import SearchSelectField from './fields/SearchSelectField.vue'
 import ValidationReport from './ValidationReport.vue'
 import { assetUrl } from '../config/ontoFormConfig.js'
 import { validateForm, hasValue } from '../composables/useValidation.js'
-import { applyDisplay, applyEncode } from '../config/fieldTransforms.js'
+import { applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
 import { suggestionsStore } from '../services/SuggestionsStore.js'
 import { SHACLValidationService } from '../services/SHACLValidationService.js'
@@ -283,33 +283,6 @@ function groupFields(group) {
     .map(id => props.config.fields[id])
     .filter(f => f && f.visible !== false && evaluateVisibleIf(f.visibleIf, props.modelValue))
     .sort((a, b) => (a.order || 0) - (b.order || 0))
-}
-
-// Returns the value to show in the form field (applies display transform if configured)
-function displayValue(field) {
-  const stored = props.modelValue?.[field.id]
-  if (!field.transform) return stored
-  return applyDisplay(field.transform, stored, field.transformOptions)
-}
-
-// Returns the encoded preview URI (shown as hint below the field)
-function encodedPreview(field, currentDisplayValue) {
-  if (!field.transform || !currentDisplayValue) return null
-  const stored = props.modelValue?.[field.id]
-  const encoded = applyEncode(field.transform, currentDisplayValue, field.transformOptions, stored)
-  // Only show preview when it differs from what the user typed
-  return encoded !== currentDisplayValue ? encoded : null
-}
-
-function updateField(field, value) {
-  const id = typeof field === 'string' ? field : field.id
-  if (typeof field === 'object' && field.transform) {
-    const stored = props.modelValue?.[id]
-    const encoded = applyEncode(field.transform, value, field.transformOptions, stored)
-    emit('update:modelValue', { ...props.modelValue, [id]: encoded })
-  } else {
-    emit('update:modelValue', { ...props.modelValue, [id]: value })
-  }
 }
 
 const fieldErrors = computed(() => validateForm(props.config, props.modelValue, props.lang))

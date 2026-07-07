@@ -32,6 +32,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 import TextView from './fields/TextView.vue'
 import DateView from './fields/DateView.vue'
 import URIView from './fields/URIView.vue'
@@ -70,7 +71,8 @@ function fieldComponent(field) {
 }
 
 function fieldLabel(field) {
-  return field.label?.[props.lang] || field.label?.de || field.label?.en || field.id
+  const { label } = useFieldLabels(field, props.lang)
+  return label.value
 }
 
 function hasValue(val) {
