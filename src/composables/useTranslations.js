@@ -46,6 +46,8 @@ const DEFAULTS = {
     // DistributionModal
     'dist.modal.title': 'Distribution bearbeiten',
     'btn.save': 'Speichern',
+    'dist.btn.access': 'Zugang öffnen',
+    'dist.btn.download': 'Herunterladen',
     // DistributionEditor
     'dist.empty-hint': 'Noch keine Distributionen vorhanden.',
     'btn.add-first-dist': 'Erste Distribution hinzufügen',
@@ -144,6 +146,8 @@ const DEFAULTS = {
     // DistributionModal
     'dist.modal.title': 'Edit Distribution',
     'btn.save': 'Save',
+    'dist.btn.access': 'Open access',
+    'dist.btn.download': 'Download',
     // DistributionEditor
     'dist.empty-hint': 'No distributions yet.',
     'btn.add-first-dist': 'Add first distribution',

@@ -5,26 +5,44 @@
       <div class="dist-title">{{ resolveTitle(dist) || `Distribution ${i + 1}` }}</div>
 
       <div class="dist-links">
-        <a
-          v-if="dist['dcat:accessURL']"
-          :href="dist['dcat:accessURL']"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="dist-link"
-        >
-          <span class="link-label">{{ t('dist.field.access-url') }}</span>
-          {{ dist['dcat:accessURL'] }}
-        </a>
-        <a
-          v-if="dist['dcat:downloadURL']"
-          :href="dist['dcat:downloadURL']"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="dist-link"
-        >
-          <span class="link-label">{{ t('dist.field.download-url') }}</span>
-          {{ dist['dcat:downloadURL'] }}
-        </a>
+        <template v-if="buttonLinks">
+          <a
+            v-if="dist['dcat:accessURL']"
+            :href="dist['dcat:accessURL']"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="dist-btn dist-btn--access"
+          >🔗 {{ t('dist.btn.access') }}</a>
+          <a
+            v-if="dist['dcat:downloadURL']"
+            :href="dist['dcat:downloadURL']"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="dist-btn dist-btn--download"
+          >⬇ {{ t('dist.btn.download') }}</a>
+        </template>
+        <template v-else>
+          <a
+            v-if="dist['dcat:accessURL']"
+            :href="dist['dcat:accessURL']"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="dist-link"
+          >
+            <span class="link-label">{{ t('dist.field.access-url') }}</span>
+            {{ dist['dcat:accessURL'] }}
+          </a>
+          <a
+            v-if="dist['dcat:downloadURL']"
+            :href="dist['dcat:downloadURL']"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="dist-link"
+          >
+            <span class="link-label">{{ t('dist.field.download-url') }}</span>
+            {{ dist['dcat:downloadURL'] }}
+          </a>
+        </template>
       </div>
 
       <div class="dist-badges" v-if="dist['dct:format'] || dist['dcat:mediaType']">
@@ -71,6 +89,9 @@ const { t } = useTranslations()
 const items = computed(() =>
   Array.isArray(props.modelValue) ? props.modelValue.filter(Boolean) : []
 )
+
+// Show access/download links as buttons unless the field config opts out
+const buttonLinks = computed(() => props.field.buttonLinks !== false)
 
 function resolveTitle(dist) {
   return resolveLangValue(dist['dct:title'], props.lang)
@@ -121,6 +142,30 @@ function hasMeta(dist) {
 }
 .dist-link:hover {
   text-decoration: underline;
+}
+.dist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: opacity 0.15s;
+}
+.dist-btn--access {
+  background: var(--color-primary);
+  color: #fff;
+}
+.dist-btn--download {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+.dist-btn:hover {
+  opacity: 0.82;
 }
 .link-label {
   font-weight: 500;

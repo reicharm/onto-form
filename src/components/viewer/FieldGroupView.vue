@@ -42,6 +42,7 @@ import LangStringView from './fields/LangStringView.vue'
 import ObjectView from './fields/ObjectView.vue'
 import DistributionView from './fields/DistributionView.vue'
 import MapView from './fields/MapView.vue'
+import LinkButtonView from './fields/LinkButtonView.vue'
 
 const props = defineProps({
   fieldIds: { type: Array, required: true },
@@ -67,6 +68,7 @@ const componentMap = {
 }
 
 function fieldComponent(field) {
+  if (field.viewAs === 'button') return LinkButtonView
   return componentMap[field.type] || TextView
 }
 
