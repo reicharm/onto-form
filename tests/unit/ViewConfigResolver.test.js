@@ -356,7 +356,7 @@ describe('ViewConfigResolver', () => {
         }
         return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve({}) })
       })
-      await expect(resolver.resolve('missing')).rejects.toThrow(/Failed to load UI view config/)
+      await expect(resolver.resolve('missing')).rejects.toThrow(/No view config found for/)
     })
   })
 })
