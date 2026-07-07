@@ -19,12 +19,12 @@
           @update:modelValue="updateItem(index, $event)"
         />
         <button type="button" class="btn-remove"
-          :aria-label="lang === 'de' ? `Eintrag ${index + 1} aus ${label} entfernen` : `Remove item ${index + 1} from ${label}`"
+          :aria-label="`${t('btn.remove')} ${index + 1} ${label}`"
           @click="removeItem(index)">×</button>
       </div>
     </div>
     <button type="button" class="btn-add" @click="addItem">
-      + {{ lang === 'de' ? 'Hinzufügen' : 'Add' }}
+      + {{ t('btn.add') }}
     </button>
     <span v-if="field.hint?.[lang]" class="hint">{{ field.hint[lang] }}</span>
   </div>
@@ -32,6 +32,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useTranslations } from '../../composables/useTranslations.js'
 import LangStringItem from './LangStringItem.vue'
 import TextField from './TextField.vue'
 import TextareaField from './TextareaField.vue'
@@ -40,6 +41,8 @@ import SelectField from './SelectField.vue'
 import SearchSelectField from './SearchSelectField.vue'
 import DateField from './DateField.vue'
 import ObjectField from './ObjectField.vue'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   field: Object,

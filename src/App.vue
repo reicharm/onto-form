@@ -6,7 +6,7 @@
         <StandardSelector
           :standards="entityTypes"
           v-model="entityType"
-          :label="lang === 'de' ? 'Art:' : 'Type:'"
+          :label="t('header.type-label')"
         />
         <StandardSelector
           v-if="entityType === 'dataset'"
@@ -15,20 +15,16 @@
         />
 
         <button class="btn-import-header" @click="showImport = true">
-          {{ lang === 'de' ? 'Importieren' : 'Import' }}
+          {{ t('btn.import') }}
         </button>
         <button class="btn-mode-toggle" @click="wizardMode = !wizardMode">
-          {{ wizardMode
-            ? (lang === 'de' ? 'Einzel-Seite' : 'Single page')
-            : (lang === 'de' ? 'Schritt-Assistent' : 'Wizard') }}
+          {{ wizardMode ? t('btn.wizard-toggle.to-single') : t('btn.wizard-toggle.to-wizard') }}
         </button>
         <button v-if="hasDistributionEditor" class="btn-mode-toggle" @click="toggleDistributionMode">
-          {{ distributionMode === 'modal'
-            ? (lang === 'de' ? 'Dist.: Inline' : 'Dist.: Inline')
-            : (lang === 'de' ? 'Dist.: Modal' : 'Dist.: Modal') }}
+          {{ distributionMode === 'modal' ? 'Dist.: Inline' : 'Dist.: Modal' }}
         </button>
-        <button class="btn-preview-header" @click="showPreview = true" :title="lang === 'de' ? 'Aktuelle Daten als RDF ansehen (Debug)' : 'Preview current data as RDF (debug)'">
-          {{ lang === 'de' ? 'Vorschau' : 'Preview' }}
+        <button class="btn-preview-header" @click="showPreview = true">
+          {{ t('btn.preview') }}
         </button>
         <div class="lang-toggle">
           <button :class="{ active: lang === 'de' }" @click="lang = 'de'">DE</button>
@@ -39,16 +35,14 @@
 
     <div v-if="vocabWarnings.length" class="app-warning" role="status" aria-live="polite">
       <span aria-hidden="true">ℹ</span>
-      {{ lang === 'de'
-        ? `${vocabWarnings.length} Vokabular(e) konnten nicht geladen werden und wurden übersprungen.`
-        : `${vocabWarnings.length} vocabulary source(s) could not be loaded and were skipped.` }}
+      {{ vocabWarnings.length }} {{ t('app.vocab-warning') }}
     </div>
 
     <div v-if="appError" class="app-error" role="alert">
       <span class="app-error-icon" aria-hidden="true">⚠</span>
       {{ appError }}
       <button class="app-error-retry" @click="loadFormConfig(effectiveStandard)">
-        {{ lang === 'de' ? 'Erneut versuchen' : 'Retry' }}
+        {{ t('btn.retry') }}
       </button>
     </div>
 
@@ -105,7 +99,7 @@ export const BUILTIN_STANDARDS = [
 </script>
 
 <script setup>
-import { ref, computed, watch, onMounted, onErrorCaptured } from 'vue'
+import { ref, computed, watch, onMounted, onErrorCaptured, provide } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import ExportPanel from './components/ExportPanel.vue'
@@ -113,6 +107,8 @@ import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
 import { applyEncode } from './config/fieldTransforms.js'
+import { assetUrl } from './config/ontoFormConfig.js'
+import { useTranslations } from './composables/useTranslations.js'
 
 const props = defineProps({
   standards: {
@@ -135,14 +131,31 @@ const standards = computed(() => props.standards)
 const selectedStandard = ref(props.initialStandard ?? props.standards[0]?.id ?? 'dcat-ap-at')
 const lang = ref('de')
 
+// Optional translation files: public/translations/{lang}.json
+// Loaded at startup and whenever the language changes. 404 = silently ignored.
+const allTranslations = ref({})
+async function loadTranslations(l) {
+  try {
+    const res = await fetch(assetUrl(`translations/${l}.json`))
+    if (!res.ok) return
+    allTranslations.value = { ...allTranslations.value, [l]: await res.json() }
+  } catch { /* translation files are optional */ }
+}
+
+// Provide lang and current-language translations for all child components
+provide('onto-form:lang', lang)
+provide('onto-form:translations', computed(() => allTranslations.value[lang.value] ?? {}))
+
+const { t } = useTranslations()
+
 // Catalogue editing currently has a single, fixed config (reusing the
 // dcat-ap-at SHACL via shaclSource) rather than one per standard, so the
 // standard selector is hidden while entityType is 'catalogue'.
 const entityType = ref('dataset')
 const entityTypes = computed(() => [
-  { id: 'dataset', label: lang.value === 'de' ? 'Datensatz' : 'Dataset' },
-  { id: 'catalogue', label: lang.value === 'de' ? 'Katalog' : 'Catalogue' },
-  { id: 'application', label: lang.value === 'de' ? 'Applikation' : 'Application' }
+  { id: 'dataset', label: t('entity.dataset') },
+  { id: 'catalogue', label: t('entity.catalogue') },
+  { id: 'application', label: t('entity.application') }
 ])
 const CATALOGUE_STANDARD = 'dcat-ap-at-catalogue'
 const APPLICATION_STANDARD = 'dcat-ap-at-application'
@@ -213,7 +226,7 @@ async function loadFormConfig(standard, { preserveData = false } = {}) {
   const resolver = new FormConfigResolver()
   let config
   try {
-    config = await resolver.resolve(standard)
+    config = await resolver.resolve(standard, { translations: allTranslations.value })
   } catch (err) {
     appError.value = lang.value === 'de'
       ? `Konfiguration konnte nicht geladen werden: ${err.message}`
@@ -288,14 +301,19 @@ function onImport(importedData) {
 }
 
 onErrorCaptured((err) => {
-  appError.value = lang.value === 'de'
-    ? `Ein unerwarteter Fehler ist aufgetreten: ${err.message}`
-    : `An unexpected error occurred: ${err.message}`
+  appError.value = `${t('app.error-prefix')}: ${err.message}`
   return false
 })
 
+watch(lang, async (l) => {
+  await loadTranslations(l)
+})
+
 watch(effectiveStandard, (std) => loadFormConfig(std, { preserveData: true }))
-onMounted(() => loadFormConfig(effectiveStandard.value))
+onMounted(async () => {
+  await loadTranslations(lang.value)
+  await loadFormConfig(effectiveStandard.value)
+})
 </script>
 
 <style>

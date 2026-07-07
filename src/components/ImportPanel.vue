@@ -1,7 +1,7 @@
 <template>
   <BaseModal
     heading-id="import-heading"
-    :title="lang === 'de' ? 'Importieren' : 'Import'"
+    :title="t('btn.import')"
     :close-label="lang === 'de' ? 'Import schließen' : 'Close import'"
     max-width="700px"
     :focus-selectors="['[role=\'tab\']', 'button']"
@@ -22,7 +22,7 @@
     <div class="import-body">
       <div class="file-row">
         <label class="btn-file">
-          {{ lang === 'de' ? 'Datei öffnen …' : 'Open file …' }}
+          {{ t('btn.open-file') }}
           <input
             type="file"
             :accept="activeTab === 'jsonld' ? '.json,.jsonld' : activeTab === 'turtle' ? '.ttl,.turtle' : '.rdf,.xml'"
@@ -52,10 +52,10 @@
 
     <template #actions>
       <button class="btn-cancel" @click="$emit('close')">
-        {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
+        {{ t('btn.cancel') }}
       </button>
       <button class="btn-import" :disabled="!text.trim()" @click="doImport">
-        {{ lang === 'de' ? 'Importieren' : 'Import' }}
+        {{ t('btn.import') }}
       </button>
     </template>
   </BaseModal>
@@ -66,6 +66,9 @@ import { ref, computed } from 'vue'
 import { RDFImporter } from '../services/RDFImporter.js'
 import BaseModal from './BaseModal.vue'
 import TabBar from './TabBar.vue'
+import { useTranslations } from '../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   config: Object,

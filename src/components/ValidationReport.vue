@@ -3,16 +3,16 @@
     <!-- Header -->
     <div class="report-header">
       <span class="report-title">
-        {{ lang === 'de' ? 'SHACL-Validierungsbericht' : 'SHACL Validation Report' }}
+        {{ t('validation.title') }}
       </span>
       <div class="report-summary">
         <span class="badge badge-violation" :class="{ zero: counts.violation === 0 }">
           <span aria-hidden="true">✗ </span>{{ counts.violation }}
-          {{ lang === 'de' ? ' Verstoß' + (counts.violation !== 1 ? 'e' : '') : ' Violation' + (counts.violation !== 1 ? 's' : '') }}
+          {{ ' ' + t('validation.sev.violation') }}
         </span>
         <span class="badge badge-warning" :class="{ zero: counts.warning === 0 }">
           <span aria-hidden="true">⚠ </span>{{ counts.warning }}
-          {{ lang === 'de' ? ' Warnung' + (counts.warning !== 1 ? 'en' : '') : ' Warning' + (counts.warning !== 1 ? 's' : '') }}
+          {{ ' ' + t('validation.sev.warning') }}
         </span>
         <span v-if="counts.info > 0" class="badge badge-info">
           <span aria-hidden="true">ℹ </span>{{ counts.info }}
@@ -29,7 +29,7 @@
     <!-- Valid state -->
     <div v-if="violations.length === 0" class="report-valid" role="status" aria-live="polite">
       <span class="valid-icon" aria-hidden="true">✓</span>
-      <span>{{ lang === 'de' ? 'Keine Verstöße gefunden.' : 'No violations found.' }}</span>
+      <span>{{ t('validation.no-violations') }}</span>
     </div>
 
     <!-- Violation groups -->
@@ -57,9 +57,9 @@
             v-if="v.groupId"
             type="button"
             class="btn-navigate"
-            :aria-label="(lang === 'de' ? 'Zum Feld navigieren: ' : 'Navigate to field: ') + fieldLabel(v)"
+            :aria-label="t('btn.navigate-to-field') + ': ' + fieldLabel(v)"
             @click="$emit('navigate', { fieldId: v.fieldId, groupId: v.groupId })"
-          >{{ lang === 'de' ? 'Zum Feld' : 'Go to field' }}</button>
+          >{{ t('btn.navigate-to-field') }}</button>
         </div>
       </div>
     </template>
@@ -68,6 +68,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useTranslations } from '../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   violations: { type: Array, default: () => [] },
@@ -95,12 +98,10 @@ function fieldLabel(v) {
 }
 
 function sevLabel(sev) {
-  const labels = {
-    violation: { de: 'Verstöße',  en: 'Violations' },
-    warning:   { de: 'Warnungen', en: 'Warnings' },
-    info:      { de: 'Hinweise',  en: 'Info' },
-  }
-  return labels[sev]?.[props.lang] || labels[sev]?.en || sev
+  if (sev === 'violation') return t('validation.sev.violation')
+  if (sev === 'warning')   return t('validation.sev.warning')
+  if (sev === 'info')      return t('validation.sev.info')
+  return sev
 }
 </script>
 

@@ -5,10 +5,10 @@
     <!-- Empty state -->
     <div v-if="!distributions.length" class="dist-empty">
       <p class="dist-empty-hint">
-        {{ lang === 'de' ? 'Noch keine Distributionen vorhanden.' : 'No distributions yet.' }}
+        {{ t('dist.empty-hint') }}
       </p>
       <button class="btn-add-first" @click="addDistribution">
-        {{ lang === 'de' ? 'Erste Distribution hinzufügen' : 'Add first distribution' }}
+        {{ t('btn.add-first-dist') }}
       </button>
     </div>
 
@@ -43,9 +43,9 @@
             </div>
             <div class="dist-card-controls">
               <button type="button" class="btn-remove-inline"
-                :aria-label="(lang === 'de' ? 'Distribution ' : 'Distribution ') + (idx + 1) + (lang === 'de' ? ' entfernen' : ' remove')"
+                :aria-label="`Distribution ${idx + 1}`"
                 @click.stop="removeDistribution(idx)"
-                :title="lang === 'de' ? 'Entfernen' : 'Remove'">✕</button>
+                :title="t('btn.remove')">✕</button>
               <span class="dist-toggle" aria-hidden="true">{{ openCards.has(idx) ? '▲' : '▼' }}</span>
             </div>
           </div>
@@ -89,17 +89,17 @@
           </div>
           <div class="dist-row-actions">
             <button class="btn-edit" @click="editDist(idx)">
-              {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
+              {{ t('btn.edit') }}
             </button>
             <button class="btn-remove" @click="removeDistribution(idx)">
-              {{ lang === 'de' ? 'Entfernen' : 'Remove' }}
+              {{ t('btn.remove') }}
             </button>
           </div>
         </div>
       </template>
 
       <button type="button" class="btn-add" @click="addDistribution">
-        + {{ lang === 'de' ? 'Distribution hinzufügen' : 'Add distribution' }}
+        + {{ t('btn.add-dist') }}
       </button>
     </template>
 
@@ -123,12 +123,15 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import DistributionForm from './DistributionForm.vue'
 import DistributionModal from '../DistributionModal.vue'
 import { assetUrl } from '../../config/ontoFormConfig.js'
+import { useTranslations } from '../../composables/useTranslations.js'
 
 const props = defineProps({
   field: Object,
   lang: String,
   modelValue: { type: Array, default: () => [] }
 })
+
+const { t } = useTranslations()
 
 const uploadConfig = computed(() => props.field?.fileUpload || null)
 

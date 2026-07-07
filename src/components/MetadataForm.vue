@@ -35,7 +35,7 @@
         >
           <div class="step-connector left" :class="{ done: currentStep >= visibleGroups.length }"></div>
           <div class="step-circle">&#10003;</div>
-          <div class="step-label">{{ lang === 'de' ? 'Übersicht' : 'Summary' }}</div>
+          <div class="step-label">{{ t('wizard.summary') }}</div>
         </div>
       </div>
 
@@ -72,13 +72,13 @@
         <!-- Navigation -->
         <div class="wizard-nav">
           <button v-if="currentStep > 0" class="btn-back" @click="prevStep">
-            {{ lang === 'de' ? 'Zurück' : 'Back' }}
+            {{ t('wizard.nav.back') }}
           </button>
           <span v-else></span>
           <button class="btn-export" @click="nextStep">
             {{ currentStep < visibleGroups.length - 1
-              ? (lang === 'de' ? 'Weiter' : 'Next')
-              : (lang === 'de' ? 'Zur Übersicht' : 'Summary') }}
+              ? t('wizard.nav.next')
+              : t('wizard.nav.to-summary') }}
           </button>
         </div>
       </template>
@@ -96,10 +96,10 @@
               <h2 class="group-title">{{ group.label[lang] || group.label.en }}</h2>
               <div class="summary-group-header-right">
                 <span v-if="groupHasErrors(group)" class="group-error-badge">
-                  {{ lang === 'de' ? 'Fehlende Pflichtfelder' : 'Required fields missing' }}
+                  {{ t('wizard.summary.error-badge') }}
                 </span>
                 <button class="btn-edit" @click="jumpToStep(idx)">
-                  {{ lang === 'de' ? 'Bearbeiten' : 'Edit' }}
+                  {{ t('wizard.summary.edit') }}
                 </button>
               </div>
             </div>
@@ -112,7 +112,7 @@
                   </template>
                 </div>
               </template>
-              <span v-else class="no-data">{{ lang === 'de' ? 'Keine Angaben' : 'No data' }}</span>
+              <span v-else class="no-data">{{ t('wizard.summary.no-data') }}</span>
             </div>
           </div>
         </div>
@@ -120,7 +120,7 @@
         <!-- Export actions in summary -->
         <div class="form-actions">
           <span v-if="!isValid" class="validation-hint">
-            {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
+            {{ t('form.validation-hint') }}
           </span>
           <button
             class="btn-validate"
@@ -131,14 +131,14 @@
               : label('validateAriaLabel', { de: 'SHACL-Validierung starten', en: 'Run SHACL validation' })"
             @click="runValidation"
           >
-            {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
+            {{ validating ? '…' : label('validate', { de: DEFAULTS.de['btn.validate'], en: DEFAULTS.en['btn.validate'] }) }}
           </button>
           <button
             class="btn-export"
             :disabled="!isValid"
             :class="{ disabled: !isValid }"
             @click="handleExport"
-          >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
+          >{{ label('export', { de: DEFAULTS.de['btn.export'], en: DEFAULTS.en['btn.export'] }) }}</button>
         </div>
         <ValidationReport
           v-if="showReport"
@@ -151,7 +151,7 @@
         <!-- Back navigation -->
         <div class="wizard-nav">
           <button class="btn-back" @click="prevStep">
-            {{ lang === 'de' ? 'Zurück' : 'Back' }}
+            {{ t('wizard.nav.back') }}
           </button>
           <span></span>
         </div>
@@ -175,17 +175,17 @@
 
       <div class="form-actions">
         <span v-if="!isValid" class="validation-hint">
-          {{ lang === 'de' ? 'Bitte alle Fehler beheben.' : 'Please fix all errors.' }}
+          {{ t('form.validation-hint') }}
         </span>
         <button class="btn-validate" type="button" :disabled="validating" @click="runValidation">
-          {{ validating ? '…' : label('validate', { de: 'SHACL prüfen', en: 'SHACL validate' }) }}
+          {{ validating ? '…' : label('validate', { de: DEFAULTS.de['btn.validate'], en: DEFAULTS.en['btn.validate'] }) }}
         </button>
         <button
           class="btn-export"
           :disabled="!isValid"
           :class="{ disabled: !isValid }"
           @click="handleExport"
-        >{{ label('export', { de: 'Export JSON-LD / Turtle', en: 'Export JSON-LD / Turtle' }) }}</button>
+        >{{ label('export', { de: DEFAULTS.de['btn.export'], en: DEFAULTS.en['btn.export'] }) }}</button>
       </div>
       <ValidationReport
         v-if="showReport"
@@ -200,6 +200,7 @@
 
 <script setup>
 import { computed, ref, watch, nextTick } from 'vue'
+import { useTranslations, DEFAULTS } from '../composables/useTranslations.js'
 import TextField from './fields/TextField.vue'
 import TextareaField from './fields/TextareaField.vue'
 import SelectField from './fields/SelectField.vue'
@@ -245,6 +246,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'export'])
+
+const { t } = useTranslations()
 
 function label(key, defaults) {
   const override = props.labels?.[key]
