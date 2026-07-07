@@ -85,6 +85,14 @@ const DEFAULTS = {
     'btn.navigate-to-field': 'Zum Feld',
     // FieldGroup
     'field.stored-as': 'Gespeichert als:',
+    // OntoViewer
+    'viewer.loading': 'Ansicht wird geladen…',
+    'viewer.error': 'Fehler beim Laden der Ansicht',
+    'viewer.no-data': 'Keine Daten vorhanden.',
+    'viewer.copy-wkt': 'WKT kopieren',
+    'viewer.wkt-copied': 'Kopiert!',
+    'viewer.bounds': 'Koordinaten',
+    'viewer.other-langs': 'Weitere Sprachen',
   },
   en: {
     // App
@@ -170,6 +178,14 @@ const DEFAULTS = {
     'btn.navigate-to-field': 'Go to field',
     // FieldGroup
     'field.stored-as': 'Stored as:',
+    // OntoViewer
+    'viewer.loading': 'Loading view…',
+    'viewer.error': 'Error loading view',
+    'viewer.no-data': 'No data available.',
+    'viewer.copy-wkt': 'Copy WKT',
+    'viewer.wkt-copied': 'Copied!',
+    'viewer.bounds': 'Bounds',
+    'viewer.other-langs': 'Other languages',
   }
 }
 

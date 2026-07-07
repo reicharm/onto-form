@@ -66,5 +66,12 @@
   "validation.sev.warning": "Warnings",
   "validation.sev.info": "Info",
   "btn.navigate-to-field": "Go to field",
-  "field.stored-as": "Stored as:"
+  "field.stored-as": "Stored as:",
+  "viewer.loading": "Loading view…",
+  "viewer.error": "Error loading view",
+  "viewer.no-data": "No data available.",
+  "viewer.copy-wkt": "Copy WKT",
+  "viewer.wkt-copied": "Copied!",
+  "viewer.bounds": "Bounds",
+  "viewer.other-langs": "Other languages"
 }

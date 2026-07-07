@@ -30,11 +30,17 @@ export { registerCompute }    from './config/fieldComputes.js'
 export { registerTransform }  from './config/fieldTransforms.js'
 export { registerVisibility } from './config/fieldVisibility.js'
 
+// ── OntoViewer ────────────────────────────────────────────────────────────────
+export { default as OntoViewer } from './components/viewer/OntoViewer.vue'
+export { ViewConfigResolver } from './services/ViewConfigResolver.js'
+
 // ── Vue plugin (optional: registers MetadataForm globally) ────────────────────
 import MetadataForm from './components/MetadataForm.vue'
+import OntoViewer from './components/viewer/OntoViewer.vue'
 
 export const OntoFormPlugin = {
   install(app) {
     app.component('MetadataForm', MetadataForm)
+    app.component('OntoViewer', OntoViewer)
   }
 }
