@@ -51,13 +51,26 @@ export class ViewConfigResolver extends BaseConfigResolver {
   }
 
   async loadUIConfig(standard) {
-    const viewRes = await fetch(assetUrl(`config/ui-view-config.${standard}.json`))
-    if (viewRes.ok) return viewRes.json()
+    const [viewRes, formRes] = await Promise.all([
+      fetch(assetUrl(`config/ui-view-config.${standard}.json`)),
+      fetch(assetUrl(`config/ui-config.${standard}.json`))
+    ])
+
+    const formConfig = formRes.ok ? await formRes.json() : null
+
+    if (viewRes.ok) {
+      const viewConfig = await viewRes.json()
+      // Merge form config field definitions as base so labels/types/subFields are available;
+      // view config field overrides take precedence.
+      if (formConfig) {
+        viewConfig.fields = { ...(formConfig.fields || {}), ...(viewConfig.fields || {}) }
+      }
+      return viewConfig
+    }
+
+    if (!formConfig) throw new Error(`No view config found for ${standard}`)
 
     // Fall back to the form ui-config and convert groups → flat sections
-    const formRes = await fetch(assetUrl(`config/ui-config.${standard}.json`))
-    if (!formRes.ok) throw new Error(`No view config found for ${standard}`)
-    const formConfig = await formRes.json()
     return {
       standard,
       version: formConfig.version,
