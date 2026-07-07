@@ -364,6 +364,62 @@ describe('FormConfigResolver', () => {
     })
   })
 
+  describe('translation overrides', () => {
+    it('generic field label override sets field label for that language', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: { de: { 'field.dct:title.label': 'Überschrift' } }
+      })
+      expect(result.fields['dct:title'].label.de).toBe('Überschrift')
+    })
+
+    it('standard-scoped field label takes priority over generic', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: {
+          de: {
+            'field.dct:title.label': 'Generisch',
+            'test.field.dct:title.label': 'Vorrang'
+          }
+        }
+      })
+      expect(result.fields['dct:title'].label.de).toBe('Vorrang')
+    })
+
+    it('generic group label override sets group label for that language', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: { de: { 'group.basic.label': 'Grunddaten Übersetzt' } }
+      })
+      expect(result.groups[0].label.de).toBe('Grunddaten Übersetzt')
+    })
+
+    it('standard-scoped group label takes priority over generic', async () => {
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': UI_CONFIG
+      })
+      const result = await resolver.resolve('test', {
+        translations: {
+          de: {
+            'group.basic.label': 'Generisch',
+            'test.group.basic.label': 'Vorrang'
+          }
+        }
+      })
+      expect(result.groups[0].label.de).toBe('Vorrang')
+    })
+  })
+
   describe('error handling', () => {
     it('rejects if SHACL fetch fails', async () => {
       global.fetch = vi.fn().mockImplementation((url) => {
