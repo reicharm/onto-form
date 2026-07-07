@@ -63,7 +63,7 @@
           :aria-selected="opt.value === modelValue"
           @mousedown.prevent="select(opt)"
           @mousemove="highlightIdx = idx"
-        >{{ opt.label?.[lang] || opt.label?.en || opt.value }}</li>
+        >{{ opt.label?.[lang] || opt.label?.de || opt.label?.en || opt.value }}</li>
       </ul>
     </div>
 
@@ -74,6 +74,7 @@
 <script setup>
 import { ref, computed, nextTick, onBeforeUnmount } from 'vue'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 
 const props = defineProps({
   field: Object,
@@ -83,8 +84,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useTranslations()
-
-const label    = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
+const { label } = useFieldLabels(computed(() => props.field), computed(() => props.lang))
 const options  = computed(() => props.field.options || [])
 
 // ── Search & filter ────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
   if (!q) return options.value
   return options.value.filter(opt => {
-    const text = (opt.label?.[props.lang] || opt.label?.en || opt.value || '').toLowerCase()
+    const text = (opt.label?.[props.lang] || opt.label?.de || opt.label?.en || opt.value || '').toLowerCase()
     return text.includes(q)
   })
 })
@@ -103,7 +103,7 @@ const filtered = computed(() => {
 const selectedLabel = computed(() => {
   if (!props.modelValue) return ''
   const opt = options.value.find(o => o.value === props.modelValue)
-  return opt ? (opt.label?.[props.lang] || opt.label?.en || opt.value) : props.modelValue
+  return opt ? (opt.label?.[props.lang] || opt.label?.de || opt.label?.en || opt.value) : props.modelValue
 })
 
 // ── Open / close ───────────────────────────────────────────────────────────

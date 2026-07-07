@@ -32,12 +32,12 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 import TextView from './fields/TextView.vue'
 import DateView from './fields/DateView.vue'
 import URIView from './fields/URIView.vue'
 import SelectView from './fields/SelectView.vue'
 import MultiSelectView from './fields/MultiSelectView.vue'
-import SearchSelectView from './fields/SearchSelectView.vue'
 import LangStringView from './fields/LangStringView.vue'
 import ObjectView from './fields/ObjectView.vue'
 import DistributionView from './fields/DistributionView.vue'
@@ -59,7 +59,7 @@ const componentMap = {
   uri: URIView,
   select: SelectView,
   multiselect: MultiSelectView,
-  searchselect: SearchSelectView,
+  searchselect: SelectView,
   langstring: LangStringView,
   object: ObjectView,
   'distribution-editor': DistributionView,
@@ -71,7 +71,8 @@ function fieldComponent(field) {
 }
 
 function fieldLabel(field) {
-  return field.label?.[props.lang] || field.label?.de || field.label?.en || field.id
+  const { label } = useFieldLabels(field, props.lang)
+  return label.value
 }
 
 function hasValue(val) {

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { inject } from 'vue'
 import { mount, flushPromises } from '@vue/test-utils'
 import OntoViewer from '../../src/components/viewer/OntoViewer.vue'
 
@@ -45,6 +46,7 @@ vi.mock('../../src/services/RDFImporter.js', () => {
   }
   return { RDFImporter }
 })
+
 
 // Suppress fetch for translations (return empty)
 beforeEach(() => {
@@ -228,23 +230,61 @@ describe('OntoViewer', () => {
     })
   })
 
+  describe('dataUrl with format: turtle and rdfxml', () => {
+    it('uses fromTurtle when dataFormat is turtle', async () => {
+      const { RDFImporter } = await import('../../src/services/RDFImporter.js')
+      vi.spyOn(RDFImporter.prototype, 'fromTurtle').mockReturnValue({ 'dct:title': 'From Turtle' })
+
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.includes('translations')) return Promise.resolve({ ok: false })
+        return Promise.resolve({
+          ok: true,
+          headers: { get: () => 'text/turtle' },
+          text: () => Promise.resolve('turtle content')
+        })
+      })
+      const wrapper = makeWrapper({ config: MOCK_VIEW_CONFIG, dataUrl: '/api/dataset.ttl', dataFormat: 'turtle' })
+      await flushPromises()
+      expect(wrapper.text()).toContain('From Turtle')
+    })
+
+    it('uses fromRDFXML when dataFormat is rdfxml', async () => {
+      const { RDFImporter } = await import('../../src/services/RDFImporter.js')
+      vi.spyOn(RDFImporter.prototype, 'fromRDFXML').mockReturnValue({ 'dct:title': 'From RDFXML' })
+
+      global.fetch = vi.fn().mockImplementation((url) => {
+        if (url.includes('translations')) return Promise.resolve({ ok: false })
+        return Promise.resolve({
+          ok: true,
+          headers: { get: () => 'application/rdf+xml' },
+          text: () => Promise.resolve('rdfxml content')
+        })
+      })
+      const wrapper = makeWrapper({ config: MOCK_VIEW_CONFIG, dataUrl: '/api/dataset.rdf', dataFormat: 'rdfxml' })
+      await flushPromises()
+      expect(wrapper.text()).toContain('From RDFXML')
+    })
+  })
+
   describe('provide context', () => {
-    it('provides onto-form:lang to child components', async () => {
-      let injectedLang
-      const ChildComponent = {
-        template: '<span></span>',
-        inject: ['onto-form:lang'],
-        mounted() { injectedLang = this['onto-form:lang'] }
-      }
+    it('provides onto-form:lang ref with correct initial value', async () => {
       const wrapper = mount(OntoViewer, {
-        props: { lang: 'en', config: MOCK_VIEW_CONFIG, data: {} },
-        global: {
-          components: { ChildComponent }
-        }
+        props: { lang: 'en', config: MOCK_VIEW_CONFIG, data: {} }
       })
       await flushPromises()
-      // The lang ref should be provided — check wrapper has no errors
-      expect(wrapper.find('.onto-viewer').exists()).toBe(true)
+      const langRef = wrapper.vm.$.provides['onto-form:lang']
+      expect(langRef.value).toBe('en')
+    })
+
+    it('injected onto-form:lang ref updates when lang prop changes', async () => {
+      const wrapper = mount(OntoViewer, {
+        props: { lang: 'en', config: MOCK_VIEW_CONFIG, data: {} }
+      })
+      await flushPromises()
+      const langRef = wrapper.vm.$.provides['onto-form:lang']
+      await wrapper.setProps({ lang: 'de' })
+      await flushPromises()
+      expect(langRef.value).toBe('de')
     })
   })
 })

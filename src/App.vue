@@ -108,7 +108,7 @@ export const BUILTIN_STANDARDS = [
 </script>
 
 <script setup>
-import { ref, computed, watch, onMounted, onErrorCaptured, provide } from 'vue'
+import { ref, computed, watch, onMounted, onErrorCaptured } from 'vue'
 import StandardSelector from './components/StandardSelector.vue'
 import MetadataForm from './components/MetadataForm.vue'
 import OntoViewer from './components/viewer/OntoViewer.vue'
@@ -117,8 +117,8 @@ import ImportPanel from './components/ImportPanel.vue'
 import { FormConfigResolver } from './services/FormConfigResolver.js'
 import { applyComputes } from './config/fieldComputes.js'
 import { applyEncode } from './config/fieldTransforms.js'
-import { assetUrl } from './config/ontoFormConfig.js'
 import { useTranslations } from './composables/useTranslations.js'
+import { useTranslationProvider } from './composables/useTranslationProvider.js'
 
 const props = defineProps({
   standards: {
@@ -141,20 +141,8 @@ const standards = computed(() => props.standards)
 const selectedStandard = ref(props.initialStandard ?? props.standards[0]?.id ?? 'dcat-ap-at')
 const lang = ref('de')
 
-// Optional translation files: public/translations/{lang}.json
-// Loaded at startup and whenever the language changes. 404 = silently ignored.
-const allTranslations = ref({})
-async function loadTranslations(l) {
-  try {
-    const res = await fetch(assetUrl(`translations/${l}.json`))
-    if (!res.ok) return
-    allTranslations.value = { ...allTranslations.value, [l]: await res.json() }
-  } catch { /* translation files are optional */ }
-}
-
 // Provide lang and current-language translations for all child components
-provide('onto-form:lang', lang)
-provide('onto-form:translations', computed(() => allTranslations.value[lang.value] ?? {}))
+const { allTranslations, loadTranslations } = useTranslationProvider(lang)
 
 const { t } = useTranslations()
 

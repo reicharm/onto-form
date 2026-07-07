@@ -33,6 +33,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 import LangStringItem from './LangStringItem.vue'
 import TextField from './TextField.vue'
 import TextareaField from './TextareaField.vue'
@@ -51,8 +52,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:modelValue'])
 
-const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
-const placeholder = computed(() => props.field.placeholder?.[props.lang] || props.field.placeholder?.en || '')
+const { label, placeholder } = useFieldLabels(computed(() => props.field), computed(() => props.lang))
 
 const componentMap = {
   text:         TextField,

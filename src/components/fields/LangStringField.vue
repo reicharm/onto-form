@@ -26,6 +26,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useFieldLabels } from '../../composables/useFieldLabels.js'
 
 const props = defineProps({
   field: Object,
@@ -36,8 +37,7 @@ const emit = defineEmits(['update:modelValue'])
 
 // Field config can override the default content languages via field.contentLangs
 const activeLangs = computed(() => props.field?.contentLangs?.length ? props.field.contentLangs : ['de', 'en'])
-const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
-const placeholder = computed(() => props.field.placeholder?.[props.lang] || props.field.placeholder?.en || '')
+const { label, placeholder } = useFieldLabels(computed(() => props.field), computed(() => props.lang))
 
 function update(l, val) {
   emit('update:modelValue', { ...(props.modelValue || {}), [l]: val })

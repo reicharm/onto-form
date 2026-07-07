@@ -25,11 +25,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, provide } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { useTranslationProvider } from '../../composables/useTranslationProvider.js'
 import { ViewConfigResolver } from '../../services/ViewConfigResolver.js'
 import { RDFImporter } from '../../services/RDFImporter.js'
-import { assetUrl } from '../../config/ontoFormConfig.js'
 import SectionView from './SectionView.vue'
 import TabsView from './TabsView.vue'
 
@@ -44,19 +44,8 @@ const props = defineProps({
 })
 
 // ── Translations provide/inject (mirrors App.vue) ─────────────────────────
-const allTranslations = ref({})
-
-async function loadTranslations(l) {
-  try {
-    const res = await fetch(assetUrl(`translations/${l}.json`))
-    if (!res.ok) return
-    allTranslations.value = { ...allTranslations.value, [l]: await res.json() }
-  } catch { /* translation files are optional */ }
-}
-
 const langRef = computed(() => props.lang)
-provide('onto-form:lang', langRef)
-provide('onto-form:translations', computed(() => allTranslations.value[props.lang] ?? {}))
+const { allTranslations, loadTranslations } = useTranslationProvider(langRef)
 
 const { t } = useTranslations()
 

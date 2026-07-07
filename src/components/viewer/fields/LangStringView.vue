@@ -37,6 +37,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { resolveLangValue } from '../../../utils/resolveLangValue.js'
 
 const props = defineProps({
   field: { type: Object, required: true },
@@ -60,7 +61,7 @@ const otherLangItems = computed(() =>
 const primaryValue = computed(() => {
   const mv = props.modelValue
   if (!mv || typeof mv !== 'object') return ''
-  return mv[props.lang] || mv.de || mv.en || Object.values(mv)[0] || ''
+  return resolveLangValue(mv, props.lang)
 })
 const otherValues = computed(() => {
   const mv = props.modelValue

@@ -7,6 +7,7 @@ import SelectView from '../../src/components/viewer/fields/SelectView.vue'
 import MultiSelectView from '../../src/components/viewer/fields/MultiSelectView.vue'
 import LangStringView from '../../src/components/viewer/fields/LangStringView.vue'
 import ObjectView from '../../src/components/viewer/fields/ObjectView.vue'
+import DistributionView from '../../src/components/viewer/fields/DistributionView.vue'
 
 // ── TextView ──────────────────────────────────────────────────────────────────
 describe('TextView', () => {
@@ -82,6 +83,47 @@ describe('URIView', () => {
 })
 
 // ── SelectView ────────────────────────────────────────────────────────────────
+describe('SelectView', () => {
+  const options = [
+    { value: 'http://vocab.example/a', label: { de: 'Option A', en: 'Option A EN' } },
+    { value: 'http://vocab.example/b', label: { de: 'Option B' } }
+  ]
+
+  it('shows the resolved option label for a matching value', () => {
+    const w = mount(SelectView, {
+      props: {
+        field: { options },
+        modelValue: 'http://vocab.example/a',
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toBe('Option A')
+  })
+
+  it('falls back to raw value when no option matches', () => {
+    const w = mount(SelectView, {
+      props: {
+        field: { options },
+        modelValue: 'http://vocab.example/unknown',
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toBe('http://vocab.example/unknown')
+  })
+
+  it('handles label as a plain string (not an object)', () => {
+    const w = mount(SelectView, {
+      props: {
+        field: { options: [{ value: 'x', label: 'Plain Label' }] },
+        modelValue: 'x',
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toBe('Plain Label')
+  })
+})
+
+// ── SelectView ──────────────────────────────────────────────────────────
 describe('SelectView', () => {
   const options = [
     { value: 'http://vocab.example/a', label: { de: 'Option A', en: 'Option A EN' } },
@@ -272,5 +314,118 @@ describe('ObjectView', () => {
     const dts = w.findAll('dt')
     const labels = dts.map(dt => dt.text())
     expect(labels).not.toContain('Titel')
+  })
+})
+
+// ── DistributionView ──────────────────────────────────────────────────────────
+describe('DistributionView', () => {
+  it('renders a .dist-card for each distribution in the array', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [
+          { 'dct:title': 'Dist 1' },
+          { 'dct:title': 'Dist 2' }
+        ],
+        lang: 'de'
+      }
+    })
+    expect(w.findAll('.dist-card').length).toBe(2)
+  })
+
+  it('shows dct:title as plain string in the card', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dct:title': 'My Distribution' }],
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toContain('My Distribution')
+  })
+
+  it('resolves dct:title from an object by lang', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dct:title': { de: 'Deutsch', en: 'English' } }],
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toContain('Deutsch')
+    expect(w.text()).not.toContain('English')
+  })
+
+  it('resolves dct:title from an array by lang', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dct:title': [{ value: 'Array title', lang: 'de' }] }],
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toContain('Array title')
+  })
+
+  it('renders dcat:accessURL as an <a> link', () => {
+    const url = 'http://example.org/access'
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dcat:accessURL': url }],
+        lang: 'de'
+      }
+    })
+    const a = w.find('a')
+    expect(a.exists()).toBe(true)
+    expect(a.attributes('href')).toBe(url)
+  })
+
+  it('does not crash when dcat:accessURL is missing', () => {
+    expect(() => {
+      mount(DistributionView, {
+        props: {
+          field: {},
+          modelValue: [{ 'dct:title': 'No link here' }],
+          lang: 'de'
+        }
+      })
+    }).not.toThrow()
+  })
+
+  it('formatDate with a valid ISO date shows a formatted string (not the raw date)', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dct:issued': '2024-03-15' }],
+        lang: 'de'
+      }
+    })
+    const text = w.text()
+    expect(text).toMatch(/2024/)
+    expect(text).not.toBe('2024-03-15')
+  })
+
+  it('formatDate with an invalid date shows the raw string', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [{ 'dct:issued': 'not-a-date' }],
+        lang: 'de'
+      }
+    })
+    expect(w.text()).toContain('not-a-date')
+  })
+
+  it('shows the .no-distributions element for an empty array', () => {
+    const w = mount(DistributionView, {
+      props: {
+        field: {},
+        modelValue: [],
+        lang: 'de'
+      }
+    })
+    expect(w.find('.no-distributions').exists()).toBe(true)
+    expect(w.findAll('.dist-card').length).toBe(0)
   })
 })

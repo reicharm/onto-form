@@ -4,6 +4,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { formatDate } from '../../../utils/formatDate.js'
 
 const props = defineProps({
   field: { type: Object, required: true },
@@ -11,17 +12,7 @@ const props = defineProps({
   lang: { type: String, required: true },
 })
 
-const formatted = computed(() => {
-  if (!props.modelValue) return ''
-  try {
-    const d = new Date(props.modelValue)
-    if (isNaN(d.getTime())) return props.modelValue
-    const locale = props.lang === 'de' ? 'de-AT' : 'en-GB'
-    return d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
-  } catch {
-    return props.modelValue
-  }
-})
+const formatted = computed(() => formatDate(props.modelValue, props.lang))
 </script>
 
 <style scoped>
