@@ -245,6 +245,15 @@ export declare const OntoFormPlugin: { install(app: App): void }
 
 // ── Components ─────────────────────────────────────────────────────────────────
 
+/** Read-only viewer for RDF metadata based on a FormConfig + FormData */
+export declare const MetadataViewer: DefineComponent<
+  {
+    config: FormConfig
+    modelValue?: FormData
+    lang?: string
+  }
+>
+
 /** Main metadata editor component */
 export declare const MetadataForm: DefineComponent<
   {
