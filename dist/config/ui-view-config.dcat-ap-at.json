@@ -1,0 +1,70 @@
+{
+  "standard": "dcat-ap-at",
+  "shaclSource": "dcat-ap-at",
+  "version": "2.1",
+  "rootClass": "dcat:Dataset",
+  "sections": [
+    {
+      "id": "basic",
+      "type": "section",
+      "label": { "de": "Grunddaten", "en": "Basic Information" },
+      "fields": ["dct:title", "dct:description", "dct:identifier"]
+    },
+    {
+      "id": "details",
+      "type": "tabs",
+      "tabs": [
+        {
+          "id": "classification",
+          "label": { "de": "Klassifizierung", "en": "Classification" },
+          "sections": [
+            {
+              "id": "themes",
+              "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
+              "fields": ["dcat:theme", "dct:type", "dcat:keyword"]
+            },
+            {
+              "id": "legal",
+              "label": { "de": "Zugang & Recht", "en": "Access & Legal" },
+              "fields": ["dct:accessRights", "dct:language", "dcatap:applicableLegislation", "dcatap:hvdCategory"]
+            }
+          ]
+        },
+        {
+          "id": "dates",
+          "label": { "de": "Zeitangaben", "en": "Dates" },
+          "fields": ["dct:issued", "dct:modified", "dct:accrualPeriodicity", "dct:temporal"]
+        },
+        {
+          "id": "spatial",
+          "label": { "de": "Geographisch", "en": "Spatial" },
+          "fields": ["dct:spatial"]
+        },
+        {
+          "id": "contact",
+          "label": { "de": "Kontakt", "en": "Contact" },
+          "fields": ["dct:publisher", "dcat:contactPoint"]
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "type": "section",
+      "label": { "de": "Zugang & Rechte", "en": "Access & Rights" },
+      "fields": ["dcat:landingPage", "dcatap:availability"]
+    },
+    {
+      "id": "distributions",
+      "type": "section",
+      "label": { "de": "Distributionen", "en": "Distributions" },
+      "fields": ["dcat:distribution"]
+    }
+  ],
+  "fields": {
+    "dcat:landingPage": {
+      "viewAs": "button",
+      "buttonLabel": { "de": "Zum Datensatz", "en": "Open dataset page" },
+      "buttonIcon": "🔗"
+    }
+  }
+}
