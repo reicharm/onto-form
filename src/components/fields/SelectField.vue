@@ -2,7 +2,7 @@
   <div class="field">
     <label :for="field.id" :class="{ required: field.required }">{{ label }}</label>
     <select :id="field.id" :value="modelValue || ''" @change="$emit('update:modelValue', $event.target.value)">
-      <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
+      <option value="">{{ t('select.placeholder') }}</option>
       <option v-for="opt in field.options" :key="opt.value" :value="opt.value">
         {{ opt.label?.[lang] || opt.label?.en || opt.value }}
       </option>
@@ -13,6 +13,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useTranslations } from '../../composables/useTranslations.js'
 
 const props = defineProps({
   field: Object,
@@ -20,6 +21,8 @@ const props = defineProps({
   modelValue: String
 })
 defineEmits(['update:modelValue'])
+
+const { t } = useTranslations()
 
 const label = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
 </script>

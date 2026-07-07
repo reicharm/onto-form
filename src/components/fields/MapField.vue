@@ -5,18 +5,18 @@
       <button
         :class="['tool-btn', { active: drawMode === 'rectangle' }]"
         @click="activateDraw('rectangle')"
-        :title="lang === 'de' ? 'Rechteck zeichnen' : 'Draw rectangle'"
-      >▭ {{ lang === 'de' ? 'Rechteck' : 'Rectangle' }}</button>
+        :title="t('map.btn.rectangle')"
+      >▭ {{ t('map.btn.rectangle') }}</button>
       <button
         :class="['tool-btn', { active: drawMode === 'polygon' }]"
         @click="activateDraw('polygon')"
-        :title="lang === 'de' ? 'Polygon zeichnen' : 'Draw polygon'"
-      >⬡ {{ lang === 'de' ? 'Polygon' : 'Polygon' }}</button>
+        :title="t('map.btn.polygon')"
+      >⬡ {{ t('map.btn.polygon') }}</button>
       <button
         v-if="modelValue"
         class="tool-btn tool-btn--clear"
         @click="clearShape"
-      >✕ {{ lang === 'de' ? 'Löschen' : 'Clear' }}</button>
+      >✕ {{ t('map.btn.clear') }}</button>
     </div>
     <div ref="mapEl" class="map-container"></div>
     <div v-if="modelValue" class="map-wkt">
@@ -25,10 +25,10 @@
     </div>
     <div v-if="drawMode" class="map-hint">
       <template v-if="drawMode === 'rectangle'">
-        {{ lang === 'de' ? 'Klicken und ziehen um ein Rechteck aufzuspannen.' : 'Click and drag to draw a bounding box.' }}
+        {{ t('map.hint.rectangle') }}
       </template>
       <template v-else>
-        {{ lang === 'de' ? 'Klicken um Punkte zu setzen, Doppelklick zum Abschließen.' : 'Click to place points, double-click to finish.' }}
+        {{ t('map.hint.polygon') }}
       </template>
     </div>
   </div>
@@ -36,6 +36,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { useTranslations } from '../../composables/useTranslations.js'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import '@geoman-io/leaflet-geoman-free'
@@ -55,6 +56,8 @@ const props = defineProps({
   modelValue: { type: String, default: '' },
 })
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useTranslations()
 
 const label   = computed(() => props.field.label?.[props.lang] || props.field.label?.en || props.field.id)
 const mapEl   = ref(null)
