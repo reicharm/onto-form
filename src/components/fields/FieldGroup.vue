@@ -18,7 +18,7 @@
           @update:modelValue="updateField(field, $event)"
         />
         <div v-if="field.transform && displayValue(field)" class="transform-preview">
-          {{ lang === 'de' ? 'Gespeichert als:' : 'Stored as:' }}
+          {{ t('field.stored-as') }}
           <code>{{ encodedPreview(field, displayValue(field)) || modelValue[field.id] }}</code>
         </div>
         <ul v-if="showErrors && fieldErrors[field.id]?.length" class="field-errors" role="alert">
@@ -32,6 +32,9 @@
 <script setup>
 import RepeatableField from './RepeatableField.vue'
 import { applyDisplay, applyEncode } from '../../config/fieldTransforms.js'
+import { useTranslations } from '../../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   fields: { type: Array, required: true },

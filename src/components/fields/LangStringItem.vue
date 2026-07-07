@@ -3,7 +3,7 @@
     <select
       class="lang-select"
       :value="modelValue.lang || 'de'"
-      :aria-label="lang === 'de' ? 'Sprache des Eintrags' : 'Language of this entry'"
+      :aria-label="t('aria.lang-select')"
       @change="updateLang($event.target.value)"
     >
       <option v-for="l in availableLangs" :key="l" :value="l">{{ l }}</option>
@@ -19,6 +19,10 @@
 </template>
 
 <script setup>
+import { useTranslations } from '../../composables/useTranslations.js'
+
+const { t } = useTranslations()
+
 const props = defineProps({
   modelValue: { type: Object, default: () => ({ value: '', lang: 'de' }) },
   lang: String,

@@ -49,9 +49,9 @@
     </div>
 
     <template #actions>
-      <span role="status" aria-live="polite" class="copy-status">{{ copied ? (lang === 'de' ? 'Kopiert!' : 'Copied!') : '' }}</span>
-      <button class="btn-copy" @click="copy">{{ lang === 'de' ? 'In Zwischenablage kopieren' : 'Copy to clipboard' }}</button>
-      <button class="btn-download" @click="download">{{ lang === 'de' ? 'Herunterladen' : 'Download' }}</button>
+      <span role="status" aria-live="polite" class="copy-status">{{ copied ? t('export.copied') : '' }}</span>
+      <button class="btn-copy" @click="copy">{{ t('btn.copy') }}</button>
+      <button class="btn-download" @click="download">{{ t('btn.download') }}</button>
     </template>
   </BaseModal>
 </template>
@@ -61,6 +61,9 @@ import { ref, computed } from 'vue'
 import { RDFExporter } from '../services/RDFExporter.js'
 import BaseModal from './BaseModal.vue'
 import TabBar from './TabBar.vue'
+import { useTranslations } from '../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   formData: Object,

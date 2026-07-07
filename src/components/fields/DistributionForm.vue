@@ -3,7 +3,7 @@
 
     <!-- ── File upload widget ── -->
     <div v-if="uploadConfig?.enabled" class="field span2 upload-section">
-      <label>{{ lang === 'de' ? 'Datei hochladen' : 'Upload file' }}</label>
+      <label>{{ t('dist.upload-label') }}</label>
 
       <div
         class="drop-zone"
@@ -17,11 +17,7 @@
 
         <template v-if="uploadState === 'idle'">
           <span class="drop-icon">📂</span>
-          <span class="drop-text">
-            {{ lang === 'de'
-              ? 'Datei hierher ziehen oder klicken zum Auswählen'
-              : 'Drag a file here or click to select' }}
-          </span>
+          <span class="drop-text">{{ t('dist.drop.idle') }}</span>
         </template>
 
         <template v-else-if="uploadState === 'selected'">
@@ -32,16 +28,14 @@
 
         <template v-else-if="uploadState === 'uploading'">
           <span class="drop-icon spin">⟳</span>
-          <span class="drop-text">
-            {{ lang === 'de' ? 'Wird hochgeladen …' : 'Uploading …' }}
-          </span>
+          <span class="drop-text">{{ t('dist.drop.uploading') }}</span>
         </template>
 
         <template v-else-if="uploadState === 'success'">
           <span class="drop-icon">✓</span>
-          <span class="drop-text">{{ lang === 'de' ? 'Erfolgreich hochgeladen' : 'Upload successful' }}</span>
+          <span class="drop-text">{{ t('dist.drop.success') }}</span>
           <button type="button" class="btn-reset-upload" @click.stop="resetUpload">
-            {{ lang === 'de' ? 'Andere Datei' : 'Choose another' }}
+            {{ t('btn.choose-another') }}
           </button>
         </template>
 
@@ -49,7 +43,7 @@
           <span class="drop-icon">⚠</span>
           <span class="drop-text error-text">{{ uploadError }}</span>
           <button type="button" class="btn-reset-upload" @click.stop="resetUpload">
-            {{ lang === 'de' ? 'Erneut versuchen' : 'Try again' }}
+            {{ t('btn.try-again') }}
           </button>
         </template>
       </div>
@@ -60,41 +54,41 @@
         class="btn-upload"
         @click="doUpload"
       >
-        {{ lang === 'de' ? 'Hochladen' : 'Upload' }}
+        {{ t('btn.upload') }}
       </button>
     </div>
 
     <!-- ── Standard fields ── -->
     <div class="field">
-      <label class="required">{{ lang === 'de' ? 'Zugangs-URL' : 'Access URL' }}</label>
+      <label class="required">{{ t('dist.field.access-url') }}</label>
       <input type="url" :value="modelValue['dcat:accessURL'] || ''" placeholder="https://…"
         @input="update('dcat:accessURL', $event.target.value)" />
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Download-URL' : 'Download URL' }}</label>
+      <label>{{ t('dist.field.download-url') }}</label>
       <input type="url" :value="modelValue['dcat:downloadURL'] || ''" placeholder="https://…"
         @input="update('dcat:downloadURL', $event.target.value)" />
     </div>
 
     <div class="field span2">
-      <label>{{ lang === 'de' ? 'Titel' : 'Title' }}</label>
+      <label>{{ t('dist.field.title') }}</label>
       <input type="text" :value="modelValue['dct:title'] || ''"
-        :placeholder="lang === 'de' ? 'Titel der Distribution' : 'Distribution title'"
+        :placeholder="t('dist.field.title-placeholder')"
         @input="update('dct:title', $event.target.value)" />
     </div>
 
     <div class="field span2">
-      <label>{{ lang === 'de' ? 'Beschreibung' : 'Description' }}</label>
+      <label>{{ t('dist.field.description') }}</label>
       <textarea :value="modelValue['dct:description'] || ''"
-        :placeholder="lang === 'de' ? 'Beschreibung …' : 'Description …'"
+        :placeholder="t('dist.field.description-placeholder')"
         @input="update('dct:description', $event.target.value)" rows="3" />
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Dateiformat' : 'File Format' }}</label>
+      <label>{{ t('dist.field.format') }}</label>
       <select :value="modelValue['dct:format'] || ''" @change="update('dct:format', $event.target.value)">
-        <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
+        <option value="">{{ t('select.placeholder') }}</option>
         <option v-for="opt in formatOptions" :key="opt.value" :value="opt.value">
           {{ opt.label?.[lang] || opt.label?.en || opt.value }}
         </option>
@@ -102,23 +96,23 @@
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Medientyp' : 'Media Type' }}</label>
+      <label>{{ t('dist.field.media-type') }}</label>
       <input type="text" :value="modelValue['dcat:mediaType'] || ''" placeholder="text/csv"
         @input="update('dcat:mediaType', $event.target.value)" />
     </div>
 
     <div class="field span2">
-      <label>{{ lang === 'de' ? 'Lizenz' : 'License' }}</label>
+      <label>{{ t('dist.field.license') }}</label>
       <input type="url" :value="modelValue['dct:license'] || ''"
         placeholder="https://creativecommons.org/licenses/by/4.0/"
         @input="update('dct:license', $event.target.value)" />
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Verfügbarkeit' : 'Availability' }}</label>
+      <label>{{ t('dist.field.availability') }}</label>
       <select :value="modelValue['dcatap:availability'] || ''"
         @change="update('dcatap:availability', $event.target.value)">
-        <option value="">{{ lang === 'de' ? '— Bitte wählen —' : '— Please select —' }}</option>
+        <option value="">{{ t('select.placeholder') }}</option>
         <option v-for="opt in availabilityOptions" :key="opt.value" :value="opt.value">
           {{ opt.label?.[lang] || opt.label?.en || opt.value }}
         </option>
@@ -126,13 +120,13 @@
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Veröffentlichungsdatum' : 'Issued' }}</label>
+      <label>{{ t('dist.field.issued') }}</label>
       <input type="date" :value="modelValue['dct:issued'] || ''"
         @input="update('dct:issued', $event.target.value)" />
     </div>
 
     <div class="field">
-      <label>{{ lang === 'de' ? 'Zuletzt geändert' : 'Modified' }}</label>
+      <label>{{ t('dist.field.modified') }}</label>
       <input type="date" :value="modelValue['dct:modified'] || ''"
         @input="update('dct:modified', $event.target.value)" />
     </div>
@@ -142,6 +136,7 @@
 <script setup>
 import { ref } from 'vue'
 import { FileUploader } from '../../services/FileUploader.js'
+import { useTranslations } from '../../composables/useTranslations.js'
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
@@ -152,6 +147,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const { t } = useTranslations()
 
 function update(key, value) {
   emit('update:modelValue', { ...props.modelValue, [key]: value })

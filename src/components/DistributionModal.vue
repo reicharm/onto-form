@@ -4,7 +4,7 @@
     teleport
     refocus-on-show
     heading-id="dist-modal-heading"
-    :title="lang === 'de' ? 'Distribution bearbeiten' : 'Edit Distribution'"
+    :title="t('dist.modal.title')"
     :close-label="lang === 'de' ? 'Dialog schließen' : 'Close dialog'"
     max-width="680px"
     :focus-selectors="['input, select, textarea, button, [tabindex]:not([tabindex=\'-1\'])']"
@@ -23,7 +23,7 @@
 
     <template #actions>
       <button class="btn-cancel" @click="$emit('cancel')">
-        {{ lang === 'de' ? 'Abbrechen' : 'Cancel' }}
+        {{ t('btn.cancel') }}
       </button>
       <button
         class="btn-save"
@@ -31,7 +31,7 @@
         :aria-disabled="!draft['dcat:accessURL']"
         @click="save"
       >
-        {{ lang === 'de' ? 'Speichern' : 'Save' }}
+        {{ t('btn.save') }}
       </button>
     </template>
   </BaseModal>
@@ -41,6 +41,9 @@
 import { ref, watch } from 'vue'
 import DistributionForm from './fields/DistributionForm.vue'
 import BaseModal from './BaseModal.vue'
+import { useTranslations } from '../composables/useTranslations.js'
+
+const { t } = useTranslations()
 
 const props = defineProps({
   modelValue: { type: Object, default: () => ({}) },
