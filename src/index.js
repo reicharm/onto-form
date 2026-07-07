@@ -2,7 +2,8 @@
 // Import this file when embedding OntoForm as a component in another Vue project.
 
 // ── Main component ────────────────────────────────────────────────────────────
-export { default as MetadataForm } from './components/MetadataForm.vue'
+export { default as MetadataForm }   from './components/MetadataForm.vue'
+export { default as MetadataViewer } from './components/MetadataViewer.vue'
 
 // ── Sub-components (host apps may need to render these standalone) ─────────────
 export { default as ValidationReport }   from './components/ValidationReport.vue'
