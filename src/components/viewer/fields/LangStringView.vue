@@ -95,6 +95,7 @@ const showOtherLangs = computed(() => Object.keys(otherValues.value).length > 0)
 }
 .langstring-value {
   word-break: break-word;
+  white-space: pre-wrap;
   color: var(--color-text);
 }
 .langstring-lang {

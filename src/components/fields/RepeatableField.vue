@@ -8,6 +8,8 @@
           :modelValue="item"
           :lang="lang"
           :placeholder="placeholder"
+          :multiline="field.multiline"
+          :rows="field.rows"
           @update:modelValue="updateItem(index, $event)"
         />
         <component
@@ -125,7 +127,7 @@ label.required::after { content: ' *'; color: var(--color-error); }
 .item-row :deep(.field > label) { display: none; }
 .item-row :deep(.field > .hint) { display: none; }
 /* Full-width for regular inputs and selects, but NOT the protocol-select (URIField) or lang-select (LangStringItem) */
-.item-row :deep(input) { width: 100%; }
+.item-row :deep(input), .item-row :deep(textarea) { width: 100%; }
 .item-row :deep(select:not(.protocol-select):not(.lang-select)) { width: 100%; }
 .btn-remove {
   background: var(--color-error);

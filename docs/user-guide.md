@@ -58,10 +58,11 @@ Zusätzlich gibt es — sofern der aktive Standard Distributionen unterstützt �
 
 - **JSON-LD**: `.json`- oder `.jsonld`-Datei
 - **Turtle**: `.ttl`-Datei (Standard-`@prefix`- und SPARQL-`PREFIX`-Schreibweise werden beide unterstützt)
+- **RDF/XML**: `.rdf`- oder `.xml`-Datei im W3C-RDF/XML-Format
 
 ### Vorgehensweise
 
-1. Format-Tab auswählen (JSON-LD oder Turtle).
+1. Format-Tab auswählen (JSON-LD, Turtle oder RDF/XML).
 2. Datei über **„Datei öffnen…"** hochladen oder Text direkt in das Textfeld einfügen.
 3. **„Importieren"** klicken.
 
@@ -71,7 +72,7 @@ Importierte Werte werden mit den aktuellen Formulardaten zusammengeführt. Felde
 
 ## Daten exportieren
 
-Der Export-Button (**„Export JSON-LD / Turtle"**) öffnet das Export-Panel, in dem die Metadaten als JSON-LD und Turtle angezeigt und in die Zwischenablage kopiert werden können.
+Der Export-Button öffnet das Export-Panel, in dem die Metadaten als **JSON-LD**, **Turtle** oder **RDF/XML** angezeigt und in die Zwischenablage kopiert oder heruntergeladen werden können.
 
 Im Wizard-Modus ist der Export-Button nur auf der **Übersicht** (letzter Schritt) verfügbar.
 

@@ -126,11 +126,13 @@ A simple titled block rendering a flat list of fields.
 
 ### Section type: `tabs`
 
-A tab group. Each tab has its own `id`, `label`, and `fields` list. The first tab is active by default.
+A tab group. Each tab has its own `id`, `label`, and either a flat `fields` list or a `sections` array for named sub-sections within the tab. The first tab is active by default.
+
+**Flat fields (single list per tab):**
 
 ```json
 {
-  "id": "classification",
+  "id": "details",
   "type": "tabs",
   "tabs": [
     {
@@ -147,25 +149,70 @@ A tab group. Each tab has its own `id`, `label`, and `fields` list. The first ta
 }
 ```
 
+**Multiple named sections per tab:**
+
+Use `sections` instead of `fields` to divide a tab's content into titled sub-groups separated by a divider:
+
+```json
+{
+  "id": "details",
+  "type": "tabs",
+  "tabs": [
+    {
+      "id": "classification",
+      "label": { "de": "Klassifizierung", "en": "Classification" },
+      "sections": [
+        {
+          "id": "themes",
+          "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
+          "fields": ["dcat:theme", "dct:type", "dcat:keyword"]
+        },
+        {
+          "id": "legal",
+          "label": { "de": "Zugang & Recht", "en": "Access & Legal" },
+          "fields": ["dct:accessRights", "dct:language", "dcatap:applicableLegislation"]
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### Field overrides
 
-The `fields` map in the view config follows the same structure as in `ui-config.json`. Override any SHACL-derived field property — label, hint, type, order, visibility — or add virtual fields that are not in the shape:
+The `fields` map in the view config follows the same structure as in `ui-config.json`. Override any SHACL-derived field property — label, hint, type, order, visibility — or add virtual fields that are not in the shape.
+
+When a `ui-view-config.<standard>.json` file is present, `ViewConfigResolver` automatically merges the form's `ui-config.<standard>.json` field definitions as base (providing labels, types, and subField definitions), so you only need to specify what differs in the view config's `fields` map.
 
 ```json
 "fields": {
   "dct:title": {
-    "label": { "de": "Titel des Datensatzes", "en": "Dataset title" },
-    "order": 1
+    "label": { "de": "Titel des Datensatzes", "en": "Dataset title" }
   },
-  "dct:description": {
-    "type": "textarea"
+  "dcat:landingPage": {
+    "viewAs": "button",
+    "buttonLabel": { "de": "Zum Datensatz", "en": "Open dataset page" },
+    "buttonIcon": "🔗"
   }
 }
 ```
 
 Fields with `"visible": false` in either the SHACL shape or the override map are automatically excluded from every section and tab.
 
+#### `viewAs: "button"` — link buttons
+
+Setting `"viewAs": "button"` on any URI field renders it as a styled anchor button instead of a plain link. Additional options:
+
+| Property | Type | Description |
+|---|---|---|
+| `buttonLabel` | `string \| { de, en }` | Button text. Falls back to the field label when omitted. |
+| `buttonIcon` | `string` | Emoji or character prepended to the label (e.g. `"🔗"`, `"⬇"`). |
+
+Multiple values are each rendered as a separate button.
+
 ### Full working example
+
+The live example for DCAT-AP.at (`public/config/ui-view-config.dcat-ap-at.json`) uses a Basic section, a four-tab group with two sub-sections in the Classification tab, an Access section with a link button, and a Distributions section:
 
 ```json
 {
@@ -178,26 +225,42 @@ Fields with `"visible": false` in either the SHACL shape or the override map are
       "id": "basic",
       "type": "section",
       "label": { "de": "Grunddaten", "en": "Basic Information" },
-      "fields": ["dct:title", "dct:description", "dct:identifier", "dct:publisher", "dct:creator"]
+      "fields": ["dct:title", "dct:description", "dct:identifier"]
     },
     {
-      "id": "classification",
+      "id": "details",
       "type": "tabs",
       "tabs": [
         {
-          "id": "themes",
-          "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
-          "fields": ["dcat:theme", "dct:subject", "dct:type", "dct:accessRights"]
+          "id": "classification",
+          "label": { "de": "Klassifizierung", "en": "Classification" },
+          "sections": [
+            {
+              "id": "themes",
+              "label": { "de": "Themen & Kategorien", "en": "Themes & Categories" },
+              "fields": ["dcat:theme", "dct:type", "dcat:keyword"]
+            },
+            {
+              "id": "legal",
+              "label": { "de": "Zugang & Recht", "en": "Access & Legal" },
+              "fields": ["dct:accessRights", "dct:language", "dcatap:applicableLegislation", "dcatap:hvdCategory"]
+            }
+          ]
         },
         {
-          "id": "temporal",
-          "label": { "de": "Zeitraum", "en": "Temporal" },
-          "fields": ["dct:issued", "dct:modified", "dct:temporal"]
+          "id": "dates",
+          "label": { "de": "Zeitangaben", "en": "Dates" },
+          "fields": ["dct:issued", "dct:modified", "dct:accrualPeriodicity", "dct:temporal"]
         },
         {
           "id": "spatial",
           "label": { "de": "Geographisch", "en": "Spatial" },
-          "fields": ["dct:spatial", "locn:geometry", "dcat:bbox"]
+          "fields": ["dct:spatial"]
+        },
+        {
+          "id": "contact",
+          "label": { "de": "Kontakt", "en": "Contact" },
+          "fields": ["dct:publisher", "dcat:contactPoint"]
         }
       ]
     },
@@ -205,7 +268,7 @@ Fields with `"visible": false` in either the SHACL shape or the override map are
       "id": "access",
       "type": "section",
       "label": { "de": "Zugang & Rechte", "en": "Access & Rights" },
-      "fields": ["dcat:landingPage", "dct:license", "dct:rights", "dct:language"]
+      "fields": ["dcat:landingPage", "dcatap:availability"]
     },
     {
       "id": "distributions",
@@ -214,7 +277,13 @@ Fields with `"visible": false` in either the SHACL shape or the override map are
       "fields": ["dcat:distribution"]
     }
   ],
-  "fields": {}
+  "fields": {
+    "dcat:landingPage": {
+      "viewAs": "button",
+      "buttonLabel": { "de": "Zum Datensatz", "en": "Open dataset page" },
+      "buttonIcon": "🔗"
+    }
+  }
 }
 ```
 
@@ -247,12 +316,13 @@ This produces a header section, then a tab group, then a footer section — each
 | `date` | `DateView` | Formatted with `toLocaleDateString` using the active `lang`. |
 | `uri` | `URIView` | Rendered as an `<a>` link; href and visible text both set to the URI value. |
 | `select` | `SelectView` | Resolves the stored value to its option label. |
-| `searchselect` | `SearchSelectView` | Same as `SelectView` but sourced from a searchable vocabulary. |
+| `searchselect` | `SelectView` | Same as `SelectView` but sourced from a searchable vocabulary. |
 | `multiselect` | `MultiSelectView` | Displays all selected values as chips/badges. |
-| `langstring` | `LangStringView` | Shows the value for the active `lang`; other languages are collapsible under a badge. |
-| `object` | `ObjectView` | Renders sub-fields as a nested definition list. |
-| `distribution-editor` | `DistributionView` | Distribution cards with access/download links, format, and media type. |
-| `map` | `MapView` | Renders WKT or GeoJSON geometry with a "Copy WKT" button. |
+| `langstring` | `LangStringView` | Shows the value for the active `lang`; other languages shown in muted text with a language tag. |
+| `object` | `ObjectView` | Renders sub-fields as a nested group; each sub-field is dispatched to its own typed component (date, URI, map, etc.). |
+| `distribution-editor` | `DistributionView` | Distribution cards with styled access/download buttons, format badge, and media type. Set `buttonLinks: false` in the field override to fall back to plain links. |
+| `map` | `MapView` | Renders an interactive Leaflet map (OpenStreetMap tiles). Supports POLYGON (bounding box or freehand) and POINT WKT geometries. Shows bounding-box coordinates and a "Copy WKT" button below the map. |
+| *(any uri field)* | `LinkButtonView` | When `viewAs: "button"` is set in the field override, renders the URI as a styled anchor button instead of a plain link. Supports `buttonLabel` and `buttonIcon`. |
 
 For `multiple: true` fields whose type is not in the collection group (`multiselect`, `distribution-editor`, `object`, `langstring`), `FieldGroupView` iterates the array and renders one component instance per value, separated by a thin border.
 

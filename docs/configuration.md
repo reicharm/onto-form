@@ -163,7 +163,7 @@ Jede Gruppe entspricht einem Schritt im Wizard bzw. einem Abschnitt auf der Einz
 |---|---|---|
 | `text` | `TextField` | Einzeiliger Text |
 | `textarea` | `TextareaField` | Mehrzeiliger Text |
-| `langstring` | `LangStringField` | Sprachspezifischer Text (Sprachkürzel → Wert) |
+| `langstring` | `LangStringField` | Sprachspezifischer Text (Sprachkürzel → Wert); mit `multiline: true` mehrzeilig (siehe unten) |
 | `uri` | `URIField` | URI-Eingabe |
 | `date` | `DateField` | Datum (ISO 8601) |
 | `select` | `SelectField` | Einzelauswahl (natives `<select>`) |
@@ -712,3 +712,27 @@ Felder vom Typ `langstring` zeigen standardmäßig Eingaben für `de` und `en`. 
   "label": { "de": "Titel", "en": "Title" }
 }
 ```
+
+---
+
+## `multiline` – Mehrzeilige Eingabe für `langstring`-Felder
+
+Felder vom Typ `langstring` rendern standardmäßig ein einzeiliges `<input>` pro Sprache. Mit `multiline: true` wird stattdessen ein `<textarea>` verwendet — sinnvoll für Felder wie `dct:description`:
+
+```json
+"dct:description": {
+  "type": "langstring",
+  "multiline": true,
+  "rows": 4,
+  "label": { "de": "Beschreibung", "en": "Description" }
+}
+```
+
+| Eigenschaft | Typ | Standard | Beschreibung |
+|---|---|---|---|
+| `multiline` | boolean | `false` | Rendert ein `<textarea>` statt `<input type="text">` |
+| `rows` | number | `4` | Sichtbare Zeilenzahl des `<textarea>` |
+
+**Wichtig:** Ob ein `langstring`-Feld einzeln (`LangStringField`) oder wiederholbar (`RepeatableField` → `LangStringItem`) gerendert wird, hängt von `field.multiple` ab — bei fehlendem `sh:maxCount` in der SHACL-Shape setzt `SHACLParser` `multiple: true` (siehe [SHACL-Integration](#shacl-integration)). `dct:title` und `dct:description` sind in allen eingebauten Standards unbegrenzt und laufen daher über `RepeatableField`. `multiline` und `rows` werden in **beiden** Rendering-Pfaden ausgewertet — die Konfiguration ist unabhängig davon, ob das Feld wiederholbar ist.
+
+Im `OntoViewer` sorgt `LangStringView` zusätzlich für `white-space: pre-wrap`, damit mehrzeilige Werte auch in der Leseansicht mit Zeilenumbrüchen dargestellt werden.

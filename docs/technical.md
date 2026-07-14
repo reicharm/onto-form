@@ -20,11 +20,27 @@ App.vue
 ├── DistributionModal.vue       Modal-Overlay für Distribution-Bearbeitung
 ├── ExportPanel.vue             Export-Dialog (JSON-LD / Turtle / RDF/XML)
 ├── ImportPanel.vue             Import-Dialog (JSON-LD / Turtle / RDF/XML)
+├── OntoViewer.vue              Leseansicht (SHACL-getrieben, tabbedView-Config)
+│   ├── SectionView.vue         Einfacher Abschnitt mit Feldliste
+│   ├── TabsView.vue            Tab-Gruppe mit optionalen Unter-Abschnitten pro Tab
+│   └── FieldGroupView.vue      Rendert <dl>-Grid; wählt View-Komponente nach Feldtyp
+│       ├── fields/TextView.vue
+│       ├── fields/DateView.vue
+│       ├── fields/URIView.vue
+│       ├── fields/SelectView.vue
+│       ├── fields/MultiSelectView.vue
+│       ├── fields/LangStringView.vue
+│       ├── fields/ObjectView.vue
+│       ├── fields/DistributionView.vue
+│       ├── fields/MapView.vue
+│       └── fields/LinkButtonView.vue  (viewAs: "button")
 └── services/
-    ├── FormConfigResolver.js   Konfigurationsauflösung (SHACL + UI-Config + Vokabulare)
+    ├── BaseConfigResolver.js   Gemeinsame Basis: loadSHACL, resolveFields, resolveVocabularies
+    ├── FormConfigResolver.js   Erweitert BaseConfigResolver für Formular-Konfiguration
+    ├── ViewConfigResolver.js   Erweitert BaseConfigResolver für Viewer-Konfiguration (ui-view-config)
     ├── SHACLParser.js          Parst SHACL-Shapes aus Turtle
     ├── RDFExporter.js          Erzeugt JSON-LD / Turtle aus Formulardaten
-    ├── RDFImporter.js          Importiert JSON-LD / Turtle in Formulardaten
+    ├── RDFImporter.js          Importiert JSON-LD / Turtle / RDF/XML in Formulardaten
     └── VocabularyLoader.js     Lädt und normalisiert externe Vokabulare
 ```
 
@@ -46,7 +62,8 @@ public/
 ├── config/
 │   ├── ui-config.dcat-ap-at.json
 │   ├── ui-config.dcat-ap-3.json
-│   └── ui-config.geodcat.json
+│   ├── ui-config.geodcat.json
+│   └── ui-view-config.dcat-ap-at.json  (Viewer-Tabs-Konfiguration)
 ├── shacl/                      SHACL-Shapes als Turtle-Dateien
 └── vocabularies/               Lokale Vokabular-JSON-Dateien (Fallback)
 ```
@@ -128,6 +145,14 @@ Zeigt JSON-LD, Turtle und RDF/XML aus `RDFExporter` an; Copy-to-Clipboard und Do
 ---
 
 ## Services
+
+### BaseConfigResolver.js
+
+Gemeinsame Basisklasse für `FormConfigResolver` und `ViewConfigResolver`. Stellt bereit:
+
+- `loadSHACL(standard, shaclSource?)` — lädt und parst die SHACL-Shape-Datei
+- `resolveFields(standard, uiConfig, { translations })` — mergt SHACL-Felder mit UI-Config-Feldern, wendet Übersetzungen an, gibt `{ mergedFields, vocabWarnings }` zurück
+- `resolveVocabularies(fields)` — lädt alle `optionsSource`-Vokabulare parallel via `VocabularyLoader`
 
 ### FormConfigResolver.js
 
@@ -299,7 +324,7 @@ Parst Turtle-SHACL-Shapes (via n3.js) und extrahiert Felddefinitionen:
 
 - `sh:datatype` → Feldtyp-Mapping (XSD → intern)
 - `sh:minCount 1` → `required: true`
-- `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 → `multiple: true`; kein `sh:maxCount` → `multiple: false` (unbegrenzte Felder werden nur durch explizites `"multiple": true` in der UI-Config wiederholbar)
+- `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 oder **fehlendes** `sh:maxCount` (= unbegrenzt) → `multiple: true`. Felder ohne explizite Kardinalitätsangabe sind daher standardmäßig wiederholbar (z. B. `dct:title`, `dct:description` in allen eingebauten Standards) und laufen über `RepeatableField`; UI-Config kann dies per `"multiple": false` überschreiben.
 - `sh:message` → Fehlermeldungen
 
 #### `pv:mappingLink`
@@ -357,13 +382,15 @@ Das optionale Feld `auth.type` in der Konfiguration (`"bearer"`, `"apikey"`, …
 
 ## Konfigurationsauflösung
 
+**Formular (FormConfigResolver):**
+
 ```
 SHACL-Shape (.ttl)
         │
         ▼
   SHACLParser.parse()
         │
-        ├──── UI-Config (.json)
+        ├──── ui-config.<standard>.json
         │           │
         ▼           ▼
      merge (UI überschreibt SHACL)
@@ -375,6 +402,29 @@ SHACL-Shape (.ttl)
         ▼
    FormConfig { standard, version, groups, fields }
 ```
+
+**Viewer (ViewConfigResolver):**
+
+```
+ui-view-config.<standard>.json  +  ui-config.<standard>.json  (parallel)
+        │                                    │
+        │           form fields als Basis ◄──┘
+        ▼
+  merge (view overrides überschreiben form fields)
+        │
+        ├──── SHACL-Shape (.ttl)
+        │           │
+        ▼           ▼
+  resolveFields() (BaseConfigResolver)
+        │
+        ▼
+  Sections / Tabs filtern (visible: false ausschließen)
+        │
+        ▼
+   ViewConfig { standard, version, rootClass, sections, fields }
+```
+
+Wenn keine `ui-view-config.<standard>.json` existiert, konvertiert `ViewConfigResolver` die `groups` der Formular-Konfiguration automatisch zu flachen Sections als Fallback.
 
 ---
 
