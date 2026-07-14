@@ -324,7 +324,7 @@ Parst Turtle-SHACL-Shapes (via n3.js) und extrahiert Felddefinitionen:
 
 - `sh:datatype` → Feldtyp-Mapping (XSD → intern)
 - `sh:minCount 1` → `required: true`
-- `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 → `multiple: true`; kein `sh:maxCount` → `multiple: false` (unbegrenzte Felder werden nur durch explizites `"multiple": true` in der UI-Config wiederholbar)
+- `sh:maxCount 1` → `multiple: false`; `sh:maxCount` > 1 oder **fehlendes** `sh:maxCount` (= unbegrenzt) → `multiple: true`. Felder ohne explizite Kardinalitätsangabe sind daher standardmäßig wiederholbar (z. B. `dct:title`, `dct:description` in allen eingebauten Standards) und laufen über `RepeatableField`; UI-Config kann dies per `"multiple": false` überschreiben.
 - `sh:message` → Fehlermeldungen
 
 #### `pv:mappingLink`
