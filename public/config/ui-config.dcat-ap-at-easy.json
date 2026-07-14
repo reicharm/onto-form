@@ -1,8 +1,9 @@
 {
-  "standard": "dcat-ap-at",
+  "standard": "dcat-ap-at-easy",
   "version": "2.1",
   "rootClass": "dcat:Dataset",
-  "wizard": false,
+  "shaclSource": "dcat-ap-at",  
+  "wizard": true,
   "groups": [
     {
       "id": "basic",
@@ -13,8 +14,7 @@
       "fields": [
         "dct:title",
         "dct:description",
-        "dct:identifier",
-        "dct:type"
+        "dct:identifier"
       ]
     },
     {
@@ -26,31 +26,7 @@
       "fields": [
         "dcat:theme",
         "dcat:keyword",
-        "dct:language",
-        "dct:accessRights"
-      ]
-    },
-    {
-      "id": "dates",
-      "label": {
-        "de": "Zeitangaben",
-        "en": "Dates & Frequency"
-      },
-      "fields": [
-        "dct:issued",
-        "dct:modified",
-        "dct:accrualPeriodicity"
-      ]
-    },
-    {
-      "id": "coverage",
-      "label": {
-        "de": "Abdeckung",
-        "en": "Coverage"
-      },
-      "fields": [
-        "dct:spatial",
-        "dct:temporal"
+        "dct:language"
       ]
     },
     {
@@ -71,8 +47,6 @@
         "en": "Access & Legal"
       },
       "fields": [
-        "dcatap:availability",
-        "dcat:landingPage",
         "dcatap:applicableLegislation",
         "dcatap:hvdCategory"
       ]
@@ -183,7 +157,7 @@
       },
       "optionsSource": "/vocabularies/dataset-type.json",
       "order": 4,
-      "visible": true
+      "visible": false
     },
     "dcat:theme": {
       "type": "multiselect",
@@ -243,7 +217,7 @@
       "optionsSource": "/vocabularies/access-right.json",
       "defaultValue": "http://publications.europa.eu/resource/authority/access-right/PUBLIC",
       "order": 8,
-      "visible": true
+      "visible": false
     },
     "dct:issued": {
       "type": "date",
@@ -284,7 +258,7 @@
       },
       "optionsSource": "/vocabularies/frequency.json",
       "order": 11,
-      "visible": true
+      "visible": false
     },
     "dct:spatial": {
       "type": "object",
@@ -298,7 +272,7 @@
         "en": "Geographic region as bounding box or geometry"
       },
       "order": 12,
-      "visible": true,
+      "visible": false,
       "subFields": [
         {
           "id": "dcat:bbox",
@@ -333,6 +307,7 @@
         "en": "Temporal Coverage"
       },
       "order": 13,
+      "visible":false,
       "rdfType": "dct:PeriodOfTime",
       "subFields": [
         {
@@ -558,7 +533,7 @@
       "optionsSource": "/vocabularies/availability.json",
       "defaultValue": "http://data.europa.eu/r5r/availability/stable",
       "order": 16,
-      "visible": true
+      "visible": false
     },
     "dcat:landingPage": {
       "type": "uri",
@@ -577,7 +552,7 @@
         "en": "https://…"
       },
       "order": 17,
-      "visible": true
+      "visible": false
     },
     "dcatap:applicableLegislation": {
       "type": "select",

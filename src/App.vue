@@ -102,9 +102,7 @@
 <script>
 export const BUILTIN_STANDARDS = [
   { id: 'dcat-ap-at',             label: 'DCAT-AP.at' },
-  { id: 'geodcat',                label: 'GeoDCAT' },
-  { id: 'dcat-ap-3',             label: 'DCAT-AP 3.0' },
-  { id: 'dcat-ap-at-application', label: 'Application (DCAT-AP.at)' },
+  { id: 'dcat-ap-at-easy',        label: 'DCAT-AP.at - Einfacher Modus' }
 ]
 </script>
 
