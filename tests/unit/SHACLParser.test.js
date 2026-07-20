@@ -257,9 +257,10 @@ ex:DistShape a sh:NodeShape ;
     const parser = new SHACLParser()
     const shapes = await parser.parse(ttlWithLink)
     const field = shapes['http://example.org/Dataset'].fields['dcat:distribution']
-    expect(field.subFields).toBeDefined()
-    expect(field.subFields['dct:format']).toBeDefined()
-    expect(field.subFields['dct:format'].multiple).toBe(false)
+    expect(Array.isArray(field.subFields)).toBe(true)
+    const format = field.subFields.find(sf => sf.id === 'dct:format')
+    expect(format).toBeDefined()
+    expect(format.multiple).toBe(false)
   })
 
   it('linked shape is marked as embedded', async () => {

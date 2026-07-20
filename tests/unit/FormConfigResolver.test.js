@@ -262,6 +262,34 @@ describe('FormConfigResolver', () => {
         { value: 'http://vocab.example/b', label: { de: 'Option B' } }
       ])
     })
+
+    it('resolves optionsSource on sub-fields (object / distribution-editor) the same as top-level fields', async () => {
+      const uiConfigWithSubFields = {
+        ...UI_CONFIG,
+        fields: {
+          ...UI_CONFIG.fields,
+          'dcat:distribution': {
+            id: 'dcat:distribution',
+            type: 'distribution-editor',
+            visible: true,
+            order: 20,
+            subFields: [
+              { id: 'dct:format', type: 'select', optionsSource: 'http://vocab.example/formats' }
+            ]
+          }
+        }
+      }
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': uiConfigWithSubFields
+      })
+      const result = await resolver.resolve('test')
+      const formatSubField = result.fields['dcat:distribution'].subFields.find(sf => sf.id === 'dct:format')
+      expect(formatSubField.options).toEqual([
+        { value: 'http://vocab.example/a', label: { de: 'Option A' } },
+        { value: 'http://vocab.example/b', label: { de: 'Option B' } }
+      ])
+    })
   })
 
   describe('rootClass filtering', () => {

@@ -56,15 +56,32 @@ export function validateField(field, value, lang, formData) {
   const objectHasInput = typeof value === 'object' && value !== null && !Array.isArray(value)
     && Object.values(value).some(v => v)
   if (field.type === 'object' && field.subFields && objectHasInput) {
-    for (const sf of field.subFields) {
-      const sfErrors = validateField(sf, value[sf.id], lang)
-      if (sfErrors.length) {
-        const sfLabel = sf.label?.[lang] || sf.label?.de || sf.id
-        errors.push(...sfErrors.map(e => `${sfLabel}: ${e}`))
-      }
-    }
+    errors.push(...validateSubFields(field.subFields, value, lang))
   }
 
+  // Repeatable sub-object (e.g. distribution-editor): validate each item's
+  // sub-fields the same way a single object field's sub-fields are validated.
+  if (field.type !== 'object' && field.subFields && Array.isArray(value)) {
+    value.forEach((item, idx) => {
+      const itemHasInput = item && typeof item === 'object' && Object.values(item).some(v => v)
+      if (!itemHasInput) return
+      const itemErrors = validateSubFields(field.subFields, item, lang)
+      if (itemErrors.length) errors.push(...itemErrors.map(e => `#${idx + 1}: ${e}`))
+    })
+  }
+
+  return errors
+}
+
+function validateSubFields(subFields, value, lang) {
+  const errors = []
+  for (const sf of subFields) {
+    const sfErrors = validateField(sf, value?.[sf.id], lang, value)
+    if (sfErrors.length) {
+      const sfLabel = sf.label?.[lang] || sf.label?.de || sf.id
+      errors.push(...sfErrors.map(e => `${sfLabel}: ${e}`))
+    }
+  }
   return errors
 }
 

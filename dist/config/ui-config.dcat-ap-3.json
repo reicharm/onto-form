@@ -506,7 +506,73 @@
         "en": "Files, endpoints or other access options for this dataset"
       },
       "order": 20,
-      "visible": true
+      "visible": true,
+      "subFields": [
+        {
+          "id": "dcat:accessURL",
+          "type": "uri",
+          "required": true,
+          "validate": "isURI",
+          "label": { "de": "Zugangs-URL", "en": "Access URL" }
+        },
+        {
+          "id": "dcat:downloadURL",
+          "type": "uri",
+          "validate": "isURI",
+          "label": { "de": "Download-URL", "en": "Download URL" }
+        },
+        {
+          "id": "dct:title",
+          "type": "text",
+          "label": { "de": "Titel", "en": "Title" },
+          "placeholder": { "de": "Titel der Distribution", "en": "Distribution title" }
+        },
+        {
+          "id": "dct:description",
+          "type": "textarea",
+          "label": { "de": "Beschreibung", "en": "Description" },
+          "placeholder": { "de": "Beschreibung …", "en": "Description …" }
+        },
+        {
+          "id": "dct:format",
+          "type": "select",
+          "label": { "de": "Dateiformat", "en": "File Format" },
+          "optionsSource": "/vocabularies/file-format.json"
+        },
+        {
+          "id": "dcat:mediaType",
+          "type": "text",
+          "label": { "de": "Medientyp", "en": "Media Type" },
+          "placeholder": { "de": "text/csv", "en": "text/csv" }
+        },
+        {
+          "id": "dct:license",
+          "type": "uri",
+          "label": { "de": "Lizenz", "en": "License" },
+          "placeholder": { "de": "https://creativecommons.org/licenses/by/4.0/", "en": "https://creativecommons.org/licenses/by/4.0/" }
+        },
+        {
+          "id": "dcatap:availability",
+          "type": "select",
+          "label": { "de": "Verfügbarkeit", "en": "Availability" },
+          "options": [
+            { "value": "http://data.europa.eu/r5r/availability/stable",       "label": { "de": "Stabil",        "en": "Stable" } },
+            { "value": "http://data.europa.eu/r5r/availability/available",    "label": { "de": "Verfügbar",     "en": "Available" } },
+            { "value": "http://data.europa.eu/r5r/availability/experimental", "label": { "de": "Experimentell", "en": "Experimental" } },
+            { "value": "http://data.europa.eu/r5r/availability/temporary",    "label": { "de": "Vorübergehend", "en": "Temporary" } }
+          ]
+        },
+        {
+          "id": "dct:issued",
+          "type": "date",
+          "label": { "de": "Veröffentlichungsdatum", "en": "Issued" }
+        },
+        {
+          "id": "dct:modified",
+          "type": "date",
+          "label": { "de": "Zuletzt geändert", "en": "Modified" }
+        }
+      ]
     },
     "locn:geometry": {
       "type": "map",

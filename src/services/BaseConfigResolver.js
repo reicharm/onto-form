@@ -50,17 +50,29 @@ export class BaseConfigResolver {
     const loader = new VocabularyLoader()
     const warnings = []
     const pending = []
-    for (const [id, field] of Object.entries(fields)) {
-      if (!field.optionsSource) continue
-      pending.push(
-        loader.load(field.optionsSource, field.optionsSourceFallback)
-          .then(options => { field.options = [...options, ...(field.options || [])] })
-          .catch(err => {
-            console.warn(`[VocabularyLoader] ${id}: ${err.message}`)
-            warnings.push({ field: id, message: err.message })
-          })
-      )
+
+    const queue = (id, field) => {
+      if (field.optionsSource) {
+        pending.push(
+          loader.load(field.optionsSource, field.optionsSourceFallback)
+            .then(options => { field.options = [...options, ...(field.options || [])] })
+            .catch(err => {
+              console.warn(`[VocabularyLoader] ${id}: ${err.message}`)
+              warnings.push({ field: id, message: err.message })
+            })
+        )
+      }
+      // Sub-fields (object / distribution-editor) support optionsSource the
+      // same way top-level fields do.
+      for (const sf of field.subFields || []) {
+        queue(`${id}.${sf.id}`, sf)
+      }
     }
+
+    for (const [id, field] of Object.entries(fields)) {
+      queue(id, field)
+    }
+
     await Promise.all(pending)
     return warnings
   }

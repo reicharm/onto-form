@@ -15,6 +15,7 @@
           :field="field"
           :lang="lang"
           :modelValue="displayValue(field)"
+          :showErrors="(field.type === 'object' || field.type === 'distribution-editor') ? showErrors : undefined"
           @update:modelValue="updateField(field, $event)"
         />
         <div v-if="field.transform && displayValue(field)" class="transform-preview">
