@@ -417,9 +417,9 @@ Für Felder vom Typ `object`:
 }
 ```
 
-Unterfelder unterstützen `required` und `validate`, aber keine weiteren verschachtelten `subFields`.
+Unterfelder unterstützen dieselben Eigenschaften wie Top-Level-Felder — siehe [„Gleiche Features wie Top-Level-Felder"](#gleiche-features-wie-top-level-felder) weiter unten.
 
-Unterstützte Subfeld-Typen: `text`, `textarea`, `uri`, `date`, `select`, `langstring`.
+Unterstützte Subfeld-Typen: alle Top-Level-Feldtypen (`text`, `textarea`, `uri`, `date`, `select`, `searchselect`, `langstring`, `multiselect`, `map`, `object`, `distribution-editor`). Ein Unterfeld vom Typ `object` verschachtelt sich rekursiv selbst — nützlich für mehrstufige SHACL-Shapes (z. B. ein Adress-Unterobjekt innerhalb eines Kontakt-Unterobjekts).
 
 ### `rdfType`
 
@@ -685,19 +685,49 @@ UI-Config-Werte überschreiben SHACL-Werte bei Konflikten. Labels und Hints werd
 
 Feldtyp für `dcat:distribution`. Rendert eine Liste von DCAT-Distribution-Objekten mit eigenem Formular (inline aufklappbar oder als Modal). Verfügbar für alle drei eingebauten Standards (`dcat-ap-at`, `geodcat`, `dcat-ap-3`), nicht auf einen einzelnen Standard beschränkt.
 
+Das Formular jeder einzelnen Distribution wird — genau wie bei `object`-Feldern — vollständig aus `subFields` generiert. Es gibt keine fest verdrahtete Feldliste; jeder Standard kann eine eigene Auswahl, Reihenfolge und Konfiguration von Distributionsfeldern definieren:
+
 ```json
 "dcat:distribution": {
   "type": "distribution-editor",
   "distributionMode": "modal",
-  "label": { "de": "Distributionen", "en": "Distributions" }
+  "label": { "de": "Distributionen", "en": "Distributions" },
+  "fileUpload": { "enabled": true, "uploadUrl": "https://api.example.com/store/{filename}" },
+  "subFields": [
+    { "id": "dcat:accessURL", "type": "uri", "required": true, "validate": "isURI", "label": { "de": "Zugangs-URL", "en": "Access URL" } },
+    { "id": "dcat:downloadURL", "type": "uri", "validate": "isURI", "label": { "de": "Download-URL", "en": "Download URL" } },
+    { "id": "dct:title", "type": "text", "label": { "de": "Titel", "en": "Title" } },
+    { "id": "dct:description", "type": "textarea", "label": { "de": "Beschreibung", "en": "Description" } },
+    { "id": "dct:format", "type": "select", "label": { "de": "Dateiformat", "en": "File Format" }, "optionsSource": "/vocabularies/file-format.json" },
+    { "id": "dcatap:availability", "type": "select", "label": { "de": "Verfügbarkeit", "en": "Availability" }, "options": [ /* ... */ ] }
+  ]
 }
 ```
 
 | Eigenschaft | Typ | Standard | Beschreibung |
 |---|---|---|---|
 | `distributionMode` | `"modal"` \| `"inline"` | `"modal"` | Modal-Overlay oder direkt aufklappbare Karten |
+| `subFields` | array | — | Felder einer einzelnen Distribution — gleiche Syntax und Feldtypen wie bei [`object`-Unterfeldern](#unterfelder-subfields) |
+| `fileUpload` | object | — | Upload-Widget, siehe [`fileUpload`](#fileupload--datei-upload-für-distributionen) |
 
 Die Reihenfolge der Distributionen kann per Drag-and-Drop (Griffsymbol ⠿) angepasst werden.
+
+### Gleiche Features wie Top-Level-Felder
+
+`subFields` — egal ob unter `object` oder `distribution-editor` — unterstützen dieselben Eigenschaften wie Top-Level-Felder in `fields`:
+
+| Feature | Unterstützt | Hinweis |
+|---|---|---|
+| Alle Feldtypen (`text`, `select`, `langstring`, `map`, `object`, …) | ✅ | Dieselbe Komponentenauflösung wie Top-Level-Felder; `object`-Unterfelder können sich selbst rekursiv verschachteln |
+| `required` / `validate` | ✅ | Wird pro Unterfeld ausgewertet; bei `distribution-editor` pro Array-Element |
+| `visible` / `visibleIf` | ✅ | `visibleIf` wird gegen das **Unterobjekt selbst** ausgewertet (Geschwister-Unterfelder), nicht gegen die gesamten Top-Level-Formulardaten |
+| `multiple` (wiederholbar) | ✅ | Rendert über `RepeatableField`, identisch zu Top-Level-Feldern |
+| `multiline` (bei `langstring`) | ✅ | |
+| `optionsSource` / `optionsSourceFallback` | ✅ | Wird beim Konfigurations-Laden automatisch aufgelöst, wie bei Top-Level-Feldern |
+| `transform` / `transformOptions` | ✅ | |
+| `compute` / `generate` | ❌ | Nicht für Unterfelder verfügbar — beide referenzieren globale Formulardaten, was für ein einzelnes Unterobjekt/-array-Element nicht eindeutig ist |
+
+Fehleranzeige: Unterfeld-Validierungsfehler erscheinen direkt unter dem jeweiligen Unterfeld (wie bei Top-Level-Feldern) und zusätzlich als zusammengefasste Meldung am übergeordneten Feld. Im Wizard-Modus richtet sich die Sichtbarkeit dieser Fehler nach demselben `showErrors`-Zustand wie beim aktuellen Schritt (Fehler erscheinen erst nach einem Versuch, weiterzugehen).
 
 ---
 

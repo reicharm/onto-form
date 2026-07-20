@@ -201,21 +201,20 @@
 <script setup>
 import { computed, ref, watch, nextTick } from 'vue'
 import { useTranslations, DEFAULTS } from '../composables/useTranslations.js'
-import TextField from './fields/TextField.vue'
-import TextareaField from './fields/TextareaField.vue'
-import SelectField from './fields/SelectField.vue'
-import DateField from './fields/DateField.vue'
-import URIField from './fields/URIField.vue'
-import LangStringField from './fields/LangStringField.vue'
-import ObjectField from './fields/ObjectField.vue'
-import RepeatableField from './fields/RepeatableField.vue'
-import MultiSelectField from './fields/MultiSelectField.vue'
 import FieldGroup from './fields/FieldGroup.vue'
+import ObjectField from './fields/ObjectField.vue'
 import DistributionEditor from './fields/DistributionEditor.vue'
-import MapField from './fields/MapField.vue'
-import SearchSelectField from './fields/SearchSelectField.vue'
 import ValidationReport from './ValidationReport.vue'
 import { assetUrl } from '../config/ontoFormConfig.js'
+import { fieldComponent as resolveFieldComponent } from '../config/fieldComponentMap.js'
+
+// Top-level fields additionally need "object" and "distribution-editor"
+// resolved — see the comment in fieldComponentMap.js for why those aren't
+// part of the shared base map.
+const TOP_LEVEL_EXTRA = { object: ObjectField, 'distribution-editor': DistributionEditor }
+function fieldComponent(field) {
+  return resolveFieldComponent(field, TOP_LEVEL_EXTRA)
+}
 import { validateForm, hasValue } from '../composables/useValidation.js'
 import { applyEncode } from '../config/fieldTransforms.js'
 import { evaluateVisibleIf } from '../config/fieldVisibility.js'
@@ -254,24 +253,6 @@ function label(key, defaults) {
   if (!override) return defaults[props.lang] ?? defaults.en ?? defaults.de
   if (typeof override === 'string') return override
   return override[props.lang] ?? override.en ?? override.de ?? defaults[props.lang] ?? defaults.en
-}
-
-const componentMap = {
-  textarea: TextareaField,
-  select: SelectField,
-  date: DateField,
-  uri: URIField,
-  langstring: LangStringField,
-  text: TextField,
-  object: ObjectField,
-  multiselect: MultiSelectField,
-  'distribution-editor': DistributionEditor,
-  map: MapField,
-  searchselect: SearchSelectField,
-}
-
-function fieldComponent(field) {
-  return componentMap[field.type] || TextField
 }
 
 const visibleGroups = computed(() => {

@@ -2,7 +2,7 @@
   <div class="dist-form">
 
     <!-- ── File upload widget ── -->
-    <div v-if="uploadConfig?.enabled" class="field span2 upload-section">
+    <div v-if="uploadConfig?.enabled" class="upload-section">
       <label>{{ t('dist.upload-label') }}</label>
 
       <div
@@ -58,101 +58,64 @@
       </button>
     </div>
 
-    <!-- ── Standard fields ── -->
-    <div class="field">
-      <label class="required">{{ t('dist.field.access-url') }}</label>
-      <input type="url" :value="modelValue['dcat:accessURL'] || ''" placeholder="https://…"
-        @input="update('dcat:accessURL', $event.target.value)" />
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.download-url') }}</label>
-      <input type="url" :value="modelValue['dcat:downloadURL'] || ''" placeholder="https://…"
-        @input="update('dcat:downloadURL', $event.target.value)" />
-    </div>
-
-    <div class="field span2">
-      <label>{{ t('dist.field.title') }}</label>
-      <input type="text" :value="modelValue['dct:title'] || ''"
-        :placeholder="t('dist.field.title-placeholder')"
-        @input="update('dct:title', $event.target.value)" />
-    </div>
-
-    <div class="field span2">
-      <label>{{ t('dist.field.description') }}</label>
-      <textarea :value="modelValue['dct:description'] || ''"
-        :placeholder="t('dist.field.description-placeholder')"
-        @input="update('dct:description', $event.target.value)" rows="3" />
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.format') }}</label>
-      <select :value="modelValue['dct:format'] || ''" @change="update('dct:format', $event.target.value)">
-        <option value="">{{ t('select.placeholder') }}</option>
-        <option v-for="opt in formatOptions" :key="opt.value" :value="opt.value">
-          {{ opt.label?.[lang] || opt.label?.en || opt.value }}
-        </option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.media-type') }}</label>
-      <input type="text" :value="modelValue['dcat:mediaType'] || ''" placeholder="text/csv"
-        @input="update('dcat:mediaType', $event.target.value)" />
-    </div>
-
-    <div class="field span2">
-      <label>{{ t('dist.field.license') }}</label>
-      <input type="url" :value="modelValue['dct:license'] || ''"
-        placeholder="https://creativecommons.org/licenses/by/4.0/"
-        @input="update('dct:license', $event.target.value)" />
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.availability') }}</label>
-      <select :value="modelValue['dcatap:availability'] || ''"
-        @change="update('dcatap:availability', $event.target.value)">
-        <option value="">{{ t('select.placeholder') }}</option>
-        <option v-for="opt in availabilityOptions" :key="opt.value" :value="opt.value">
-          {{ opt.label?.[lang] || opt.label?.en || opt.value }}
-        </option>
-      </select>
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.issued') }}</label>
-      <input type="date" :value="modelValue['dct:issued'] || ''"
-        @input="update('dct:issued', $event.target.value)" />
-    </div>
-
-    <div class="field">
-      <label>{{ t('dist.field.modified') }}</label>
-      <input type="date" :value="modelValue['dct:modified'] || ''"
-        @input="update('dct:modified', $event.target.value)" />
-    </div>
+    <!-- ── Sub-fields, driven by field.subFields — same rendering pipeline as
+         top-level fields and generic "object" sub-fields ── -->
+    <FieldGroup
+      :fields="visibleSubFields"
+      :lang="lang"
+      :modelValue="modelValue || {}"
+      :fieldErrors="subFieldErrors"
+      :showErrors="showErrors"
+      :fieldComponent="fieldComponent"
+      @update:modelValue="$emit('update:modelValue', $event)"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import FieldGroup from './FieldGroup.vue'
+import ObjectField from './ObjectField.vue'
 import { FileUploader } from '../../services/FileUploader.js'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { fieldComponent as resolveFieldComponent } from '../../config/fieldComponentMap.js'
+import { evaluateVisibleIf } from '../../config/fieldVisibility.js'
+import { validateField } from '../../composables/useValidation.js'
+
+// A distribution sub-field of type "object" (e.g. a structured license) is
+// resolved via a direct import of ObjectField — safe here since ObjectField
+// never imports DistributionForm/DistributionEditor, so no cycle.
+const DIST_EXTRA = { object: ObjectField }
+function fieldComponent(field) {
+  return resolveFieldComponent(field, DIST_EXTRA)
+}
 
 const props = defineProps({
+  field: { type: Object, required: true },
   modelValue: { type: Object, default: () => ({}) },
   lang: String,
-  formatOptions: { type: Array, default: () => [] },
-  availabilityOptions: { type: Array, default: () => [] },
-  uploadConfig: { type: Object, default: null }
+  uploadConfig: { type: Object, default: null },
+  showErrors: { type: Boolean, default: true }
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useTranslations()
 
-function update(key, value) {
-  emit('update:modelValue', { ...props.modelValue, [key]: value })
-}
+const visibleSubFields = computed(() =>
+  (props.field.subFields || []).filter(sf =>
+    sf.visible !== false && evaluateVisibleIf(sf.visibleIf, props.modelValue)
+  )
+)
+
+const subFieldErrors = computed(() => {
+  const result = {}
+  for (const sf of visibleSubFields.value) {
+    const errors = validateField(sf, (props.modelValue || {})[sf.id], props.lang, props.modelValue)
+    if (errors.length) result[sf.id] = errors
+  }
+  return result
+})
 
 // ── File upload state ──
 const fileInput = ref(null)
@@ -213,46 +176,30 @@ function formatFileSize(bytes) {
 
 <style scoped>
 .dist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dist-form :deep(.group-fields) {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.85rem;
 }
 
-.field { display: flex; flex-direction: column; gap: 0.25rem; }
-.field.span2 { grid-column: span 2; }
+.dist-form :deep(.field-wrapper) { margin: 0; }
 
-label {
-  font-size: var(--font-size-label);
-  font-weight: 500;
-  color: var(--color-text-muted);
-}
-label.required::after { content: ' *'; color: var(--color-error); }
-
-input[type="text"],
-input[type="url"],
-input[type="date"],
-textarea,
-select {
-  padding: 0.45rem 0.7rem;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-base);
-  background: var(--color-surface);
-  color: var(--color-text);
-  width: 100%;
-  box-sizing: border-box;
-  font-family: inherit;
-  transition: border-color 0.2s;
+/* Sub-fields that should visually span both columns (title, description,
+   license, and any multiline/object/map field) */
+.dist-form :deep(.field-wrapper:has(textarea)),
+.dist-form :deep(.field-wrapper:has(.object-fieldset)),
+.dist-form :deep(.field-wrapper:has(.map-field)) {
+  grid-column: span 2;
 }
 
-input:focus, textarea:focus, select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: var(--focus-ring);
+@media (max-width: 600px) {
+  .dist-form :deep(.group-fields) { grid-template-columns: 1fr; }
 }
-
-textarea { resize: vertical; }
-select { cursor: pointer; }
 
 /* ── Upload section ── */
 .upload-section {
@@ -260,7 +207,15 @@ select { cursor: pointer; }
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
   gap: 0.6rem;
+}
+
+.upload-section label {
+  font-size: var(--font-size-label);
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 .hidden-input { display: none; }
@@ -349,10 +304,5 @@ select { cursor: pointer; }
   cursor: pointer;
   text-decoration: underline;
   padding: 0;
-}
-
-@media (max-width: 600px) {
-  .dist-form { grid-template-columns: 1fr; }
-  .field.span2 { grid-column: span 1; }
 }
 </style>

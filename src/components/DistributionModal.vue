@@ -12,10 +12,9 @@
   >
     <div class="dist-body">
       <DistributionForm
+        :field="field"
         :modelValue="draft"
         :lang="lang"
-        :formatOptions="formatOptions"
-        :availabilityOptions="availabilityOptions"
         :uploadConfig="uploadConfig"
         @update:modelValue="draft = $event"
       />
@@ -27,8 +26,8 @@
       </button>
       <button
         class="btn-save"
-        :disabled="!draft['dcat:accessURL']"
-        :aria-disabled="!draft['dcat:accessURL']"
+        :disabled="!canSave"
+        :aria-disabled="!canSave"
         @click="save"
       >
         {{ t('btn.save') }}
@@ -38,19 +37,19 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import DistributionForm from './fields/DistributionForm.vue'
 import BaseModal from './BaseModal.vue'
 import { useTranslations } from '../composables/useTranslations.js'
+import { hasValue } from '../composables/useValidation.js'
 
 const { t } = useTranslations()
 
 const props = defineProps({
+  field: { type: Object, required: true },
   modelValue: { type: Object, default: () => ({}) },
   lang: String,
   show: Boolean,
-  formatOptions: { type: Array, default: () => [] },
-  availabilityOptions: { type: Array, default: () => [] },
   uploadConfig: { type: Object, default: null }
 })
 
@@ -61,6 +60,14 @@ const draft = ref({ ...(props.modelValue || {}) })
 watch(() => props.modelValue, (val) => {
   draft.value = { ...(val || {}) }
 }, { deep: true })
+
+// Save is only blocked by required sub-fields, driven by config —
+// same rule the inline form uses (useValidation's required check).
+const canSave = computed(() =>
+  (props.field.subFields || [])
+    .filter(sf => sf.required)
+    .every(sf => hasValue(draft.value?.[sf.id], sf))
+)
 
 function save() {
   emit('save', { ...draft.value })

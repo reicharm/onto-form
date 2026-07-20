@@ -52,11 +52,11 @@
 
           <div v-if="openCards.has(idx)" class="dist-card-body">
             <DistributionForm
+              :field="field"
               :modelValue="dist"
               :lang="lang"
-              :formatOptions="formatOptions"
-              :availabilityOptions="availabilityOptions"
               :uploadConfig="uploadConfig"
+              :showErrors="showErrors"
               @update:modelValue="updateDist(idx, $event)"
             />
           </div>
@@ -107,10 +107,9 @@
     <DistributionModal
       v-if="mode === 'modal' && editingDraft !== null"
       :show="editingDraft !== null"
+      :field="field"
       :modelValue="editingDraft"
       :lang="lang"
-      :formatOptions="formatOptions"
-      :availabilityOptions="availabilityOptions"
       :uploadConfig="uploadConfig"
       @save="onModalSave"
       @cancel="editingDraft = null"
@@ -119,16 +118,17 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { computed, ref, watch } from 'vue'
 import DistributionForm from './DistributionForm.vue'
 import DistributionModal from '../DistributionModal.vue'
-import { assetUrl } from '../../config/ontoFormConfig.js'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { defaultFieldValue } from '../../config/fieldDefaults.js'
 
 const props = defineProps({
   field: Object,
   lang: String,
-  modelValue: { type: Array, default: () => [] }
+  modelValue: { type: Array, default: () => [] },
+  showErrors: { type: Boolean, default: true }
 })
 
 const { t } = useTranslations()
@@ -139,33 +139,15 @@ const emit = defineEmits(['update:modelValue'])
 
 const mode = computed(() => props.field?.distributionMode || 'inline')
 
-// Vocabulary data
-const formatOptions = ref([])
-const availabilityOptions = [
-  { value: 'http://data.europa.eu/r5r/availability/stable',       label: { de: 'Stabil',         en: 'Stable' } },
-  { value: 'http://data.europa.eu/r5r/availability/available',    label: { de: 'Verfügbar',      en: 'Available' } },
-  { value: 'http://data.europa.eu/r5r/availability/experimental', label: { de: 'Experimentell',  en: 'Experimental' } },
-  { value: 'http://data.europa.eu/r5r/availability/temporary',    label: { de: 'Vorübergehend',  en: 'Temporary' } }
-]
-
-onMounted(async () => {
-  try {
-    const res = await fetch(assetUrl('vocabularies/file-format.json'))
-    if (res.ok) formatOptions.value = await res.json()
-  } catch { /* fallback: empty list */ }
-})
-
 // Distribution list
 const distributions = computed(() => Array.isArray(props.modelValue) ? props.modelValue : [])
 
+// Empty distribution item, derived from field.subFields the same way
+// App.vue derives empty top-level field values — one place, one rule.
 function emptyDist() {
-  return {
-    'dcat:accessURL': '', 'dcat:downloadURL': '',
-    'dct:title': '', 'dct:description': '',
-    'dct:format': '', 'dcat:mediaType': '',
-    'dct:license': '', 'dcatap:availability': '',
-    'dct:issued': '', 'dct:modified': ''
-  }
+  return Object.fromEntries(
+    (props.field.subFields || []).map(sf => [sf.id, defaultFieldValue(sf)])
+  )
 }
 
 function addDistribution() {
@@ -290,7 +272,8 @@ function cardTitle(dist) {
 }
 
 function formatLabel(formatUri) {
-  const opt = formatOptions.value.find(o => o.value === formatUri)
+  const formatField = (props.field.subFields || []).find(sf => sf.id === 'dct:format')
+  const opt = formatField?.options?.find(o => o.value === formatUri)
   return opt ? (opt.label?.[props.lang] || opt.label?.en || formatUri) : (formatUri.split('/').pop() || formatUri)
 }
 </script>

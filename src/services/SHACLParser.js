@@ -49,7 +49,9 @@ export class SHACLParser {
         delete field._linkedShape
         const linkedShape = rawShapes[linkedSubject]
         if (linkedShape) {
-          field.subFields = linkedShape.fields
+          // subFields is always an array — same shape whether it comes from
+          // SHACL (here) or is hand-authored in ui-config.
+          field.subFields = Object.values(linkedShape.fields)
           embeddedSubjects.add(linkedSubject)
         }
       }

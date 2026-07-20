@@ -118,6 +118,7 @@ import { applyComputes } from './config/fieldComputes.js'
 import { applyEncode } from './config/fieldTransforms.js'
 import { useTranslations } from './composables/useTranslations.js'
 import { useTranslationProvider } from './composables/useTranslationProvider.js'
+import { defaultFieldValue } from './config/fieldDefaults.js'
 
 const props = defineProps({
   standards: {
@@ -189,27 +190,7 @@ function buildDefaultFormData(config) {
   const data = {}
   if (!config?.fields) return data
   for (const [id, field] of Object.entries(config.fields)) {
-    if (field.type === 'distribution-editor') {
-      data[id] = []
-    } else if (field.multiple) {
-      // Start repeatable fields with one empty item
-      if (field.type === 'langstring') {
-        data[id] = [{ value: '', lang: 'de' }]
-      } else {
-        data[id] = ['']
-      }
-    } else if (field.defaultValue !== undefined) {
-      data[id] = field.defaultValue
-    } else if (field.type === 'langstring') {
-      data[id] = { de: '', en: '' }
-    } else if (field.type === 'multiselect') {
-      data[id] = []
-    } else if (field.type === 'object') {
-      data[id] = {}
-    } else {
-      // date, text, textarea, uri, select — also hidden fields
-      data[id] = ''
-    }
+    data[id] = defaultFieldValue(field)
   }
   return data
 }

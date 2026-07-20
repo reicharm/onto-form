@@ -6,17 +6,19 @@
 App.vue
 ├── StandardSelector.vue        Standardauswahl (DCAT-AP.at / GeoDCAT / DCAT-AP 3.0)
 ├── MetadataForm.vue            Formular (Wizard- und Einzel-Seiten-Modus)
-│   ├── fields/TextField.vue
-│   ├── fields/TextareaField.vue
-│   ├── fields/LangStringField.vue
-│   ├── fields/SelectField.vue
-│   ├── fields/MultiSelectField.vue
-│   ├── fields/DateField.vue
-│   ├── fields/URIField.vue
-│   ├── fields/ObjectField.vue
-│   ├── fields/RepeatableField.vue
-│   ├── fields/DistributionEditor.vue  Distributions-Editor (Inline- und Modal-Modus)
-│   └── fields/DistributionForm.vue    Gemeinsames Formular für eine einzelne Distribution
+│   ├── fields/FieldGroup.vue    Rendert eine Feldliste — von MetadataForm UND rekursiv von ObjectField/DistributionForm genutzt
+│   │   ├── fields/TextField.vue
+│   │   ├── fields/TextareaField.vue
+│   │   ├── fields/LangStringField.vue
+│   │   ├── fields/SelectField.vue
+│   │   ├── fields/MultiSelectField.vue
+│   │   ├── fields/DateField.vue
+│   │   ├── fields/URIField.vue
+│   │   ├── fields/ObjectField.vue          subFields → FieldGroup.vue (rekursiv, self-nesting)
+│   │   ├── fields/RepeatableField.vue
+│   │   └── fields/DistributionEditor.vue   Distributions-Liste (Inline- und Modal-Modus)
+│   │       └── fields/DistributionForm.vue Einzelne Distribution, subFields → FieldGroup.vue
+│   └── config/fieldComponentMap.js  Feldtyp → Komponente, gemeinsam genutzt von MetadataForm/ObjectField/DistributionForm
 ├── DistributionModal.vue       Modal-Overlay für Distribution-Bearbeitung
 ├── ExportPanel.vue             Export-Dialog (JSON-LD / Turtle / RDF/XML)
 ├── ImportPanel.vue             Import-Dialog (JSON-LD / Turtle / RDF/XML)
@@ -52,6 +54,8 @@ src/config/
 ├── fieldValidators.js          Benannte Validatoren (isURI, isEmail, …)
 ├── fieldTransforms.js          Benannte Transforms (display ↔ encode, z.B. uriSuffix)
 ├── fieldVisibility.js          Benannte Visibility- und RequiredIf-Funktionen
+├── fieldComponentMap.js        Feldtyp → Vue-Komponente (Top-Level- und Unterfelder)
+├── fieldDefaults.js            Leerwert je Feldtyp (App.vue-Formular-Init und DistributionEditor-Neuanlage)
 └── idGenerators.js             Benannte ID-Generatoren (uuid, slugDate, nanoid)
 src/composables/
 └── useValidation.js            Formular- und Einzelfeld-Validierung
@@ -346,15 +350,18 @@ Eigenschafts-Shapes können `pv:mappingLink <weitere NodeShape>` referenzieren, 
 | Modal | `"modal"` (Standard) | Kompakte Kartenliste; Klick auf „Bearbeiten" öffnet ein Modal-Overlay (`DistributionModal.vue`) |
 | Inline | `"inline"` | Aufklappbare Karten; das Formular wird direkt in der Seite angezeigt |
 
-`DistributionForm.vue` enthält die eigentlichen Formularfelder einer Distribution (accessURL, downloadURL, title, description, format, mediaType, license, availability, issued, modified) und wird von beiden Modi genutzt — entweder direkt in den Inline-Karten oder über `DistributionModal.vue`.
+`DistributionForm.vue` rendert die Formularfelder einer einzelnen Distribution **generisch aus `field.subFields`** — über dieselbe `FieldGroup.vue`-Pipeline wie Top-Level-Felder und `ObjectField.vue` (siehe [Konfigurationsauflösung](#konfigurationsauflösung) unten). Es gibt keine hartcodierte Feldliste mehr; die Auswahl, Reihenfolge und Konfiguration der Distributionsfelder kommt vollständig aus der UI-Config (siehe `subFields` bei [`distribution-editor`](./configuration.md#distribution-editor--distributions-liste)). Die einzige feste Ausnahme ist das optionale Datei-Upload-Widget (`field.fileUpload`), das oberhalb der generischen Felder gerendert wird und beim erfolgreichen Upload `dcat:accessURL`/`dcat:downloadURL` befüllt.
+
+`DistributionForm.vue` wird von beiden Modi genutzt — entweder direkt in den Inline-Karten oder über `DistributionModal.vue`.
 
 Props von `DistributionEditor.vue`:
 
-- `field` – Feldkonfiguration (inkl. `field.distributionMode`)
+- `field` – Feldkonfiguration (inkl. `field.distributionMode`, `field.subFields`, `field.fileUpload`)
 - `modelValue` – Array von Distribution-Objekten
 - `lang` – Anzeigesprache
+- `showErrors` – wie bei `FieldGroup`, steuert die Sichtbarkeit von Validierungsfehlern (im Wizard: erst nach Schrittwechsel-Versuch)
 
-`DistributionEditor.vue` lädt Formatoptionen selbst aus `/vocabularies/file-format.json`.
+Ein neues, leeres Distribution-Objekt wird aus `field.subFields` abgeleitet (`defaultFieldValue()` in `src/config/fieldDefaults.js` — dieselbe Regel wie `App.vue`s `buildDefaultFormData`), nicht mehr aus einer hartcodierten Objektvorlage. `dct:format`-Optionen werden wie jedes andere `select`-Feld über `optionsSource` beim Konfigurations-Laden aufgelöst (`BaseConfigResolver.resolveVocabularies` rekursiert dafür in `field.subFields`).
 
 Der aktive Modus kann zur Laufzeit über den Toggle-Button im Header umgeschaltet werden (siehe `toggleDistributionMode()` in App.vue).
 
@@ -516,6 +523,47 @@ suggestionsStore.label(value)               // → lesbare Kurzbezeichnung für 
 
 ---
 
+## Feldkomponenten-Zuordnung (`fieldComponentMap.js`)
+
+`src/config/fieldComponentMap.js` ist die zentrale Zuordnung Feldtyp → Vue-Komponente, aber sie enthält **nur Blatt-Feldtypen** (`text`, `textarea`, `select`, `date`, `uri`, `langstring`, `multiselect`, `map`, `searchselect`) — bewusst **ohne** `object` und `distribution-editor`:
+
+```js
+export const fieldComponentMap = {
+  text: TextField, textarea: TextareaField, select: SelectField, date: DateField,
+  uri: URIField, langstring: LangStringField, multiselect: MultiSelectField,
+  map: MapField, searchselect: SearchSelectField,
+}
+export function fieldComponent(field, extra) {
+  return (extra && extra[field.type]) || fieldComponentMap[field.type] || TextField
+}
+```
+
+**Warum `object`/`distribution-editor` fehlen (zirkuläre Importe):** `ObjectField.vue` und `DistributionForm.vue` importieren `fieldComponentMap.js`, um ihre eigenen `subFields` zu rendern. Würde `fieldComponentMap.js` umgekehrt `ObjectField.vue`/`DistributionEditor.vue` importieren, entstünde ein Importzyklus (`fieldComponentMap → ObjectField → fieldComponentMap`), der unter Vite/Rollup im Library-Build dazu führt, dass Rollup die betroffenen Komponenten zwangsweise in separate Chunks auslagert — `dist/onto-form.es.js` wird dann fast leer, der eigentliche Code landet in zusätzlichen, nicht dokumentierten Chunk-Dateien. Im Dev-Server äußert sich derselbe Zyklus zusätzlich als „Cannot access '...' before initialization" (TDZ) beim ersten Laden.
+
+Jeder Aufrufer erweitert die Basis-Map stattdessen lokal um das, was er tatsächlich braucht, über den zweiten `extra`-Parameter von `fieldComponent()`:
+
+| Aufrufer | Erweiterung | Warum unproblematisch |
+|---|---|---|
+| `MetadataForm.vue` | `{ object: ObjectField, 'distribution-editor': DistributionEditor }` | Wird von keiner der beiden importiert — kein Zyklus |
+| `ObjectField.vue` | `{ object: getCurrentInstance().type }` | Selbstreferenz für rekursive Verschachtelung (z. B. Adress-Unterobjekt in einem Agent-Unterobjekt) — kein Import nötig, daher kein Zyklus |
+| `DistributionForm.vue` | `{ object: ObjectField }` | Direkter Import von `ObjectField.vue` ist sicher, da diese Datei ihrerseits nie `DistributionForm.vue`/`DistributionEditor.vue` importiert |
+
+`distribution-editor` als Unterfeld-Typ innerhalb eines `object`- oder `distribution-editor`-Felds wird bewusst nicht unterstützt (keine reale DCAT-Shape verschachtelt Distributionslisten ineinander).
+
+### `ObjectField.vue` und `DistributionForm.vue` delegieren an `FieldGroup.vue`
+
+Beide Komponenten rendern ihre `subFields` nicht mit einer eigenen, reduzierten Logik, sondern instanziieren `FieldGroup.vue` — dieselbe Komponente, die auch Top-Level-Felder rendert. Dadurch erhalten Unterfelder automatisch alle Features, die Top-Level-Felder haben: `RepeatableField`-Einbettung bei `multiple: true`, Transform-Anzeige/-Kodierung, Fehleranzeige pro Feld, und Komponentenauswahl über dieselbe `fieldComponentMap`.
+
+- `ObjectField.vue` filtert `field.subFields` nach `visible`/`visibleIf` (ausgewertet gegen das **Unterobjekt selbst**, nicht die globalen Formulardaten) und validiert sie über `validateField()` aus `useValidation.js`.
+- `DistributionForm.vue` macht dasselbe für ein einzelnes Distribution-Objekt; das Datei-Upload-Widget bleibt eine feste Zusatzkomponente oberhalb der generischen Felder.
+- `useValidation.js`s `validateField()` validiert `subFields` rekursiv für zwei Formen: ein einzelnes Unterobjekt (`field.type === 'object'`) und ein Array von Unterobjekten (`field.subFields` + Array-Wert, z. B. `distribution-editor`) — Fehler werden pro Array-Element mit `#<Index>:`-Präfix gesammelt.
+
+### `subFields`-Normalisierung in `SHACLParser.js`
+
+`SHACLParser.js` setzt `field.subFields` bei `pv:mappingLink` immer als **Array** (`Object.values(linkedShape.fields)`), nie als Objekt. Vor dieser Vereinheitlichung war das SHACL-abgeleitete `subFields` ein Objekt (`{ [fieldId]: fieldDef }`), während handgeschriebene `subFields` in `ui-config.*.json` immer Arrays waren — eine Inkonsistenz, die zu `.filter is not a function`-artigen Fehlern führen konnte, sobald ein `object`-Feld ausschließlich auf SHACL-abgeleitete Unterfelder ohne UI-Config-Override angewiesen war.
+
+---
+
 ## Erweiterung
 
 ### Neuen Standard hinzufügen
@@ -555,5 +603,5 @@ Im Feld konfigurieren:
 ### Neuer Feldtyp
 
 1. Vue-Komponente unter `src/components/fields/` anlegen
-2. In `MetadataForm.vue` in `componentMap` eintragen
+2. In `src/config/fieldComponentMap.js` eintragen — steht damit automatisch für Top-Level-Felder, `object`-Unterfelder und `distribution-editor`-Unterfelder gleichermaßen zur Verfügung
 3. In `RDFExporter.js` und `RDFImporter.js` Serialisierung/Deserialisierung ergänzen

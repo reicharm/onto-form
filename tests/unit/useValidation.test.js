@@ -97,6 +97,40 @@ describe('validateField', () => {
       expect(errors).toEqual([])
     })
   })
+
+  describe('repeatable sub-object subfields (e.g. distribution-editor)', () => {
+    const field = {
+      type: 'distribution-editor',
+      subFields: [
+        { id: 'dcat:accessURL', label: { en: 'Access URL' }, required: true, validate: 'isURI' }
+      ]
+    }
+
+    it('validates each array item\'s subfields, prefixed with the item index', () => {
+      const value = [
+        { 'dcat:accessURL': 'https://example.com' },
+        { 'dcat:accessURL': '', 'dct:title': 'has some other input' }
+      ]
+      const errors = validateField(field, value, 'en')
+      expect(errors).toHaveLength(1)
+      expect(errors[0]).toContain('#2')
+      expect(errors[0]).toContain('Access URL')
+    })
+
+    it('skips items with no input at all', () => {
+      const value = [{ 'dcat:accessURL': '', 'dct:title': '' }]
+      expect(validateField(field, value, 'en')).toEqual([])
+    })
+
+    it('returns no errors when all items are valid', () => {
+      const value = [{ 'dcat:accessURL': 'https://example.com' }]
+      expect(validateField(field, value, 'en')).toEqual([])
+    })
+
+    it('is a no-op for non-array values', () => {
+      expect(validateField(field, undefined, 'en')).toEqual([])
+    })
+  })
 })
 
 describe('validateForm', () => {
