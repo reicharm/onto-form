@@ -2,7 +2,7 @@
   "standard": "dcat-ap-at",
   "version": "2.1",
   "rootClass": "dcat:Dataset",
-  "wizard": true,
+  "wizard": false,
   "groups": [
     {
       "id": "basic",
