@@ -1,6 +1,0 @@
-[
-  { "value": "http://data.europa.eu/r5r/availability/stable", "label": { "de": "Stabil", "en": "Stable" } },
-  { "value": "http://data.europa.eu/r5r/availability/available", "label": { "de": "Verfügbar", "en": "Available" } },
-  { "value": "http://data.europa.eu/r5r/availability/experimental", "label": { "de": "Experimentell", "en": "Experimental" } },
-  { "value": "http://data.europa.eu/r5r/availability/temporary", "label": { "de": "Vorübergehend", "en": "Temporary" } }
-]

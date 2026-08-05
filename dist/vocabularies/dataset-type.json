@@ -1,8 +1,0 @@
-[
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/GEOSPATIAL", "label": { "de": "Geodaten", "en": "Geospatial" } },
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/CODE_LIST", "label": { "de": "Codeliste", "en": "Code list" } },
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/STATISTICAL", "label": { "de": "Statistik", "en": "Statistical" } },
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/TAXONOMY", "label": { "de": "Taxonomie", "en": "Taxonomy" } },
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/SPATIAL_PLAN", "label": { "de": "Raumplanung", "en": "Spatial plan" } },
-  { "value": "http://publications.europa.eu/resource/authority/dataset-type/TRANSPORTATION_NETWORK", "label": { "de": "Verkehrsnetz", "en": "Transportation network" } }
-]
