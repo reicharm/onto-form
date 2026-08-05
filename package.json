@@ -68,11 +68,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:lib": "BUILD_LIB=1 vite build",
+    "build:lib": "set BUILD_LIB=1&& vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "prepublishOnly": "npm run build:lib"
+    "prepublishOnly": "npm run build:lib",
+    "prepare": "npm run build:lib"
+  },
+  "publishConfig": {
+    "registry": "http://centralrepo.apps.a3.cp.cna.at/artifactory/api/npm/brz-open-data-npm/"
   }
 }
