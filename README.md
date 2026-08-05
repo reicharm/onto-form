@@ -53,6 +53,8 @@ import { MetadataForm } from '@reicharm/onto-form'
 > `node_modules/@reicharm/onto-form/public/` in dein `public/`-Verzeichnis
 > (oder ein Unterverzeichnis) und passe `assetsBaseUrl` entsprechend an.
 
+> **Build-Hinweis:** Das Paket enthält kein vorgebautes `dist/`-Verzeichnis im Repository — es wird automatisch über das `prepare`-npm-Skript gebaut, sobald `npm install` in der Host-Anwendung läuft (npm führt `prepare` bei Git-Abhängigkeiten und bei der lokalen Entwicklung des Pakets selbst aus). Dafür wird **Vite** benötigt (`vite`, `@vitejs/plugin-vue` — als `devDependencies` in `package.json` von OntoForm deklariert). Bei einem Git-Abhängigkeit-Install installiert npm auch die `devDependencies` des installierten Pakets selbst, damit `prepare` funktioniert — im Host-Projekt muss dafür nichts zusätzlich installiert werden. Bei einem Registry-Install (`npm install @reicharm/onto-form`) baut stattdessen `prepublishOnly` das Paket bereits vor dem Veröffentlichen; der Host bekommt ein fertiges `dist/`.
+
 ## Lokale Entwicklung
 
 ```bash
