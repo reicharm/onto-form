@@ -63,6 +63,7 @@ app.mount('#app')
 ```vue
 <template>
   <MetadataForm
+    v-if="formConfig"
     v-model="formData"
     :config="formConfig"
     :lang="'de'"
@@ -71,11 +72,15 @@ app.mount('#app')
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useFormConfig } from 'onto-form'
+import { ref, onMounted } from 'vue'
+import { FormConfigResolver } from 'onto-form'
 
-const formConfig = await useFormConfig('dcat-ap-at')
+const formConfig = ref(null)
 const formData = ref({})
+
+onMounted(async () => {
+  formConfig.value = await new FormConfigResolver().resolve('dcat-ap-at')
+})
 </script>
 ```
 
@@ -130,31 +135,41 @@ Die eingebauten Standards (`dcat-ap-at`, `dcat-ap-3`, `geodcat`) liefern SHACL u
 
 ## 5. Eigene Standards definieren
 
-Die `<App>`-Komponente akzeptiert ein `standards`-Prop und ein `initial-standard`-Prop:
+OntoForm selbst hat keinen eingebauten Standard-Auswahl-Mechanismus — die einbettende Anwendung ruft `FormConfigResolver.resolve(standardId)` mit der gewünschten `standardId` auf; welcher Standard das ist, entscheidet ausschließlich die Host-Anwendung (z. B. über ein eigenes `<select>` oder eine Routen-Property).
+
+`BUILTIN_STANDARDS` ist ein Array von `{ id, label }`-Objekten für die Standards, deren SHACL- und UI-Config-Dateien bereits im Paket enthalten sind — nützlich, um eine eigene Auswahl-UI zu befüllen:
 
 ```js
-import { App, BUILTIN_STANDARDS } from 'onto-form'
-```
+import { BUILTIN_STANDARDS, FormConfigResolver } from 'onto-form'
 
-Nur eigene Standards:
+// eigene Standards zu den eingebauten hinzufügen
+const standards = [...BUILTIN_STANDARDS, { id: 'mein-standard', label: 'Mein Standard' }]
+```
 
 ```vue
-<App
-  :standards="[{ id: 'mein-standard', label: 'Mein Standard' }]"
-  initial-standard="mein-standard"
-/>
+<template>
+  <select v-model="selectedStandard">
+    <option v-for="s in standards" :key="s.id" :value="s.id">{{ s.label }}</option>
+  </select>
+  <MetadataForm v-if="formConfig" v-model="formData" :config="formConfig" lang="de" />
+</template>
+
+<script setup>
+import { ref, watch } from 'vue'
+import { FormConfigResolver } from 'onto-form'
+
+const selectedStandard = ref('dcat-ap-at')
+const formConfig = ref(null)
+const formData = ref({})
+
+watch(selectedStandard, async (id) => {
+  formConfig.value = await new FormConfigResolver().resolve(id)
+  formData.value = {}
+}, { immediate: true })
+</script>
 ```
 
-Eigene Standards zu den eingebauten hinzufügen:
-
-```vue
-<App
-  :standards="[...BUILTIN_STANDARDS, { id: 'mein-standard', label: 'Mein Standard' }]"
-  initial-standard="dcat-ap-at"
-/>
-```
-
-`BUILTIN_STANDARDS` ist ein Array von `{ id, label }`-Objekten. Die entsprechenden Assets für `mein-standard` müssen unter `assetsBaseUrl/shacl/mein-standard.ttl` und `assetsBaseUrl/config/ui-config.mein-standard.json` liegen.
+Für einen eigenen Standard (`mein-standard`) müssen die Assets unter `assetsBaseUrl/shacl/mein-standard.ttl` und `assetsBaseUrl/config/ui-config.mein-standard.json` bereitgestellt werden.
 
 ---
 
@@ -236,7 +251,9 @@ const rdfxml  = await exporter.toRDFXML(formData.value, formConfig)
 
 ## 7. CSS-Theming
 
-Alle OntoForm-Stile sind auf die Klasse `.ontoform` beschränkt. CSS Custom Properties können in der einbettenden Anwendung überschrieben werden:
+Alle OntoForm-Komponentenstile sind auf die jeweilige Komponente gescoped (Vue `<style scoped>`) und wirken nicht auf Elemente außerhalb von OntoForm. `onto-form/style.css` definiert zusätzlich die Standardwerte aller CSS Custom Properties auf `:root` (siehe Tabelle unten) — das sind reine Variablendefinitionen ohne Element-Selektoren, sie verändern also nichts an bestehenden Elementen der Host-Anwendung, solange diese die Variablennamen nicht selbst verwendet. `onto-form/style.css` enthält **keine** globalen Resets oder `body`-Regeln — diese sind ausschließlich Teil der eigenständigen Demo-App (`main.js`) und werden beim Bibliotheks-Build nicht mit ausgeliefert.
+
+CSS Custom Properties können in der einbettenden Anwendung überschrieben werden — entweder global (überschreibt den `:root`-Standardwert) oder gescoped auf `.ontoform`:
 
 ```css
 .ontoform {

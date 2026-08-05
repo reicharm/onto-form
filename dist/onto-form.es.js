@@ -14024,7 +14024,7 @@ const Pd = { class: "dist-editor" }, Td = { class: "dist-label" }, Dd = {
 function hg(u = {}) {
   if (u.assetsBaseUrl !== void 0 && (Hl.assetsBaseUrl = String(u.assetsBaseUrl).replace(/\/?$/, "/")), u.extend) {
     const { extend: l } = u;
-    l.validators && Promise.resolve().then(() => Uc).then((d) => d.registerValidator(l.validators)), l.computes && Promise.resolve().then(() => og).then((d) => d.registerCompute(l.computes)), l.transforms && Promise.resolve().then(() => id).then((d) => d.registerTransform(l.transforms)), l.visibility && Promise.resolve().then(() => Vc).then((d) => d.registerVisibility(l.visibility));
+    l.validators && Promise.resolve().then(() => Uc).then((d) => d.registerValidator(l.validators)), l.computes && Promise.resolve().then(() => E0).then((d) => d.registerCompute(l.computes)), l.transforms && Promise.resolve().then(() => id).then((d) => d.registerTransform(l.transforms)), l.visibility && Promise.resolve().then(() => Vc).then((d) => d.registerVisibility(l.visibility));
   }
 }
 function Br(u) {
@@ -17841,7 +17841,68 @@ class gg extends uu {
     return d.json();
   }
 }
-function L0(u) {
+const _g = [
+  { id: "dcat-ap-at", label: "DCAT-AP.at" },
+  { id: "dcat-ap-at-easy", label: "DCAT-AP.at - Einfacher Modus" }
+], Zs = {
+  // Sets the field to today's date whenever a title is present.
+  // Always overwrites — suitable for "last modified" fields that should stay current.
+  setTodayIfTitle: (u) => {
+    const l = u["dct:title"];
+    return (l == null ? void 0 : l.de) || (l == null ? void 0 : l.en) || typeof l == "string" && l ? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) : void 0;
+  },
+  // Sets the field to today's date only if it has no value yet.
+  // Preserves imported or manually entered values — ideal for hidden auto-filled fields.
+  setTodayIfTitleAndEmpty: (u, l, d) => {
+    if (u[d]) return;
+    const p = u["dct:title"];
+    return (p == null ? void 0 : p.de) || (p == null ? void 0 : p.en) || typeof p == "string" && p ? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) : void 0;
+  },
+  // Always sets the field to today's date.
+  setToday: () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+  // Sets dct:language from the current UI language if the field is empty.
+  setLanguageFromUI: (u, l) => u["dct:language"] ? void 0 : {
+    de: "http://publications.europa.eu/resource/authority/language/DEU",
+    en: "http://publications.europa.eu/resource/authority/language/ENG",
+    fr: "http://publications.europa.eu/resource/authority/language/FRA"
+  }[l]
+};
+function L0(u, l) {
+  return u === l ? !0 : typeof u != typeof l || u === null || l === null ? !1 : JSON.stringify(u) === JSON.stringify(l);
+}
+function k0(u, l, d) {
+  if (!(u != null && u.fields)) return l;
+  let p = !1;
+  const b = { ...l };
+  for (const [E, w] of Object.entries(u.fields)) {
+    if (!w.compute) continue;
+    const g = Zs[w.compute];
+    if (!g) {
+      console.warn(`[fieldComputes] Unknown compute function: "${w.compute}"`);
+      continue;
+    }
+    const x = g(b, d, E);
+    x !== void 0 && !L0(x, b[E]) && (b[E] = x, p = !0);
+  }
+  return p ? b : l;
+}
+function C0(u, l) {
+  const d = typeof u == "string" ? { [u]: l } : u;
+  for (const [p, b] of Object.entries(d)) {
+    if (Zs[p]) {
+      console.warn(`[fieldComputes] "${p}" already exists — skipping. Use a unique name.`);
+      continue;
+    }
+    Zs[p] = b;
+  }
+}
+const E0 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  applyComputes: k0,
+  fieldComputeFns: Zs,
+  registerCompute: C0
+}, Symbol.toStringTag, { value: "Module" }));
+function M0(u) {
   const l = Kt({});
   async function d(p) {
     try {
@@ -17853,7 +17914,7 @@ function L0(u) {
   }
   return wl("onto-form:lang", u), wl("onto-form:translations", Ft(() => l.value[u.value] ?? {})), { allTranslations: l, loadTranslations: d };
 }
-class k0 extends uu {
+class B0 extends uu {
   // translations: optional object keyed by language code, each value a flat
   // { 'field.dct:title.label': 'Titel', 'section.basic.label': 'Grunddaten', … }
   // Standard-scoped keys override generic ones:
@@ -17919,13 +17980,13 @@ class k0 extends uu {
     };
   }
 }
-const C0 = { class: "text-view" }, E0 = {
+const A0 = { class: "text-view" }, S0 = {
   key: 0,
   class: "multiline"
-}, M0 = {
+}, P0 = {
   key: 1,
   class: "inline"
-}, B0 = {
+}, T0 = {
   __name: "TextView",
   props: {
     field: { type: Object, required: !0 },
@@ -17934,11 +17995,11 @@ const C0 = { class: "text-view" }, E0 = {
   },
   setup(u) {
     const l = u, d = Ft(() => Array.isArray(l.modelValue) ? l.modelValue.filter(Boolean).join(", ") : l.modelValue ?? "");
-    return (p, b) => (V(), q("div", C0, [
-      u.field.multiline ? (V(), q("pre", E0, Q(d.value), 1)) : (V(), q("span", M0, Q(d.value), 1))
+    return (p, b) => (V(), q("div", A0, [
+      u.field.multiline ? (V(), q("pre", S0, Q(d.value), 1)) : (V(), q("span", P0, Q(d.value), 1))
     ]));
   }
-}, Mr = /* @__PURE__ */ oe(B0, [["__scopeId", "data-v-da8ef62d"]]);
+}, Mr = /* @__PURE__ */ oe(T0, [["__scopeId", "data-v-da8ef62d"]]);
 function hu(u, l) {
   if (!u) return "";
   try {
@@ -17950,7 +18011,7 @@ function hu(u, l) {
     return u;
   }
 }
-const A0 = { class: "date-view" }, S0 = {
+const D0 = { class: "date-view" }, O0 = {
   __name: "DateView",
   props: {
     field: { type: Object, required: !0 },
@@ -17959,9 +18020,9 @@ const A0 = { class: "date-view" }, S0 = {
   },
   setup(u) {
     const l = u, d = Ft(() => hu(l.modelValue, l.lang));
-    return (p, b) => (V(), q("span", A0, Q(d.value), 1));
+    return (p, b) => (V(), q("span", D0, Q(d.value), 1));
   }
-}, cu = /* @__PURE__ */ oe(S0, [["__scopeId", "data-v-5481964a"]]), P0 = { class: "uri-view" }, T0 = ["href"], D0 = ["href"], O0 = {
+}, cu = /* @__PURE__ */ oe(O0, [["__scopeId", "data-v-5481964a"]]), I0 = { class: "uri-view" }, F0 = ["href"], R0 = ["href"], z0 = {
   __name: "URIView",
   props: {
     field: { type: Object, required: !0 },
@@ -17978,23 +18039,23 @@ const A0 = { class: "date-view" }, S0 = {
         return d;
       }
     }
-    return (d, p) => (V(), q("div", P0, [
+    return (d, p) => (V(), q("div", I0, [
       Array.isArray(u.modelValue) ? (V(!0), q(It, { key: 0 }, ae(u.modelValue, (b, E) => (V(), q("a", {
         key: E,
         href: b,
         target: "_blank",
         rel: "noopener noreferrer",
         class: "uri-link"
-      }, Q(l(b)), 9, T0))), 128)) : u.modelValue ? (V(), q("a", {
+      }, Q(l(b)), 9, F0))), 128)) : u.modelValue ? (V(), q("a", {
         key: 1,
         href: u.modelValue,
         target: "_blank",
         rel: "noopener noreferrer",
         class: "uri-link"
-      }, Q(l(u.modelValue)), 9, D0)) : Ct("", !0)
+      }, Q(l(u.modelValue)), 9, R0)) : Ct("", !0)
     ]));
   }
-}, du = /* @__PURE__ */ oe(O0, [["__scopeId", "data-v-0eb669cb"]]), I0 = { class: "select-view" }, F0 = {
+}, du = /* @__PURE__ */ oe(z0, [["__scopeId", "data-v-0eb669cb"]]), N0 = { class: "select-view" }, j0 = {
   __name: "SelectView",
   props: {
     field: { type: Object, required: !0 },
@@ -18007,12 +18068,12 @@ const A0 = { class: "date-view" }, S0 = {
       const p = (l.field.options || []).find((g) => g.value === l.modelValue);
       return p && (((b = p.label) == null ? void 0 : b[l.lang]) || ((E = p.label) == null ? void 0 : E.de) || ((w = p.label) == null ? void 0 : w.en) || p.label) || l.modelValue;
     });
-    return (p, b) => (V(), q("span", I0, Q(d.value), 1));
+    return (p, b) => (V(), q("span", N0, Q(d.value), 1));
   }
-}, Zs = /* @__PURE__ */ oe(F0, [["__scopeId", "data-v-aa0b5182"]]), R0 = {
+}, qs = /* @__PURE__ */ oe(j0, [["__scopeId", "data-v-aa0b5182"]]), V0 = {
   key: 0,
   class: "chips"
-}, z0 = {
+}, $0 = {
   __name: "MultiSelectView",
   props: {
     field: { type: Object, required: !0 },
@@ -18025,28 +18086,28 @@ const A0 = { class: "date-view" }, S0 = {
       const E = (l.field.options || []).find((S) => S.value === b);
       return E && (((w = E.label) == null ? void 0 : w[l.lang]) || ((g = E.label) == null ? void 0 : g.de) || ((x = E.label) == null ? void 0 : x.en) || E.label) || b;
     }));
-    return (p, b) => d.value.length ? (V(), q("div", R0, [
+    return (p, b) => d.value.length ? (V(), q("div", V0, [
       (V(!0), q(It, null, ae(d.value, (E, w) => (V(), q("span", {
         key: w,
         class: "chip"
       }, Q(E), 1))), 128))
     ])) : Ct("", !0);
   }
-}, N0 = /* @__PURE__ */ oe(z0, [["__scopeId", "data-v-ef8d75f2"]]);
+}, U0 = /* @__PURE__ */ oe($0, [["__scopeId", "data-v-ef8d75f2"]]);
 function Er(u, l) {
   var d;
   return u ? typeof u == "string" ? u : Array.isArray(u) ? ((d = u.find((b) => b.lang === l) || u[0]) == null ? void 0 : d.value) || "" : typeof u == "object" ? u[l] || u.de || u.en || Object.values(u)[0] || "" : String(u) : "";
 }
-const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 = { class: "langstring-value" }, U0 = { class: "langstring-lang" }, G0 = { class: "langstring-value" }, Z0 = {
+const G0 = { class: "langstring-view" }, Z0 = { class: "langstring-value" }, q0 = { class: "langstring-value" }, H0 = { class: "langstring-lang" }, K0 = { class: "langstring-value" }, W0 = {
   key: 0,
   class: "langstring-lang"
-}, q0 = {
+}, J0 = {
   key: 1,
   class: "langstring-item"
-}, H0 = { class: "langstring-value" }, K0 = {
+}, X0 = { class: "langstring-value" }, Y0 = {
   key: 0,
   class: "langstring-lang"
-}, W0 = { class: "langstring-value" }, J0 = { class: "langstring-value" }, X0 = { class: "langstring-lang" }, Y0 = { key: 3 }, Q0 = {
+}, Q0 = { class: "langstring-value" }, tm = { class: "langstring-value" }, em = { class: "langstring-lang" }, im = { key: 3 }, nm = {
   __name: "LangStringView",
   props: {
     field: { type: Object, required: !0 },
@@ -18069,54 +18130,54 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
         Object.entries(g).filter(([S, P]) => S !== l.lang && P && P !== x)
       );
     }), w = Ft(() => Object.keys(E.value).length > 0);
-    return (g, x) => (V(), q("div", j0, [
+    return (g, x) => (V(), q("div", G0, [
       Array.isArray(u.modelValue) ? (V(), q(It, { key: 0 }, [
         d.value.length ? (V(), q(It, { key: 0 }, [
           (V(!0), q(It, null, ae(d.value, (S, P) => (V(), q("div", {
             key: P,
             class: "langstring-item"
           }, [
-            H("span", V0, Q(S.value), 1)
+            H("span", Z0, Q(S.value), 1)
           ]))), 128)),
           (V(!0), q(It, null, ae(p.value, (S, P) => (V(), q("div", {
             key: "other-" + P,
             class: "langstring-item muted"
           }, [
-            H("span", $0, Q(S.value), 1),
-            H("span", U0, "(" + Q(S.lang) + ")", 1)
+            H("span", q0, Q(S.value), 1),
+            H("span", H0, "(" + Q(S.lang) + ")", 1)
           ]))), 128))
         ], 64)) : (V(!0), q(It, { key: 1 }, ae(u.modelValue, (S, P) => (V(), q("div", {
           key: P,
           class: "langstring-item"
         }, [
-          H("span", G0, Q(S.value), 1),
-          S.lang ? (V(), q("span", Z0, "(" + Q(S.lang) + ")", 1)) : Ct("", !0)
+          H("span", K0, Q(S.value), 1),
+          S.lang ? (V(), q("span", W0, "(" + Q(S.lang) + ")", 1)) : Ct("", !0)
         ]))), 128))
-      ], 64)) : u.modelValue && typeof u.modelValue == "object" && "value" in u.modelValue && "lang" in u.modelValue ? (V(), q("div", q0, [
-        H("span", H0, Q(u.modelValue.value), 1),
-        u.modelValue.lang !== u.lang ? (V(), q("span", K0, "(" + Q(u.modelValue.lang) + ")", 1)) : Ct("", !0)
+      ], 64)) : u.modelValue && typeof u.modelValue == "object" && "value" in u.modelValue && "lang" in u.modelValue ? (V(), q("div", J0, [
+        H("span", X0, Q(u.modelValue.value), 1),
+        u.modelValue.lang !== u.lang ? (V(), q("span", Y0, "(" + Q(u.modelValue.lang) + ")", 1)) : Ct("", !0)
       ])) : u.modelValue && typeof u.modelValue == "object" ? (V(), q(It, { key: 2 }, [
-        H("span", W0, Q(b.value), 1),
+        H("span", Q0, Q(b.value), 1),
         w.value ? (V(!0), q(It, { key: 0 }, ae(E.value, (S, P) => (V(), q("div", {
           key: P,
           class: "langstring-item muted"
         }, [
-          H("span", J0, Q(S), 1),
-          H("span", X0, "(" + Q(P) + ")", 1)
+          H("span", tm, Q(S), 1),
+          H("span", em, "(" + Q(P) + ")", 1)
         ]))), 128)) : Ct("", !0)
-      ], 64)) : (V(), q("span", Y0, Q(u.modelValue), 1))
+      ], 64)) : (V(), q("span", im, Q(u.modelValue), 1))
     ]));
   }
-}, fu = /* @__PURE__ */ oe(Q0, [["__scopeId", "data-v-ab1576d4"]]), tm = {
+}, fu = /* @__PURE__ */ oe(nm, [["__scopeId", "data-v-ab1576d4"]]), rm = {
   key: 0,
   class: "map-view"
-}, em = { class: "map-footer" }, im = {
+}, am = { class: "map-footer" }, sm = {
   key: 0,
   class: "bbox-info"
-}, nm = { class: "bbox-label" }, rm = ["aria-label"], am = {
+}, om = { class: "bbox-label" }, lm = ["aria-label"], um = {
   key: 1,
   class: "map-empty"
-}, sm = {
+}, hm = {
   __name: "MapView",
   props: {
     field: { type: Object, required: !0 },
@@ -18177,15 +18238,15 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       } catch {
       }
     }
-    return (P, M) => u.modelValue ? (V(), q("div", tm, [
+    return (P, M) => u.modelValue ? (V(), q("div", rm, [
       H("div", {
         ref_key: "mapEl",
         ref: b,
         class: "map-container"
       }, null, 512),
-      H("div", em, [
-        g.value ? (V(), q("dl", im, [
-          H("span", nm, Q(xt(d)("viewer.bounds")) + ":", 1),
+      H("div", am, [
+        g.value ? (V(), q("dl", sm, [
+          H("span", om, Q(xt(d)("viewer.bounds")) + ":", 1),
           M[0] || (M[0] = H("dt", null, "N", -1)),
           H("dd", null, Q(g.value.maxLat) + "°", 1),
           M[1] || (M[1] = H("dt", null, "S", -1)),
@@ -18199,14 +18260,14 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
           class: "copy-btn",
           onClick: S,
           "aria-label": xt(d)("viewer.copy-wkt")
-        }, Q(p.value ? xt(d)("viewer.wkt-copied") : xt(d)("viewer.copy-wkt")), 9, rm)
+        }, Q(p.value ? xt(d)("viewer.wkt-copied") : xt(d)("viewer.copy-wkt")), 9, lm)
       ])
-    ])) : (V(), q("span", am, "—"));
+    ])) : (V(), q("span", um, "—"));
   }
-}, pu = /* @__PURE__ */ oe(sm, [["__scopeId", "data-v-40fbed3f"]]), om = {
+}, pu = /* @__PURE__ */ oe(hm, [["__scopeId", "data-v-40fbed3f"]]), cm = {
   key: 0,
   class: "object-view"
-}, lm = { class: "sub-label" }, um = { class: "sub-value" }, hm = { key: 1 }, cm = {
+}, dm = { class: "sub-label" }, fm = { class: "sub-value" }, pm = { key: 1 }, mm = {
   __name: "ObjectView",
   props: {
     field: { type: Object, required: !0 },
@@ -18221,8 +18282,8 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       uri: du,
       map: pu,
       langstring: fu,
-      select: Zs,
-      searchselect: Zs
+      select: qs,
+      searchselect: qs
     };
     function p(E) {
       return d[E.type] ?? Mr;
@@ -18235,15 +18296,15 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
         return x != null && x !== "";
       });
     });
-    return (E, w) => u.modelValue && typeof u.modelValue == "object" ? (V(), q("div", om, [
+    return (E, w) => u.modelValue && typeof u.modelValue == "object" ? (V(), q("div", cm, [
       (V(!0), q(It, null, ae(b.value, (g) => {
         var x, S, P;
         return V(), q("div", {
           key: g.id,
           class: "sub-row"
         }, [
-          H("div", lm, Q(((x = g.label) == null ? void 0 : x[u.lang]) || ((S = g.label) == null ? void 0 : S.de) || ((P = g.label) == null ? void 0 : P.en) || g.id), 1),
-          H("div", um, [
+          H("div", dm, Q(((x = g.label) == null ? void 0 : x[u.lang]) || ((S = g.label) == null ? void 0 : S.de) || ((P = g.label) == null ? void 0 : P.en) || g.id), 1),
+          H("div", fm, [
             (V(), Re(Ba(p(g)), {
               field: g,
               modelValue: u.modelValue[g.id],
@@ -18252,24 +18313,24 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
           ])
         ]);
       }), 128))
-    ])) : (V(), q("span", hm, Q(u.modelValue), 1));
+    ])) : (V(), q("span", pm, Q(u.modelValue), 1));
   }
-}, dm = /* @__PURE__ */ oe(cm, [["__scopeId", "data-v-9f432f51"]]), fm = { class: "distribution-view" }, pm = {
+}, gm = /* @__PURE__ */ oe(mm, [["__scopeId", "data-v-9f432f51"]]), _m = { class: "distribution-view" }, ym = {
   key: 0,
   class: "no-distributions"
-}, mm = { class: "dist-title" }, gm = { class: "dist-links" }, _m = ["href"], ym = ["href"], vm = ["href"], bm = { class: "link-label" }, xm = ["href"], wm = { class: "link-label" }, Lm = {
+}, vm = { class: "dist-title" }, bm = { class: "dist-links" }, xm = ["href"], wm = ["href"], Lm = ["href"], km = { class: "link-label" }, Cm = ["href"], Em = { class: "link-label" }, Mm = {
   key: 0,
   class: "dist-badges"
-}, km = {
+}, Bm = {
   key: 0,
   class: "badge"
-}, Cm = {
+}, Am = {
   key: 1,
   class: "badge badge--secondary"
-}, Em = {
+}, Sm = {
   key: 1,
   class: "dist-meta"
-}, Mm = {
+}, Pm = {
   __name: "DistributionView",
   props: {
     field: { type: Object, required: !0 },
@@ -18289,14 +18350,14 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
     function g(x) {
       return x["dct:license"] || x["dcatap:availability"] || x["dct:issued"] || x["dct:modified"];
     }
-    return (x, S) => (V(), q("div", fm, [
-      p.value.length ? Ct("", !0) : (V(), q("div", pm, "—")),
+    return (x, S) => (V(), q("div", _m, [
+      p.value.length ? Ct("", !0) : (V(), q("div", ym, "—")),
       (V(!0), q(It, null, ae(p.value, (P, M) => (V(), q("div", {
         key: M,
         class: "dist-card"
       }, [
-        H("div", mm, Q(E(P) || `Distribution ${M + 1}`), 1),
-        H("div", gm, [
+        H("div", vm, Q(E(P) || `Distribution ${M + 1}`), 1),
+        H("div", bm, [
           b.value ? (V(), q(It, { key: 0 }, [
             P["dcat:accessURL"] ? (V(), q("a", {
               key: 0,
@@ -18304,14 +18365,14 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
               target: "_blank",
               rel: "noopener noreferrer",
               class: "dist-btn dist-btn--access"
-            }, "🔗 " + Q(xt(d)("dist.btn.access")), 9, _m)) : Ct("", !0),
+            }, "🔗 " + Q(xt(d)("dist.btn.access")), 9, xm)) : Ct("", !0),
             P["dcat:downloadURL"] ? (V(), q("a", {
               key: 1,
               href: P["dcat:downloadURL"],
               target: "_blank",
               rel: "noopener noreferrer",
               class: "dist-btn dist-btn--download"
-            }, "⬇ " + Q(xt(d)("dist.btn.download")), 9, ym)) : Ct("", !0)
+            }, "⬇ " + Q(xt(d)("dist.btn.download")), 9, wm)) : Ct("", !0)
           ], 64)) : (V(), q(It, { key: 1 }, [
             P["dcat:accessURL"] ? (V(), q("a", {
               key: 0,
@@ -18320,9 +18381,9 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
               rel: "noopener noreferrer",
               class: "dist-link"
             }, [
-              H("span", bm, Q(xt(d)("dist.field.access-url")), 1),
+              H("span", km, Q(xt(d)("dist.field.access-url")), 1),
               Mi(" " + Q(P["dcat:accessURL"]), 1)
-            ], 8, vm)) : Ct("", !0),
+            ], 8, Lm)) : Ct("", !0),
             P["dcat:downloadURL"] ? (V(), q("a", {
               key: 1,
               href: P["dcat:downloadURL"],
@@ -18330,16 +18391,16 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
               rel: "noopener noreferrer",
               class: "dist-link"
             }, [
-              H("span", wm, Q(xt(d)("dist.field.download-url")), 1),
+              H("span", Em, Q(xt(d)("dist.field.download-url")), 1),
               Mi(" " + Q(P["dcat:downloadURL"]), 1)
-            ], 8, xm)) : Ct("", !0)
+            ], 8, Cm)) : Ct("", !0)
           ], 64))
         ]),
-        P["dct:format"] || P["dcat:mediaType"] ? (V(), q("div", Lm, [
-          P["dct:format"] ? (V(), q("span", km, Q(P["dct:format"]), 1)) : Ct("", !0),
-          P["dcat:mediaType"] ? (V(), q("span", Cm, Q(P["dcat:mediaType"]), 1)) : Ct("", !0)
+        P["dct:format"] || P["dcat:mediaType"] ? (V(), q("div", Mm, [
+          P["dct:format"] ? (V(), q("span", Bm, Q(P["dct:format"]), 1)) : Ct("", !0),
+          P["dcat:mediaType"] ? (V(), q("span", Am, Q(P["dcat:mediaType"]), 1)) : Ct("", !0)
         ])) : Ct("", !0),
-        g(P) ? (V(), q("dl", Em, [
+        g(P) ? (V(), q("dl", Sm, [
           P["dct:license"] ? (V(), q(It, { key: 0 }, [
             H("dt", null, Q(xt(d)("dist.field.license")), 1),
             H("dd", null, Q(P["dct:license"]), 1)
@@ -18360,15 +18421,15 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       ]))), 128))
     ]));
   }
-}, Bm = /* @__PURE__ */ oe(Mm, [["__scopeId", "data-v-b3f90791"]]), Am = { class: "link-button-view" }, Sm = ["href"], Pm = {
+}, Tm = /* @__PURE__ */ oe(Pm, [["__scopeId", "data-v-b3f90791"]]), Dm = { class: "link-button-view" }, Om = ["href"], Im = {
   key: 0,
   class: "btn-icon",
   "aria-hidden": "true"
-}, Tm = ["href"], Dm = {
+}, Fm = ["href"], Rm = {
   key: 0,
   class: "btn-icon",
   "aria-hidden": "true"
-}, Om = {
+}, zm = {
   __name: "LinkButtonView",
   props: {
     field: { type: Object, required: !0 },
@@ -18387,7 +18448,7 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       }
       return Er(b, l.lang) || Er(b, "en") || String(b);
     }
-    return (p, b) => (V(), q("div", Am, [
+    return (p, b) => (V(), q("div", Dm, [
       Array.isArray(u.modelValue) ? (V(!0), q(It, { key: 0 }, ae(u.modelValue.filter(Boolean), (E, w) => (V(), q("a", {
         key: w,
         href: E,
@@ -18395,21 +18456,21 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
         rel: "noopener noreferrer",
         class: "link-btn"
       }, [
-        u.field.buttonIcon ? (V(), q("span", Pm, Q(u.field.buttonIcon), 1)) : Ct("", !0),
+        u.field.buttonIcon ? (V(), q("span", Im, Q(u.field.buttonIcon), 1)) : Ct("", !0),
         Mi(" " + Q(d(w)), 1)
-      ], 8, Sm))), 128)) : u.modelValue ? (V(), q("a", {
+      ], 8, Om))), 128)) : u.modelValue ? (V(), q("a", {
         key: 1,
         href: u.modelValue,
         target: "_blank",
         rel: "noopener noreferrer",
         class: "link-btn"
       }, [
-        u.field.buttonIcon ? (V(), q("span", Dm, Q(u.field.buttonIcon), 1)) : Ct("", !0),
+        u.field.buttonIcon ? (V(), q("span", Rm, Q(u.field.buttonIcon), 1)) : Ct("", !0),
         Mi(" " + Q(d(0)), 1)
-      ], 8, Tm)) : Ct("", !0)
+      ], 8, Fm)) : Ct("", !0)
     ]));
   }
-}, Im = /* @__PURE__ */ oe(Om, [["__scopeId", "data-v-64b6f0be"]]), Fm = { class: "field-group-view" }, Rm = { class: "field-label" }, zm = { class: "field-value" }, Nm = {
+}, Nm = /* @__PURE__ */ oe(zm, [["__scopeId", "data-v-64b6f0be"]]), jm = { class: "field-group-view" }, Vm = { class: "field-label" }, $m = { class: "field-value" }, Um = {
   __name: "FieldGroupView",
   props: {
     fieldIds: { type: Array, required: !0 },
@@ -18423,16 +18484,16 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       text: Mr,
       date: cu,
       uri: du,
-      select: Zs,
-      multiselect: N0,
-      searchselect: Zs,
+      select: qs,
+      multiselect: U0,
+      searchselect: qs,
       langstring: fu,
-      object: dm,
-      "distribution-editor": Bm,
+      object: gm,
+      "distribution-editor": Tm,
       map: pu
     };
     function b(S) {
-      return S.viewAs === "button" ? Im : p[S.type] || Mr;
+      return S.viewAs === "button" ? Nm : p[S.type] || Mr;
     }
     function E(S) {
       const { label: P } = Da(S, l.lang);
@@ -18449,11 +18510,11 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
     function x(S) {
       return !S || !S.multiple ? !1 : !d.has(S.type);
     }
-    return (S, P) => (V(), q("dl", Fm, [
+    return (S, P) => (V(), q("dl", jm, [
       (V(!0), q(It, null, ae(u.fieldIds, (M) => (V(), q(It, { key: M }, [
         g(M) ? (V(), q(It, { key: 0 }, [
-          H("dt", Rm, Q(E(g(M))), 1),
-          H("dd", zm, [
+          H("dt", Vm, Q(E(g(M))), 1),
+          H("dd", $m, [
             x(g(M)) ? (V(!0), q(It, { key: 0 }, ae(u.data[M], (z, j) => (V(), Re(Ba(b(g(M))), {
               key: j,
               field: g(M),
@@ -18471,7 +18532,7 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       ], 64))), 128))
     ]));
   }
-}, Xo = /* @__PURE__ */ oe(Nm, [["__scopeId", "data-v-ccd466b8"]]), jm = { class: "viewer-section" }, Vm = { class: "section-title" }, $m = {
+}, Xo = /* @__PURE__ */ oe(Um, [["__scopeId", "data-v-ccd466b8"]]), Gm = { class: "viewer-section" }, Zm = { class: "section-title" }, qm = {
   __name: "SectionView",
   props: {
     section: { type: Object, required: !0 },
@@ -18482,8 +18543,8 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
   setup(u) {
     return (l, d) => {
       var p, b, E;
-      return V(), q("section", jm, [
-        H("h2", Vm, Q(((p = u.section.label) == null ? void 0 : p[u.lang]) || ((b = u.section.label) == null ? void 0 : b.de) || ((E = u.section.label) == null ? void 0 : E.en) || u.section.id), 1),
+      return V(), q("section", Gm, [
+        H("h2", Zm, Q(((p = u.section.label) == null ? void 0 : p[u.lang]) || ((b = u.section.label) == null ? void 0 : b.de) || ((E = u.section.label) == null ? void 0 : E.en) || u.section.id), 1),
         Qi(Xo, {
           fieldIds: u.section.fields,
           fields: u.fields,
@@ -18493,16 +18554,16 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       ]);
     };
   }
-}, Um = /* @__PURE__ */ oe($m, [["__scopeId", "data-v-31bf0c12"]]), Gm = { class: "viewer-tabs" }, Zm = {
+}, Hm = /* @__PURE__ */ oe(qm, [["__scopeId", "data-v-31bf0c12"]]), Km = { class: "viewer-tabs" }, Wm = {
   class: "tabs-bar",
   role: "tablist"
-}, qm = ["aria-selected", "onClick"], Hm = {
+}, Jm = ["aria-selected", "onClick"], Xm = {
   class: "tab-content",
   role: "tabpanel"
-}, Km = {
+}, Ym = {
   key: 0,
   class: "tab-section-label"
-}, Wm = {
+}, Qm = {
   __name: "TabsView",
   props: {
     section: { type: Object, required: !0 },
@@ -18513,8 +18574,8 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
   setup(u) {
     var p, b;
     const d = Kt((b = (p = u.section.tabs) == null ? void 0 : p[0]) == null ? void 0 : b.id);
-    return (E, w) => (V(), q("div", Gm, [
-      H("div", Zm, [
+    return (E, w) => (V(), q("div", Km, [
+      H("div", Wm, [
         (V(!0), q(It, null, ae(u.section.tabs, (g) => {
           var x, S, P;
           return V(), q("button", {
@@ -18523,10 +18584,10 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
             "aria-selected": d.value === g.id,
             class: he(["tab-btn", { active: d.value === g.id }]),
             onClick: (M) => d.value = g.id
-          }, Q(((x = g.label) == null ? void 0 : x[u.lang]) || ((S = g.label) == null ? void 0 : S.de) || ((P = g.label) == null ? void 0 : P.en) || g.id), 11, qm);
+          }, Q(((x = g.label) == null ? void 0 : x[u.lang]) || ((S = g.label) == null ? void 0 : S.de) || ((P = g.label) == null ? void 0 : P.en) || g.id), 11, Jm);
         }), 128))
       ]),
-      H("div", Hm, [
+      H("div", Xm, [
         (V(!0), q(It, null, ae(u.section.tabs, (g) => Qo((V(), q("div", {
           key: g.id,
           class: "tab-panel"
@@ -18537,7 +18598,7 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
               key: x.id || S,
               class: he(["tab-section", { "tab-section--first": S === 0 }])
             }, [
-              x.label ? (V(), q("div", Km, Q(((P = x.label) == null ? void 0 : P[u.lang]) || ((M = x.label) == null ? void 0 : M.de) || ((z = x.label) == null ? void 0 : z.en) || x.id), 1)) : Ct("", !0),
+              x.label ? (V(), q("div", Ym, Q(((P = x.label) == null ? void 0 : P[u.lang]) || ((M = x.label) == null ? void 0 : M.de) || ((z = x.label) == null ? void 0 : z.en) || x.id), 1)) : Ct("", !0),
               Qi(Xo, {
                 fieldIds: x.fields || [],
                 fields: u.fields,
@@ -18558,20 +18619,20 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       ])
     ]));
   }
-}, Jm = /* @__PURE__ */ oe(Wm, [["__scopeId", "data-v-f86b76d6"]]), Xm = { class: "onto-viewer ontoform" }, Ym = {
+}, tg = /* @__PURE__ */ oe(Qm, [["__scopeId", "data-v-f86b76d6"]]), eg = { class: "onto-viewer ontoform" }, ig = {
   key: 0,
   class: "viewer-loading"
-}, Qm = {
+}, ng = {
   key: 1,
   class: "viewer-error",
   role: "alert"
-}, tg = {
+}, rg = {
   key: 2,
   class: "viewer-content"
-}, eg = {
+}, ag = {
   key: 3,
   class: "viewer-no-data"
-}, ig = {
+}, sg = {
   __name: "OntoViewer",
   props: {
     standard: String,
@@ -18583,7 +18644,7 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
     labels: { type: Object, default: () => ({}) }
   },
   setup(u) {
-    const l = u, d = Ft(() => l.lang), { allTranslations: p, loadTranslations: b } = L0(d), { t: E } = Qe(), w = Kt(!1), g = Kt(null), x = Kt(null), S = Kt(null);
+    const l = u, d = Ft(() => l.lang), { allTranslations: p, loadTranslations: b } = M0(d), { t: E } = Qe(), w = Kt(!1), g = Kt(null), x = Kt(null), S = Kt(null);
     async function P() {
       if (l.config) {
         x.value = l.config;
@@ -18592,7 +18653,7 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       if (l.standard) {
         w.value = !0, g.value = null;
         try {
-          const j = new k0();
+          const j = new B0();
           x.value = await j.resolve(l.standard, { translations: p.value });
         } catch (j) {
           g.value = E("viewer.error") + ": " + j.message;
@@ -18644,20 +18705,20 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
       S.value = j;
     }), pi(() => l.dataUrl, async () => {
       await z();
-    }), (j, $) => (V(), q("div", Xm, [
-      w.value ? (V(), q("div", Ym, Q(xt(E)("viewer.loading")), 1)) : Ct("", !0),
-      g.value ? (V(), q("div", Qm, Q(g.value), 1)) : Ct("", !0),
-      x.value && S.value ? (V(), q("div", tg, [
+    }), (j, $) => (V(), q("div", eg, [
+      w.value ? (V(), q("div", ig, Q(xt(E)("viewer.loading")), 1)) : Ct("", !0),
+      g.value ? (V(), q("div", ng, Q(g.value), 1)) : Ct("", !0),
+      x.value && S.value ? (V(), q("div", rg, [
         (V(!0), q(It, null, ae(x.value.sections, (tt) => (V(), q(It, {
           key: tt.id
         }, [
-          tt.type === "section" ? (V(), Re(Um, {
+          tt.type === "section" ? (V(), Re(Hm, {
             key: 0,
             section: tt,
             fields: x.value.fields,
             data: S.value,
             lang: u.lang
-          }, null, 8, ["section", "fields", "data", "lang"])) : tt.type === "tabs" ? (V(), Re(Jm, {
+          }, null, 8, ["section", "fields", "data", "lang"])) : tt.type === "tabs" ? (V(), Re(tg, {
             key: 1,
             section: tt,
             fields: x.value.fields,
@@ -18665,72 +18726,12 @@ const j0 = { class: "langstring-view" }, V0 = { class: "langstring-value" }, $0 
             lang: u.lang
           }, null, 8, ["section", "fields", "data", "lang"])) : Ct("", !0)
         ], 64))), 128))
-      ])) : !w.value && !g.value ? (V(), q("div", eg, Q(xt(E)("viewer.no-data")), 1)) : Ct("", !0)
+      ])) : !w.value && !g.value ? (V(), q("div", ag, Q(xt(E)("viewer.no-data")), 1)) : Ct("", !0)
     ]));
   }
-}, ng = /* @__PURE__ */ oe(ig, [["__scopeId", "data-v-99c55e64"]]), qs = {
-  // Sets the field to today's date whenever a title is present.
-  // Always overwrites — suitable for "last modified" fields that should stay current.
-  setTodayIfTitle: (u) => {
-    const l = u["dct:title"];
-    return (l == null ? void 0 : l.de) || (l == null ? void 0 : l.en) || typeof l == "string" && l ? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) : void 0;
-  },
-  // Sets the field to today's date only if it has no value yet.
-  // Preserves imported or manually entered values — ideal for hidden auto-filled fields.
-  setTodayIfTitleAndEmpty: (u, l, d) => {
-    if (u[d]) return;
-    const p = u["dct:title"];
-    return (p == null ? void 0 : p.de) || (p == null ? void 0 : p.en) || typeof p == "string" && p ? (/* @__PURE__ */ new Date()).toISOString().slice(0, 10) : void 0;
-  },
-  // Always sets the field to today's date.
-  setToday: () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
-  // Sets dct:language from the current UI language if the field is empty.
-  setLanguageFromUI: (u, l) => u["dct:language"] ? void 0 : {
-    de: "http://publications.europa.eu/resource/authority/language/DEU",
-    en: "http://publications.europa.eu/resource/authority/language/ENG",
-    fr: "http://publications.europa.eu/resource/authority/language/FRA"
-  }[l]
-};
-function rg(u, l) {
-  return u === l ? !0 : typeof u != typeof l || u === null || l === null ? !1 : JSON.stringify(u) === JSON.stringify(l);
-}
-function ag(u, l, d) {
-  if (!(u != null && u.fields)) return l;
-  let p = !1;
-  const b = { ...l };
-  for (const [E, w] of Object.entries(u.fields)) {
-    if (!w.compute) continue;
-    const g = qs[w.compute];
-    if (!g) {
-      console.warn(`[fieldComputes] Unknown compute function: "${w.compute}"`);
-      continue;
-    }
-    const x = g(b, d, E);
-    x !== void 0 && !rg(x, b[E]) && (b[E] = x, p = !0);
-  }
-  return p ? b : l;
-}
-function sg(u, l) {
-  const d = typeof u == "string" ? { [u]: l } : u;
-  for (const [p, b] of Object.entries(d)) {
-    if (qs[p]) {
-      console.warn(`[fieldComputes] "${p}" already exists — skipping. Use a unique name.`);
-      continue;
-    }
-    qs[p] = b;
-  }
-}
-const og = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null,
-  applyComputes: ag,
-  fieldComputeFns: qs,
-  registerCompute: sg
-}, Symbol.toStringTag, { value: "Module" })), _g = [
-  { id: "dcat-ap-at", label: "DCAT-AP.at" },
-  { id: "dcat-ap-at-easy", label: "DCAT-AP.at - Einfacher Modus" }
-], yg = {
+}, og = /* @__PURE__ */ oe(sg, [["__scopeId", "data-v-99c55e64"]]), yg = {
   install(u) {
-    u.component("MetadataForm", Ap), u.component("OntoViewer", ng);
+    u.component("MetadataForm", Ap), u.component("OntoViewer", og);
   }
 };
 export {
@@ -18743,17 +18744,17 @@ export {
   Ap as MetadataForm,
   dg as MetadataViewer,
   yg as OntoFormPlugin,
-  ng as OntoViewer,
+  og as OntoViewer,
   Hp as RDFExporter,
   ou as RDFImporter,
   Hf as SHACLValidationService,
   mg as StandardSelector,
   Bl as ValidationReport,
-  k0 as ViewConfigResolver,
+  B0 as ViewConfigResolver,
   w0 as VocabularyLoader,
   Br as assetUrl,
   hg as configure,
-  sg as registerCompute,
+  C0 as registerCompute,
   ed as registerTransform,
   $c as registerValidator,
   jc as registerVisibility
