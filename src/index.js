@@ -1,6 +1,14 @@
 // Public API for the OntoForm library build.
 // Import this file when embedding OntoForm as a component in another Vue project.
 
+// Default values for every CSS custom property OntoForm's components consume
+// (--color-primary, --radius-sm, --font-size-base, ...). Only :root variable
+// definitions — no element selectors — so it's safe to ship globally; host
+// apps override individual tokens by redefining them under .ontoform (see
+// docs/integration.md). Without this, onto-form.css would only ever
+// *reference* var(--color-primary) etc. without defining it anywhere.
+import './styles/theme.css'
+
 // ── Main component ────────────────────────────────────────────────────────────
 export { default as MetadataForm }   from './components/MetadataForm.vue'
 export { default as MetadataViewer } from './components/MetadataViewer.vue'
@@ -22,7 +30,7 @@ export { FileUploader }             from './services/FileUploader.js'
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 export { configure, assetUrl }        from './config/ontoFormConfig.js'
-export { BUILTIN_STANDARDS }          from './App.vue'
+export { BUILTIN_STANDARDS }          from './config/builtinStandards.js'
 
 // ── Extension points ──────────────────────────────────────────────────────────
 // Use these for fine-grained registration, or pass all at once via configure({ extend }).

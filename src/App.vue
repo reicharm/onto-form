@@ -100,10 +100,13 @@
 </template>
 
 <script>
-export const BUILTIN_STANDARDS = [
-  { id: 'dcat-ap-at',             label: 'DCAT-AP.at' },
-  { id: 'dcat-ap-at-easy',        label: 'DCAT-AP.at - Einfacher Modus' }
-]
+import { BUILTIN_STANDARDS } from './config/builtinStandards.js'
+// Re-exported for backward compatibility with anything importing
+// BUILTIN_STANDARDS from this file directly. The library entry point
+// (src/index.js) imports it from './config/builtinStandards.js' instead,
+// so pulling in BUILTIN_STANDARDS never drags this component's own
+// (global, unscoped) <style> block into the packaged library bundle.
+export { BUILTIN_STANDARDS }
 </script>
 
 <script setup>

@@ -318,7 +318,7 @@ Neue Funktion: Eintrag in `fieldVisibilityFns` — kein weiterer Code notwendig.
 
 Alle Komponenten verwenden ausschließlich diese Variablen — keine hardcodierten Farben oder Größen. Um das gesamte Theme anzupassen, genügt es, Werte in `theme.css` zu ändern.
 
-`src/styles/base.css` enthält globalen Box-Sizing-Reset und Body-Basis.
+`src/styles/base.css` enthält globalen Box-Sizing-Reset und Body-Basis — **nur für die eigenständige Demo-App** (importiert in `main.js`). `theme.css` wird zusätzlich direkt in `src/index.js` importiert, damit die `:root`-Variablendefinitionen auch im Bibliotheks-Build (`onto-form.css`) enthalten sind; `base.css` wird dort bewusst **nicht** importiert, da sein globaler `body`/`*`-Reset in einer Host-Anwendung deren eigene Seite verändern würde. `App.vue`s eigener globaler `<style>`-Block (Reset + `body`-Regel für die Demo-Seite) ist aus demselben Grund über `src/config/builtinStandards.js` vom Export-Graph des Library-Entry-Points (`src/index.js`) entkoppelt — `BUILTIN_STANDARDS` wird aus diesem eigenständigen Modul re-exportiert, nicht aus `App.vue`, damit ein Import von `BUILTIN_STANDARDS` nicht transitiv `App.vue`s CSS in `onto-form.css` mit hineinzieht.
 
 ---
 
