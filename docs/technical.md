@@ -564,6 +564,30 @@ Beide Komponenten rendern ihre `subFields` nicht mit einer eigenen, reduzierten 
 
 ---
 
+## Build & Packaging
+
+`vite.config.js` unterscheidet zwei Build-Modi über Vites `--mode`-Flag:
+
+| Modus | Befehl | Entry Point | Ausgabe |
+|---|---|---|---|
+| Demo-App (Standard) | `npm run build` (`vite build`) | `src/main.js` | `dist/index.html`, `dist/assets/index-*.{js,css}` |
+| Library | `npm run build:lib` (`vite build --mode lib`) | `src/index.js` | `dist/onto-form.{es.js,umd.cjs,css}` |
+
+Beide Modi schreiben nach `dist/` mit `emptyOutDir: true` — sie **überschreiben sich gegenseitig**. Nach einem `npm run build` liegt kein Library-Bundle mehr in `dist/`, und umgekehrt. Wer beide Ausgaben gleichzeitig braucht (z. B. zum manuellen Vergleich), muss unterschiedliche `--outDir`-Werte übergeben.
+
+**Warum `--mode` statt einer Umgebungsvariable:** Eine frühere Version steuerte den Modus über `BUILD_LIB=1 vite build`. Das funktioniert nur in POSIX-Shells (bash/zsh); unter Windows `cmd.exe` müsste es `set BUILD_LIB=1&& vite build` heißen — eine Schreibweise, die auf bash/zsh wiederum keine Umgebungsvariable setzt, sondern `vite build` einfach ohne die Variable ausführt. Das führte auf Linux/macOS dazu, dass `npm run build:lib` **stillschweigend den Demo-App-Build statt des Library-Builds** erzeugte (kein Fehler, nur die falsche Ausgabe — `dist/onto-form.es.js` fehlte komplett). Vites natives `--mode`-Flag (`vite build --mode lib`, ausgewertet in `vite.config.js` über `defineConfig(({ mode }) => ...)`) ist plattformunabhängig und braucht kein Zusatzpaket wie `cross-env`.
+
+### `dist/` wird nicht committet — `prepare`-Skript baut automatisch
+
+`dist/` ist in `.gitignore` und wird **nicht** ins Repository committet. Stattdessen baut das `prepare`-npm-Skript (`"prepare": "npm run build:lib"`) die Library automatisch:
+
+- **Git-Abhängigkeit** (`npm install git+...`) oder **lokale Entwicklung** (`npm install` im geklonten Repo): npm führt `prepare` nach dem Klonen/Installieren aus. Für Git-Abhängigkeiten installiert npm dabei auch die `devDependencies` des installierten Pakets (hier: `vite`, `@vitejs/plugin-vue`) — ohne die wäre `vite build` nicht ausführbar. Das Host-Projekt selbst braucht diese Pakete nicht zu installieren.
+- **Registry-Install** (`npm install @reicharm/onto-form`): `prepublishOnly` hat `dist/` bereits vor dem `npm publish` gebaut; das `files`-Feld in `package.json` sorgt dafür, dass nur `dist/`, `public/`, `src/index.d.ts` und `LICENSE` in den Tarball wandern.
+
+**Wichtig für Contributor:** Ein PR, der `src/` ändert, muss `dist/` nicht mehr mit committen (anders als früher) — der `prepare`-Hook baut es beim nächsten Install neu. Es reicht, dass `npm run build:lib` lokal fehlerfrei durchläuft, bevor gemerged wird.
+
+---
+
 ## Erweiterung
 
 ### Neuen Standard hinzufügen

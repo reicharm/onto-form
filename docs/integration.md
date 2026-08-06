@@ -6,14 +6,17 @@ OntoForm kann als wiederverwendbare Komponentenbibliothek in beliebige Vue-3-Anw
 
 ## 1. Installation / Setup
 
-**Noch nicht auf npm veröffentlicht.** Bis zur Veröffentlichung entweder als lokaler Pfad oder als Git-Abhängigkeit einbinden:
+Entweder über die konfigurierte private Registry (`publishConfig.registry` in `package.json`), als lokaler Pfad, oder als Git-Abhängigkeit:
 
 ```bash
+# Registry
+npm install @reicharm/onto-form
+
 # lokaler Pfad
 npm install ../onto-form
 
 # Git-Abhängigkeit
-npm install git+https://github.com/your-org/onto-form.git
+npm install git+https://github.com/reicharm/onto-form.git
 ```
 
 CSS importieren (einmalig in `main.js` oder `main.ts`):
@@ -21,6 +24,18 @@ CSS importieren (einmalig in `main.js` oder `main.ts`):
 ```js
 import 'onto-form/style.css'
 ```
+
+### Build-Voraussetzung: Vite
+
+Das Repository committet **kein** fertig gebautes `dist/`-Verzeichnis. Stattdessen baut das `prepare`-npm-Skript (`vite build --mode lib`) die Library automatisch:
+
+| Installationsweg | Wann wird gebaut | Voraussetzung |
+|---|---|---|
+| Git-Abhängigkeit (`npm install git+...`) | Automatisch bei `npm install` im Host-Projekt, über das `prepare`-Skript | **Vite** (`vite`, `@vitejs/plugin-vue`) — als `devDependencies` von OntoForm deklariert. npm installiert bei Git-Abhängigkeiten auch deren `devDependencies`, damit `prepare` funktioniert; im Host-Projekt selbst muss nichts zusätzlich installiert werden |
+| Registry (`npm install @reicharm/onto-form`) | Bereits vor der Veröffentlichung, über `prepublishOnly` | Keine — der Host bekommt ein fertig gebautes `dist/` im Paket-Tarball |
+| Lokaler Pfad (`npm install ../onto-form`) | Automatisch bei `npm install`, über `prepare` (lokale Entwicklung des Pakets selbst) | Vite muss im OntoForm-Repo installiert sein (`npm install` dort einmal ausführen) |
+
+`vite build --mode lib` (nicht `BUILD_LIB=1 vite build`) wird bewusst über Vites natives `--mode`-Flag statt einer Shell-gesetzten Umgebungsvariable gesteuert — die Zuweisungssyntax unterscheidet sich zwischen Shells (`FOO=1 cmd` unter bash/zsh vs. `set FOO=1&& cmd` unter Windows `cmd.exe`), und es gibt keinen Aufruf, der ohne Zusatzpaket (z. B. `cross-env`) auf beiden funktioniert. `--mode` ist plattformunabhängig.
 
 ### Verwendungsmuster
 
