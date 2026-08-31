@@ -1,6 +1,6 @@
 {
   "name": "@reicharm/onto-form",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Vue 3 metadata editor for DCAT-AP datasets — supports DCAT-AP.at, GeoDCAT-AP and DCAT-AP 3.0 with JSON-LD / Turtle / RDF-XML import and export",
   "author": "Michael Reichart",
   "license": "MIT",
