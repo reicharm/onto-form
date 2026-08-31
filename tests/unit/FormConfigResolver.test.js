@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { FormConfigResolver } from '../../src/services/FormConfigResolver.js'
+import { configure } from '../../src/config/ontoFormConfig.js'
 import { makeFetchOk } from './helpers/mockFetch.js'
+
+const vocabularyLoadCalls = vi.hoisted(() => [])
 
 // ── Mock SHACLParser ──────────────────────────────────────────────────────────
 const SHACL_SHAPES = {
@@ -45,7 +48,8 @@ vi.mock('../../src/services/SHACLParser.js', () => {
 // ── Mock VocabularyLoader ─────────────────────────────────────────────────────
 vi.mock('../../src/services/VocabularyLoader.js', () => {
   class VocabularyLoader {
-    async load() {
+    async load(source, fallback) {
+      vocabularyLoadCalls.push({ source, fallback })
       return [
         { value: 'http://vocab.example/a', label: { de: 'Option A' } },
         { value: 'http://vocab.example/b', label: { de: 'Option B' } }
@@ -289,6 +293,64 @@ describe('FormConfigResolver', () => {
         { value: 'http://vocab.example/a', label: { de: 'Option A' } },
         { value: 'http://vocab.example/b', label: { de: 'Option B' } }
       ])
+    })
+
+    it('resolves a root-relative optionsSource against the configured assetsBaseUrl', async () => {
+      configure({ assetsBaseUrl: '/onto-form/' })
+      vocabularyLoadCalls.length = 0
+      const uiConfigWithLocalVocab = {
+        ...UI_CONFIG,
+        fields: {
+          ...UI_CONFIG.fields,
+          'dcat:theme': {
+            ...UI_CONFIG.fields['dcat:theme'],
+            optionsSource: '/vocabularies/data-theme.json',
+            optionsSourceFallback: undefined
+          }
+        }
+      }
+      global.fetch = makeFetchOk({
+        '/onto-form/shacl/test.ttl': SHACL_DUMMY,
+        '/onto-form/config/ui-config.test.json': uiConfigWithLocalVocab
+      })
+      try {
+        await resolver.resolve('test')
+        expect(vocabularyLoadCalls).toContainEqual({
+          source: '/onto-form/vocabularies/data-theme.json',
+          fallback: undefined
+        })
+      } finally {
+        configure({ assetsBaseUrl: '/' })
+      }
+    })
+
+    it('leaves an already-absolute optionsSource/optionsSourceFallback untouched', async () => {
+      configure({ assetsBaseUrl: '/onto-form/' })
+      vocabularyLoadCalls.length = 0
+      const uiConfigWithFallback = {
+        ...UI_CONFIG,
+        fields: {
+          ...UI_CONFIG.fields,
+          'dcat:theme': {
+            ...UI_CONFIG.fields['dcat:theme'],
+            optionsSource: 'https://publications.europa.eu/resource/authority/language.json',
+            optionsSourceFallback: '/vocabularies/language.json'
+          }
+        }
+      }
+      global.fetch = makeFetchOk({
+        '/onto-form/shacl/test.ttl': SHACL_DUMMY,
+        '/onto-form/config/ui-config.test.json': uiConfigWithFallback
+      })
+      try {
+        await resolver.resolve('test')
+        expect(vocabularyLoadCalls).toContainEqual({
+          source: 'https://publications.europa.eu/resource/authority/language.json',
+          fallback: '/onto-form/vocabularies/language.json'
+        })
+      } finally {
+        configure({ assetsBaseUrl: '/' })
+      }
     })
   })
 
