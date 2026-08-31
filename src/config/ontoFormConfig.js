@@ -48,10 +48,15 @@ export function configure(options = {}) {
 /**
  * Resolve a relative asset path against the configured base URL.
  * Leading slashes on `path` are stripped so the base URL is always respected.
+ * An already-absolute URL (http://, https://, protocol-relative //...) is
+ * returned unchanged - e.g. the built-in ui-config vocabulary entries that
+ * point at an external authority table instead of a bundled JSON file.
  *
  * @param {string} path - e.g. 'shacl/dcat-ap.ttl'
  * @returns {string}
  */
 export function assetUrl(path) {
-  return _config.assetsBaseUrl + String(path).replace(/^\//, '')
+  const str = String(path)
+  if (/^([a-z][a-z0-9+.-]*:)?\/\//i.test(str)) return str
+  return _config.assetsBaseUrl + str.replace(/^\//, '')
 }

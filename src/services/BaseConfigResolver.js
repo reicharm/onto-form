@@ -54,7 +54,10 @@ export class BaseConfigResolver {
     const queue = (id, field) => {
       if (field.optionsSource) {
         pending.push(
-          loader.load(field.optionsSource, field.optionsSourceFallback)
+          loader.load(
+            assetUrl(field.optionsSource),
+            field.optionsSourceFallback ? assetUrl(field.optionsSourceFallback) : undefined,
+          )
             .then(options => { field.options = [...options, ...(field.options || [])] })
             .catch(err => {
               console.warn(`[VocabularyLoader] ${id}: ${err.message}`)
