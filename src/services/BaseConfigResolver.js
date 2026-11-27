@@ -13,7 +13,16 @@ export class BaseConfigResolver {
     const allFields = {}
     for (const shape of Object.values(shapes)) {
       if (shape.embedded) continue
-      if (rootClass && shape.targetClass && compactIRI(shape.targetClass) !== rootClass) continue
+      // A NodeShape without sh:targetClass can't be matched against rootClass
+      // and was never meant to contribute top-level fields directly — it's
+      // either an embedded shape (handled via `embedded` above) or a
+      // SHACL-logic-only helper shape (e.g. sh:or/sh:not compositions for
+      // conditional mandatory fields). Merging its fields anyway would
+      // silently clobber the real field definition with a stub (same
+      // property id, but missing label/hint/type derived from the shape
+      // that actually targets the class).
+      if (!shape.targetClass) continue
+      if (rootClass && compactIRI(shape.targetClass) !== rootClass) continue
       Object.assign(allFields, shape.fields)
     }
 

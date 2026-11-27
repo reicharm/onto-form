@@ -423,6 +423,38 @@ describe('FormConfigResolver', () => {
       const result = await r.resolve('test')
       expect(result.fields['dcat:accessURL']).toBeDefined()
     })
+
+    it('ignores a shape with no targetClass instead of letting it clobber a real field of the same id', async () => {
+      // A SHACL-logic-only helper shape (e.g. an sh:or/sh:not composition
+      // used to express conditional mandatory fields) has no sh:targetClass.
+      // It must never overwrite the richer field definition that comes from
+      // the shape that actually targets the root class.
+      const SHAPES_WITH_HELPER = {
+        ...SHAPES_WITH_DIST,
+        'https://example.org/shapes#LanguageCardinalityHelper': {
+          targetClass: undefined,
+          embedded: false,
+          fields: {
+            // Same id as the real field, but a stub with none of its metadata.
+            'dct:title': { id: 'dct:title', type: 'text', label: { de: 'dct:title', en: 'dct:title' }, hint: {}, visible: true, order: 999 }
+          }
+        }
+      }
+      vi.resetModules()
+      vi.doMock('../../src/services/SHACLParser.js', () => {
+        class SHACLParser { async parse() { return SHAPES_WITH_HELPER } }
+        return { SHACLParser }
+      })
+      const { FormConfigResolver: FCR } = await import('../../src/services/FormConfigResolver.js?bust=4')
+      const r = new FCR()
+      global.fetch = makeFetchOk({
+        '/shacl/test.ttl': SHACL_DUMMY,
+        '/config/ui-config.test.json': { rootClass: 'dcat:Dataset', groups: [], fields: {} }
+      })
+      const result = await r.resolve('test')
+      expect(result.fields['dct:title'].type).toBe('langstring')
+      expect(result.fields['dct:title'].label.de).toBe('Titel')
+    })
   })
 
   describe('shaclSource override', () => {

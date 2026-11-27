@@ -484,6 +484,22 @@
       "visible": true,
       "subFields": [
         {
+          "id": "rdf:type",
+          "type": "select",
+          "label": {
+            "de": "Art der Kontaktstelle",
+            "en": "Contact Point Type"
+          },
+          "hint": {
+            "de": "Organisation oder Einzelperson",
+            "en": "Organisation or individual person"
+          },
+          "options": [
+            { "value": "vcard:Organization", "label": { "de": "Organisation", "en": "Organisation" } },
+            { "value": "vcard:Individual", "label": { "de": "Einzelperson", "en": "Individual" } }
+          ]
+        },
+        {
           "id": "vcard:fn",
           "type": "text",
           "required": true,

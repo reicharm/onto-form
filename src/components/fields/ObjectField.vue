@@ -35,7 +35,12 @@ const props = defineProps({
   field: Object,
   lang: String,
   modelValue: { type: Object, default: () => ({}) },
-  showErrors: { type: Boolean, default: true }
+  showErrors: { type: Boolean, default: true },
+  // Whether this field is currently required (field.required or a truthy
+  // field.requiredIf evaluated by the parent FieldGroup against its own
+  // modelValue scope). Gates whether sub-field errors show before the user
+  // has entered anything — see objectHasInput below.
+  parentRequired: { type: Boolean, default: true }
 })
 const emit = defineEmits(['update:modelValue'])
 
@@ -61,8 +66,20 @@ const visibleSubFields = computed(() =>
 )
 
 // Sub-fields validate the same way top-level fields do (required/requiredIf/validate).
+// Only surface those errors once this object is actually relevant: either
+// it's currently required (parentRequired — e.g. not hidden behind a
+// requiredIf that evaluated false, as with a dataproduct-only field) or the
+// user has already started filling it in. Otherwise an optional, untouched
+// section would show "required" errors for fields the user may never need
+// to fill in at all.
+const objectHasInput = computed(() => {
+  const v = props.modelValue
+  return typeof v === 'object' && v !== null && !Array.isArray(v) && Object.values(v).some(x => x)
+})
+
 const subFieldErrors = computed(() => {
   const result = {}
+  if (!props.parentRequired && !objectHasInput.value) return result
   for (const sf of visibleSubFields.value) {
     const errors = validateField(sf, (props.modelValue || {})[sf.id], props.lang, props.modelValue)
     if (errors.length) result[sf.id] = errors

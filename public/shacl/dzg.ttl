@@ -1,0 +1,1809 @@
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix eli: <http://data.europa.eu/eli/ontology#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix locn: <http://www.w3.org/ns/locn#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix pv: <https://piveau.eu/ns/voc#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix spdx: <http://spdx.org/rdf/terms#> .
+@prefix time: <http://www.w3.org/2006/time#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix stat: <http://data.europa.eu/s66#> .
+@prefix dzg: <https://data.gv.at/shapes/dcat-ap-at-dzg#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix restype: <http://dcat-ap.at/concept/resourcetype/> .
+@prefix erh: <http://dcat-ap.at/concept/erhebungsform/> .
+@prefix dcatat: <http://dcat-ap.at/ns#> .
+
+# DZG DCAT-AP 3.0.1 metadata model.
+#
+# Vocabulary basis: DCAT-AP 3.0.1, compatible with W3C DCAT 3.
+# Austrian constraints: DCAT-AP AT 2.1.0 (19 June 2024). Its mandatory
+# properties remain mandatory; DCAT-AP 3.0.1 properties are modelled here.
+# Source SHACL reference: https://semiceu.github.io/DCAT-AP/releases/3.0.1/
+#
+# Technical index fields follow the OGD/DMP schema. Their pathless mapping
+# declarations are excluded from validation by the existing Repo validator.
+#
+# Change log
+# 1.1 (2026-11-23) Dataproduct:
+#   - A dataproduct is a dcat:Dataset with dct:type restype:Dataproduct.
+#   - New dataset fields: dct:isPartOf, dct:hasPart, dct:valid, stat:population.
+#   - prov:wasGeneratedBy is indexed as nested activity (type, description).
+#   - The dataset-only mandatory fields (identifier, contact point, keyword,
+#     publisher, theme, access rights, rights, frequency, statistical unit,
+#     language, modified, issued, temporal) moved from dzg:DatasetShape into
+#     dzg:DatasetMandatoryValidationShape. They still apply to every dataset
+#     that is not a dataproduct.
+#   - Dataproduct rules: dzg:DataproductValidationShape.
+#   - Member rules: at most one dct:isPartOf; members of a series use
+#     dcat:inSeries only.
+#   - dcat:inSeries no longer validates the series against
+#     dzg:DatasetSeriesShape (the series is not in the dataset graph, every
+#     dataset referencing its series by IRI failed); node kind is now sh:IRI.
+#   - The class Dataproduct is mandatory: every dataset belongs to a
+#     dataproduct (dct:isPartOf or dcat:inSeries), every series has exactly
+#     one dct:isPartOf.
+#   - Survey method: the description is optional and only allowed with
+#     erh:andere.
+# 1.1 (2026-11-24) Distribution (DZG user story "Klasse Distribution"):
+#   - Every dataset that is not a dataproduct has at least one distribution.
+#   - dcat:byteSize is mandatory, at most one value.
+#   - dct:format: at most one value.
+#   - dcatap:availability: at most one value from the EU planned-availability
+#     vocabulary (TEMPORARY, EXPERIMENTAL, AVAILABLE, STABLE).
+#   - (2026-11-27) Distribution name mandatory when the dataset has access
+#     rights NON_PUBLIC ("Scientific Use Files"):
+#     dzg:NonPublicDistributionRequiresTitle.
+#   - (2026-11-27) At most one value (DCAT-AP 3.0.1 0..1) for checksum,
+#     compressFormat, hasPolicy, mediaType, modified, packageFormat, issued,
+#     spatialResolutionInMeters, status, temporalResolution.
+# 1.1 (2026-11-24) Dataset series (DZG user story "Klasse Datensatzserie"):
+#   - dct:accrualPeriodicity: at most one value (DCAT-AP 0..1) from the EU
+#     frequency vocabulary; index mapping "Frequency" like on datasets.
+#   - New dcatat:frequencyDescription (prefix dcatat: http://dcat-ap.at/ns#),
+#     optional, only allowed with frequency OTHER.
+#   - dct:temporal is validated with dzg:PeriodOfTimeShape.
+#   - dct:publisher, dct:modified, dct:issued: at most one value (DCAT-AP 0..1).
+
+dzg:Profile
+    a pv:PiveauProfile ;
+    pv:profileVersion "1.1" ;
+    dct:title "DZG DCAT-AP 3.0.1 profile with AT adaptations"@en ;
+    dct:description "DCAT-AP 3.0.1 field model with DCAT-AP AT 2.1 mandatory constraints."@en ;
+    dct:conformsTo <https://www.w3.org/TR/vocab-dcat/> ,
+    <https://www.dcat-ap.at/> .
+
+dzg:AgentShape
+  a sh:NodeShape ;
+  sh:targetClass foaf:Agent ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path foaf:name ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "name"
+  ], [
+    sh:path foaf:homepage ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "homepage"
+  ], [
+    sh:path foaf:mbox ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "email"
+  ], [
+    sh:path vcard:hasAddress ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AddressShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "address" ;
+    pv:mappingLink dzg:AddressShape
+  ], [
+    sh:path dct:type ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "type"
+  ] .
+
+dzg:ContactPointShape
+  a sh:NodeShape ;
+  sh:targetClass vcard:Kind ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path vcard:fn ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "name"
+  ], [
+    sh:path vcard:hasEmail ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "email"
+  ], [
+    sh:path vcard:hasURL ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "url"
+  ] .
+
+dzg:CatalogShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Catalog ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:title ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLangTitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path dct:description ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ], [
+    sh:path dct:publisher ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "publisher" ;
+    pv:mappingLink dzg:AgentShape
+  ], [
+    sh:path dct:language ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Language" ;
+    pv:mappingName "language"
+  ], [
+    sh:path dcatap:applicableLegislation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "applicable_legislation"
+  ], [
+    sh:path dct:license ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:LicenseShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "license" ;
+    pv:mappingLink dzg:LicenseShape
+  ], [
+    sh:path dct:issued ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "issued"
+  ], [
+    sh:path dct:spatial ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Spatial" ;
+    pv:mappingName "spatial"
+  ], [
+    sh:path dct:temporal ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:PeriodOfTimeShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateRange" ;
+    pv:mappingName "temporal"
+  ], [
+    sh:path dct:hasPart ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "has_part"
+  ], [
+    sh:path dct:modified ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "modified"
+  ], [
+    sh:path dct:rights ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "rights"
+  ], [
+    sh:path dcat:themeTaxonomy ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "theme_taxonomy"
+  ], [
+    sh:path dcat:service ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:DataServiceShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "services" ;
+    pv:mappingLink dzg:DataServiceShape
+  ], [
+    sh:path dcat:catalog ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "catalog"
+  ], [
+    sh:path dct:creator ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "creator"
+  ], [
+    sh:path foaf:homepage ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "homepage"
+  ], [
+    sh:path dcat:record ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:CatalogRecordShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "records"
+  ], [
+    sh:path dcat:dataset ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "datasets"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    # Spatial emits this field alongside the geometry field.
+    pv:mappingClass "SpatialResource" ;
+    pv:mappingName "spatial_resource"
+  ] .
+
+dzg:DatasetShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:node dzg:DatasetLanguageValidationShape ;
+  # Mandatory fields depend on dct:type (dataset vs. dataproduct), see below.
+  sh:node dzg:DatasetMandatoryValidationShape ;
+  sh:node dzg:DataproductValidationShape ;
+  sh:node dzg:DatasetMembershipValidationShape ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:title ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLangTitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path dct:description ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ], [
+    sh:path dct:identifier ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "identifier"
+  ], [
+    sh:path dcat:contactPoint ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:ContactPointShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "ContactPoint" ;
+    pv:mappingName "contact_point"
+  ], [
+    sh:path dcat:keyword ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Keywords" ;
+    pv:mappingName "keywords"
+  ], [
+    sh:path dct:publisher ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "publisher"
+  ], [
+    sh:path dcat:theme ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Theme" ;
+    pv:mappingName "categories"
+  ], [
+    sh:path dcatap:hvdCategory ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "hvd_category"
+  ], [
+    # The series is a record of its own; its triples are not in the dataset graph.
+    sh:path dcat:inSeries ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "in_series"
+  ], [
+    sh:path dct:accessRights ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "AccessRight" ;
+    pv:mappingName "access_right"
+  ], [
+    sh:path dct:rights ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "rights"
+  ], [
+    sh:path dcatap:applicableLegislation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "applicable_legislation"
+  ], [
+    sh:path dct:conformsTo ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "conforms_to"
+  ], [
+    sh:path dct:creator ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "creator"
+  ], [
+    sh:path foaf:page ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Page" ;
+    pv:mappingName "page"
+  ], [
+    sh:path dct:accrualPeriodicity ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Frequency" ;
+    pv:mappingName "accrual_periodicity"
+  ], [
+    sh:path dct:spatial ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Spatial" ;
+    pv:mappingName "spatial"
+  ], [
+    sh:path stat:statUnit ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "stat_unit"
+  ], [
+    sh:path dct:hasVersion ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "has_version"
+  ], [
+    sh:path dct:isReferencedBy ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "is_referenced_by"
+  ], [
+    sh:path dcat:landingPage ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Page" ;
+    pv:mappingName "landing_page"
+  ], [
+    sh:path dct:language ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Language" ;
+    pv:mappingName "language"
+  ], [
+    sh:path dct:modified ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "modified"
+  ], [
+    sh:path adms:identifier ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:IdentifierShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "AdmsIdentifier" ;
+    pv:mappingName "adms_identifier"
+  ], [
+    sh:path dct:provenance ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "provenance"
+  ], [
+    sh:path prov:qualifiedAttribution ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AttributionShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "qualified_attribution"
+  ], [
+    sh:path dcat:qualifiedRelation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:RelationshipShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "QualifiedRelation" ;
+    pv:mappingName "qualified_relation"
+  ], [
+    sh:path dct:relation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "relation"
+  ], [
+    sh:path dct:issued ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "issued"
+  ], [
+    sh:path adms:sample ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "sample"
+  ], [
+    sh:path dct:source ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "source"
+  ], [
+    sh:path dcat:spatialResolutionInMeters ;
+    sh:datatype xsd:decimal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Integer" ;
+    pv:mappingName "spatial_resolution_in_meters"
+  ], [
+    sh:path dct:temporal ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:PeriodOfTimeShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateRange" ;
+    pv:mappingName "temporal"
+  ], [
+    sh:path dcat:temporalResolution ;
+    sh:datatype xsd:duration ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "temporal_resolution"
+  ], [
+    sh:path dct:type ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DatasetType" ;
+    pv:mappingName "type"
+  ], [
+    sh:path dcat:version ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledText" ;
+    pv:mappingName "version"
+  ], [
+    sh:path adms:versionNotes ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "version_notes"
+  ], [
+    sh:path prov:wasGeneratedBy ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:ActivityShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "was_generated_by" ;
+    pv:mappingLink dzg:ActivityShape
+  ], [
+    # Dataproduct: the dataproduct this dataset belongs to (at most one).
+    sh:path dct:isPartOf ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "is_part_of"
+  ], [
+    # Dataproduct: members (datasets, dataset series). Derived from dct:isPartOf on export.
+    sh:path dct:hasPart ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "has_part"
+  ], [
+    # Dataproduct: validity period ("gueltig seit / gueltig bis").
+    sh:path dct:valid ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:PeriodOfTimeShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateRange" ;
+    pv:mappingName "valid"
+  ], [
+    # Statistical population ("Grundgesamtheit"), StatDCAT-AP proposal.
+    sh:path stat:population ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "population"
+  ], [
+    sh:path dcat:distribution ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:DistributionShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "distributions" ;
+    pv:mappingLink dzg:DistributionShape
+  ], [
+    sh:path dzg:working_contact ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "working_contact"
+  ], [
+    sh:path dzg:working_state ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:in (
+      "in Bearbeitung"
+      "formale Prüfung eingereicht"
+      "verworfen"
+      "Verbesserung notwendig"
+      "formale Prüfung abgeschlossen"
+    ) ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "working_state"
+  ], [
+    sh:path dcat:working_state_modified ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "working_state_modified"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog" ;
+    pv:mappingProperty [
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "id"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardResourceKeyword" ;
+      pv:mappingName "is_part_of"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog_record" ;
+    pv:mappingProperty [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "issued"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "modified"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "access_level"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardKeyword" ;
+      pv:mappingName "publication_status"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Metrics" ;
+    pv:mappingName "quality_meas"
+  ], [
+    # Spatial emits this field alongside the geometry field.
+    pv:mappingClass "SpatialResource" ;
+    pv:mappingName "spatial_resource"
+  ] .
+
+dzg:DatasetSeriesShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:DatasetSeries ;
+  sh:node dzg:DatasetSeriesMembershipValidationShape ;
+  sh:node dzg:DatasetSeriesFrequencyValidationShape ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:title ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLangTitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path dct:description ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ], [
+    sh:path dcat:contactPoint ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:ContactPointShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "ContactPoint" ;
+    pv:mappingName "contact_point"
+  ], [
+    sh:path dct:spatial ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Spatial" ;
+    pv:mappingName "spatial"
+  ], [
+    sh:path dct:publisher ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "publisher"
+  ], [
+    sh:path dcatap:applicableLegislation ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "applicable_legislation"
+  ], [
+    # Frequency of the series (DCAT-AP 3.0.1: 0..1), EU frequency vocabulary.
+    sh:path dct:accrualPeriodicity ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:pattern "^http://publications\\.europa\\.eu/resource/authority/frequency/" ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Frequency" ;
+    pv:mappingName "accrual_periodicity"
+  ], [
+    # Description of the frequency when it is "other" (frequency/OTHER).
+    sh:path dcatat:frequencyDescription ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "frequency_description"
+  ], [
+    sh:path dct:modified ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "modified"
+  ], [
+    sh:path dct:issued ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "issued"
+  ], [
+    # Period or point in time ("Zeitraum/Zeitpunkt"); a point has startDate = endDate.
+    sh:path dct:temporal ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:PeriodOfTimeShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateRange" ;
+    pv:mappingName "temporal"
+  ], [
+    # Dataproduct the series belongs to (exactly one, the class Dataproduct is mandatory).
+    sh:path dct:isPartOf ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "is_part_of"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog" ;
+    pv:mappingProperty [
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "id"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardResourceKeyword" ;
+      pv:mappingName "is_part_of"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog_record" ;
+    pv:mappingProperty [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "issued"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "modified"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "access_level"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardKeyword" ;
+      pv:mappingName "publication_status"
+    ]
+  ], [
+    # Spatial emits this field alongside the geometry field.
+    pv:mappingClass "SpatialResource" ;
+    pv:mappingName "spatial_resource"
+  ] .
+
+dzg:DistributionShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Distribution ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dcat:accessURL ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "access_url"
+  ], [
+    sh:path dct:format ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Format" ;
+    pv:mappingName "format"
+  ], [
+    sh:path dct:license ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "license"
+  ], [
+    sh:path dcat:accessService ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:DataServiceShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "access_service" ;
+    pv:mappingLink dzg:DataServiceShape
+  ], [
+    sh:path dct:conformsTo ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "conforms_to"
+  ], [
+    sh:path dct:issued ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "issued"
+  ], [
+    sh:path dct:language ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Language" ;
+    pv:mappingName "language"
+  ], [
+    sh:path dct:modified ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "modified"
+  ], [
+    sh:path dct:rights ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "rights"
+  ], [
+    sh:path dct:title ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "TrimmedMultiLangSubtitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path spdx:checksum ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:ChecksumShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Checksum" ;
+    pv:mappingName "checksum"
+  ], [
+    sh:path adms:status ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "AdmsSkos" ;
+    pv:mappingName "status"
+  ], [
+    # DZG user story: mandatory, one value (may be estimated).
+    sh:path dcat:byteSize ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:nonNegativeInteger ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Integer" ;
+    pv:mappingName "byte_size"
+  ], [
+    sh:path dcat:downloadURL ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "download_url"
+  ], [
+    sh:path dcat:mediaType ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "MediaType" ;
+    pv:mappingName "media_type"
+  ], [
+    sh:path foaf:page ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Page" ;
+    pv:mappingName "page"
+  ], [
+    sh:path odrl:hasPolicy ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:PolicyShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "has_policy"
+  ], [
+    sh:path dcat:compressFormat ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Document" ;
+    pv:mappingName "compress_format"
+  ], [
+    sh:path dcat:packageFormat ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Document" ;
+    pv:mappingName "package_format"
+  ], [
+    sh:path dcat:temporalResolution ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:duration ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "temporal_resolution"
+  ], [
+    sh:path dcat:spatialResolutionInMeters ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:decimal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Integer" ;
+    pv:mappingName "spatial_resolution_in_meters"
+  ], [
+    sh:path dct:description ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ], [
+    sh:path dcatap:availability ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:in (
+      <http://publications.europa.eu/resource/authority/planned-availability/TEMPORARY>
+      <http://publications.europa.eu/resource/authority/planned-availability/EXPERIMENTAL>
+      <http://publications.europa.eu/resource/authority/planned-availability/AVAILABLE>
+      <http://publications.europa.eu/resource/authority/planned-availability/STABLE>
+    ) ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "availability"
+  ], [
+    sh:path dct:type ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DistributionType" ;
+    pv:mappingName "type"
+  ], [
+    sh:path dcatap:applicableLegislation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "applicable_legislation"
+  ] .
+
+dzg:DataServiceShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:DataService ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dcat:endpointURL ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "endpoint_url"
+  ], [
+    sh:path dct:title ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLangTitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path dcatap:hvdCategory ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "hvd_category"
+  ], [
+    sh:path dct:accessRights ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "AccessRight" ;
+    pv:mappingName "access_right"
+  ], [
+    sh:path dcatap:applicableLegislation ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "applicable_legislation"
+  ], [
+    sh:path dct:conformsTo ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "conforms_to"
+  ], [
+    sh:path dcat:contactPoint ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:ContactPointShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "ContactPoint" ;
+    pv:mappingName "contact_point"
+  ], [
+    sh:path dct:description ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ], [
+    sh:path dcat:endpointDescription ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "endpoint_description"
+  ], [
+    sh:path dct:format ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Format" ;
+    pv:mappingName "format"
+  ], [
+    sh:path dcat:keyword ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Keywords" ;
+    pv:mappingName "keywords"
+  ], [
+    sh:path dcat:landingPage ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Page" ;
+    pv:mappingName "landing_page"
+  ], [
+    sh:path foaf:page ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Page" ;
+    pv:mappingName "page"
+  ], [
+    sh:path dct:license ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:LicenseShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "license" ;
+    pv:mappingLink dzg:LicenseShape
+  ], [
+    sh:path dct:publisher ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:node dzg:AgentShape ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Agent" ;
+    pv:mappingName "publisher"
+  ], [
+    sh:path dcat:servesDataset ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "serves_dataset"
+  ], [
+    sh:path dcat:theme ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Theme" ;
+    pv:mappingName "categories"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog" ;
+    pv:mappingProperty [
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "id"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardResourceKeyword" ;
+      pv:mappingName "is_part_of"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog_record" ;
+    pv:mappingProperty [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "issued"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "modified"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "access_level"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardKeyword" ;
+      pv:mappingName "publication_status"
+    ]
+  ] .
+
+dzg:CatalogRecordShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:CatalogRecord ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path foaf:primaryTopic ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "primary_topic"
+  ], [
+    sh:path dct:modified ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "modified"
+  ], [
+    sh:path dct:conformsTo ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "conforms_to"
+  ], [
+    sh:path dct:issued ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "issued"
+  ], [
+    sh:path adms:status ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "AdmsSkos" ;
+    pv:mappingName "status"
+  ], [
+    sh:path dct:language ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "Language" ;
+    pv:mappingName "language"
+  ], [
+    sh:path dct:source ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "source"
+  ], [
+    sh:path dct:title ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "TrimmedMultiLangTitle" ;
+    pv:mappingName "title"
+  ], [
+    sh:path dct:description ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "MultiLang" ;
+    pv:mappingName "description"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog" ;
+    pv:mappingProperty [
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "id"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardResourceKeyword" ;
+      pv:mappingName "is_part_of"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog_record" ;
+    pv:mappingProperty [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "issued"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "modified"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "access_level"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardKeyword" ;
+      pv:mappingName "publication_status"
+    ]
+  ] .
+
+dzg:RelationshipShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Relationship ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:relation ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "relation"
+  ], [
+    sh:path dcat:hadRole ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "role"
+  ] ;
+
+  # Technical Piveau index fields; these pathless declarations are not validation rules.
+  sh:property [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "id"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "resource"
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog" ;
+    pv:mappingProperty [
+      sh:minCount 1 ;
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "id"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardResourceKeyword" ;
+      pv:mappingName "is_part_of"
+    ]
+  ], [
+    sh:maxCount 1 ;
+    pv:mappingClass "Nested" ;
+    pv:mappingName "catalog_record" ;
+    pv:mappingProperty [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "issued"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "DateTime" ;
+      pv:mappingName "modified"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardText" ;
+      pv:mappingName "access_level"
+    ], [
+      sh:maxCount 1 ;
+      pv:mappingClass "StandardKeyword" ;
+      pv:mappingName "publication_status"
+    ]
+  ] .
+
+dzg:AddressShape
+  a sh:NodeShape ;
+  sh:targetClass vcard:Address ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path vcard:street-address ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "street"
+  ], [
+    sh:path vcard:locality ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "locality"
+  ], [
+    sh:path vcard:postal-code ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "postal_code"
+  ] .
+
+dzg:IdentifierShape
+  a sh:NodeShape ;
+  sh:targetClass adms:Identifier ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path skos:notation ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "notation"
+  ] .
+
+dzg:LicenseShape
+  a sh:NodeShape ;
+  sh:targetClass dct:LicenseDocument ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:type ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "type"
+  ], [
+    sh:path dct:description ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "description"
+  ], [
+    sh:path skos:prefLabel ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "label"
+  ], [
+    sh:path foaf:homepage ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardDisabled" ;
+    pv:mappingName "homepage"
+  ] .
+
+dzg:ChecksumShape
+  a sh:NodeShape ;
+  sh:targetClass spdx:Checksum ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path spdx:algorithm ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "LabeledResource" ;
+    pv:mappingName "algorithm"
+  ], [
+    sh:path spdx:checksumValue ;
+    sh:minCount 1 ;
+    sh:datatype xsd:hexBinary ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "value"
+  ] .
+
+dzg:LocationShape
+  a sh:NodeShape ;
+  sh:targetClass dct:Location ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dcat:bbox ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "bbox"
+  ], [
+    sh:path dcat:centroid ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "centroid"
+  ], [
+    sh:path locn:geometry ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "geometry"
+  ] .
+
+dzg:PeriodOfTimeShape
+  a sh:NodeShape ;
+  sh:targetClass dct:PeriodOfTime ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dcat:startDate ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "start_date"
+  ], [
+    sh:path dcat:endDate ;
+    sh:maxCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Warning ;
+    pv:mappingClass "DateTime" ;
+    pv:mappingName "end_date"
+  ], [
+    sh:path time:hasBeginning ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "beginning"
+  ], [
+    sh:path time:hasEnd ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardKeyword" ;
+    pv:mappingName "end"
+  ] .
+
+dzg:PolicyShape
+  a sh:NodeShape ;
+  sh:targetClass odrl:Policy .
+
+dzg:ActivityShape
+  a sh:NodeShape ;
+  sh:targetClass prov:Activity ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    # Dataproduct: survey method ("Erhebungsform"), concept from erh:
+    sh:path dct:type ;
+    sh:nodeKind sh:IRI ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardResourceKeyword" ;
+    pv:mappingName "type"
+  ], [
+    sh:path dct:description ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "description"
+  ] .
+
+dzg:AttributionShape
+  a sh:NodeShape ;
+  sh:targetClass prov:Attribution .
+
+dzg:RoleShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Role .
+
+dzg:ResourceShape
+  a sh:NodeShape ;
+  sh:targetClass dcat:Resource .
+
+dzg:GeometryShape
+  a sh:NodeShape ;
+  sh:targetClass locn:Geometry .
+
+dzg:DocumentShape
+  a sh:NodeShape ;
+  sh:targetClass foaf:Document .
+
+dzg:FrequencyShape
+  a sh:NodeShape ;
+  sh:targetClass dct:Frequency .
+
+dzg:LinguisticSystemShape
+  a sh:NodeShape ;
+  sh:targetClass dct:LinguisticSystem .
+
+dzg:MediaTypeShape
+  a sh:NodeShape ;
+  sh:targetClass dct:MediaType .
+
+dzg:MediaTypeOrExtentShape
+  a sh:NodeShape ;
+  sh:targetClass dct:MediaTypeOrExtent .
+
+dzg:ProvenanceStatementShape
+  a sh:NodeShape ;
+  sh:targetClass dct:ProvenanceStatement ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    # Dataproduct: data sources ("Datenquellen") as free text.
+    sh:path rdfs:label ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "SimpleMultiLang" ;
+    pv:mappingName "label"
+  ] .
+
+dzg:RightsStatementShape
+  a sh:NodeShape ;
+  sh:targetClass dct:RightsStatement .
+
+dzg:StandardShape
+  a sh:NodeShape ;
+  sh:targetClass dct:Standard .
+
+dzg:ChecksumAlgorithmShape
+  a sh:NodeShape ;
+  sh:targetClass spdx:ChecksumAlgorithm .
+
+dzg:TimeInstantShape
+  a sh:NodeShape ;
+  sh:targetClass time:Instant .
+
+dzg:ConceptShape
+  a sh:NodeShape ;
+  sh:targetClass skos:Concept ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path skos:prefLabel ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "pref_label"
+  ] .
+
+dzg:ConceptSchemeShape
+  a sh:NodeShape ;
+  sh:targetClass skos:ConceptScheme ;
+
+  # Metadata fields and their index mappings.
+  sh:property [
+    sh:path dct:title ;
+    sh:minCount 1 ;
+    sh:nodeKind sh:Literal ;
+    sh:severity sh:Violation ;
+    pv:mappingClass "StandardText" ;
+    pv:mappingName "title"
+  ] .
+
+dzg:LegalResourceShape
+  a sh:NodeShape ;
+  sh:targetClass eli:LegalResource .
+
+# Keep inverse SHACL validation outside the directly indexed property list.
+dzg:DatasetSeriesMembershipValidationShape
+  a sh:NodeShape ;
+  sh:property [
+    sh:path [ sh:inversePath dcat:inSeries ] ;
+    sh:nodeKind sh:BlankNodeOrIRI ;
+    sh:severity sh:Violation
+  ] .
+
+# Keep the RDF cardinality separate from the Search JSON array representation.
+dzg:DatasetLanguageValidationShape
+  a sh:NodeShape ;
+  sh:property [
+    sh:path dct:language ;
+    sh:maxCount 1
+  ] .
+
+# ---------------------------------------------------------------------------
+# Dataproduct (since 1.1)
+#
+# A dataproduct is a dcat:Dataset with dct:type restype:Dataproduct. It bundles
+# datasets and dataset series of the same catalogue; members point to it with
+# dct:isPartOf. The shapes below are pure validation shapes without index
+# mappings (same pattern as dzg:DatasetLanguageValidationShape).
+#
+# Checks across records cannot be expressed here because each record is
+# validated on its own graph. dzg-review has to check them:
+#   - the dct:isPartOf target is a dataproduct of the same catalogue,
+#   - a member is not itself a dataproduct (no nesting).
+# ---------------------------------------------------------------------------
+
+dzg:DataproductTypeShape
+  a sh:NodeShape ;
+  rdfs:comment "Matches a dataproduct (dct:type restype:Dataproduct)."@en ;
+  sh:property [
+    sh:path dct:type ;
+    sh:hasValue restype:Dataproduct
+  ] .
+
+dzg:NotDataproductShape
+  a sh:NodeShape ;
+  rdfs:comment "Matches every dataset that is not a dataproduct."@en ;
+  sh:not dzg:DataproductTypeShape .
+
+# Mandatory fields of a regular dataset (DCAT-AP AT 2.1 / DZG). They were
+# sh:minCount 1 in dzg:DatasetShape before 1.1 and do not apply to dataproducts.
+dzg:DatasetMandatoryValidationShape
+  a sh:NodeShape ;
+  sh:node dzg:DatasetRequiresIdentifier , dzg:DatasetRequiresContactPoint ,
+    dzg:DatasetRequiresKeyword , dzg:DatasetRequiresPublisher ,
+    dzg:DatasetRequiresTheme , dzg:DatasetRequiresAccessRights ,
+    dzg:DatasetRequiresRights , dzg:DatasetRequiresAccrualPeriodicity ,
+    dzg:DatasetRequiresStatUnit , dzg:DatasetRequiresLanguage ,
+    dzg:DatasetRequiresModified , dzg:DatasetRequiresIssued ,
+    dzg:DatasetRequiresTemporal , dzg:DatasetRequiresDistribution ,
+    dzg:NonPublicDistributionRequiresTitle .
+
+dzg:DatasetRequiresIdentifier a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:identifier ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:identifier ist verpflichtend."@de .
+dzg:DatasetRequiresContactPoint a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dcat:contactPoint ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dcat:contactPoint ist verpflichtend."@de .
+dzg:DatasetRequiresKeyword a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dcat:keyword ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dcat:keyword ist verpflichtend."@de .
+dzg:DatasetRequiresPublisher a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:publisher ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:publisher ist verpflichtend."@de .
+dzg:DatasetRequiresTheme a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dcat:theme ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dcat:theme ist verpflichtend."@de .
+dzg:DatasetRequiresAccessRights a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:accessRights ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:accessRights ist verpflichtend."@de .
+dzg:DatasetRequiresRights a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:rights ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:rights ist verpflichtend."@de .
+dzg:DatasetRequiresAccrualPeriodicity a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:accrualPeriodicity ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:accrualPeriodicity ist verpflichtend."@de .
+dzg:DatasetRequiresStatUnit a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path stat:statUnit ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: stat:statUnit ist verpflichtend."@de .
+dzg:DatasetRequiresLanguage a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:language ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:language ist verpflichtend."@de .
+dzg:DatasetRequiresModified a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:modified ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:modified ist verpflichtend."@de .
+dzg:DatasetRequiresIssued a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:issued ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:issued ist verpflichtend."@de .
+dzg:DatasetRequiresDistribution a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dcat:distribution ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: mindestens eine Distribution ist verpflichtend."@de .
+# "Scientific Use Files": the distribution name is mandatory for every
+# distribution of a dataset with access rights NON_PUBLIC (decision 2026-11-27).
+dzg:NonPublicDistributionRequiresTitle a sh:NodeShape ;
+  sh:or (
+    [ sh:not [ sh:path dct:accessRights ;
+               sh:hasValue <http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC> ] ]
+    [ sh:path dcat:distribution ;
+      sh:node [ sh:property [ sh:path dct:title ; sh:minCount 1 ] ] ]
+  ) ;
+  sh:message "Distribution: bei nicht öffentlichen Datensätzen (NON_PUBLIC) ist der Distributionsname verpflichtend."@de .
+dzg:DatasetRequiresTemporal a sh:NodeShape ;
+  sh:or ( dzg:DataproductTypeShape [ sh:path dct:temporal ; sh:minCount 1 ] ) ;
+  sh:message "Datensatz: dct:temporal ist verpflichtend."@de .
+
+# Rules that only apply to dataproducts.
+dzg:DataproductValidationShape
+  a sh:NodeShape ;
+  sh:node dzg:DataproductRequiresValid , dzg:DataproductHasNoDistribution ,
+    dzg:DataproductIsNotPartOf , dzg:DataproductIsNotInSeries ,
+    dzg:DataproductSurveyMethod , dzg:DataproductHasNoHvd .
+
+dzg:DataproductRequiresValid a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape [ sh:path dct:valid ; sh:minCount 1 ] ) ;
+  sh:message "Datenprodukt: dct:valid mit dcat:startDate (gültig seit) ist verpflichtend."@de .
+dzg:DataproductHasNoDistribution a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape [ sh:path dcat:distribution ; sh:maxCount 0 ] ) ;
+  sh:message "Datenprodukt: ein Datenprodukt hat keine Distributionen."@de .
+dzg:DataproductIsNotPartOf a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape [ sh:path dct:isPartOf ; sh:maxCount 0 ] ) ;
+  sh:message "Datenprodukt: Datenprodukte werden nicht verschachtelt (kein dct:isPartOf)."@de .
+dzg:DataproductIsNotInSeries a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape [ sh:path dcat:inSeries ; sh:maxCount 0 ] ) ;
+  sh:message "Datenprodukt: ein Datenprodukt gehört keiner Datensatzserie an."@de .
+dzg:DataproductSurveyMethod a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape
+    [ sh:path prov:wasGeneratedBy ; sh:maxCount 1 ; sh:node dzg:SurveyMethodValidationShape ] ) ;
+  sh:message "Datenprodukt: höchstens eine Erhebungsform aus dem Vokabular erh:; eine Beschreibung ist nur bei erh:andere erlaubt."@de .
+dzg:DataproductHasNoHvd a sh:NodeShape ;
+  sh:or ( dzg:NotDataproductShape
+    [ sh:node [
+        sh:property [ sh:path dcatap:hvdCategory ; sh:maxCount 0 ] ;
+        sh:property [ sh:path dcatap:applicableLegislation ;
+                      sh:not [ sh:hasValue <http://data.europa.eu/eli/reg_impl/2023/138/oj> ] ] ] ] ) ;
+  sh:message "Datenprodukt: HVD-Kennzeichnung gehört an die Bestandteile, nicht an das Datenprodukt."@de .
+
+# Survey method ("Erhebungsform") of a dataproduct.
+dzg:SurveyMethodValidationShape
+  a sh:NodeShape ;
+  sh:property [
+    sh:path dct:type ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:in ( erh:stichprobe-manuell erh:stichprobe-zufall erh:stichprobe-abschneidegrenze
+            erh:vollerhebung-abschneidegrenze erh:vollerhebung erh:andere )
+  ] ;
+  # The description is optional and only allowed with erh:andere.
+  sh:or (
+    [ sh:property [ sh:path dct:type ; sh:hasValue erh:andere ] ]
+    [ sh:property [ sh:path dct:description ; sh:maxCount 0 ] ]
+  ) .
+
+# Members of a dataproduct: a dataset in a series belongs to the dataproduct
+# through its series only.
+dzg:DatasetMembershipValidationShape
+  a sh:NodeShape ;
+  sh:node dzg:DatasetSeriesMemberNotPartOf , dzg:DatasetRequiresDataproduct .
+
+dzg:DatasetSeriesMemberNotPartOf a sh:NodeShape ;
+  sh:or (
+    [ sh:path dcat:inSeries ; sh:maxCount 0 ]
+    [ sh:path dct:isPartOf ; sh:maxCount 0 ]
+  ) ;
+  sh:message "Ein Datensatz in einer Serie gehört über die Serie zum Datenprodukt und hat kein eigenes dct:isPartOf."@de .
+
+# The class Dataproduct is mandatory (Fachbereich, 2026-11-24): every dataset
+# that is not itself a dataproduct belongs to one, directly (dct:isPartOf) or
+# through its series (dcat:inSeries).
+dzg:DatasetRequiresDataproduct a sh:NodeShape ;
+  sh:or (
+    dzg:DataproductTypeShape
+    [ sh:path dct:isPartOf ; sh:minCount 1 ]
+    [ sh:path dcat:inSeries ; sh:minCount 1 ]
+  ) ;
+  sh:message "Datensatz: Zuordnung zu einem Datenprodukt ist verpflichtend (dct:isPartOf oder über die Datensatzserie)."@de .
+
+# Dataset series: the frequency description is optional and only allowed
+# with frequency OTHER ("andere"), DZG user story "Klasse Datensatzserie".
+dzg:DatasetSeriesFrequencyValidationShape
+  a sh:NodeShape ;
+  sh:or (
+    [ sh:path dct:accrualPeriodicity ;
+      sh:hasValue <http://publications.europa.eu/resource/authority/frequency/OTHER> ]
+    [ sh:path dcatat:frequencyDescription ; sh:maxCount 0 ]
+  ) ;
+  sh:message "Datensatzserie: eine Beschreibung der Aktualisierungshäufigkeit ist nur bei „andere“ (frequency/OTHER) erlaubt."@de .
