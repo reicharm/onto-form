@@ -7,6 +7,25 @@ export const fieldVisibilityFns = {
   ifHVDLegislation: (formData) => {
     const val = formData?.['dcatap:applicableLegislation']
     return val === 'http://data.europa.eu/eli/reg_impl/2023/138/oj'
+  },
+  // DZG profile: a dataset is a "dataproduct" when dct:type is
+  // restype:Dataproduct. Most dataset-level fields are mandatory unless the
+  // record is a dataproduct; dct:valid is mandatory only for dataproducts.
+  // dct:type has no sh:maxCount in the DZG shape (unbounded -> multiple:
+  // true), so its stored value is an array, not a single string.
+  ifDzgDataproduct: (formData) => {
+    const val = formData?.['dct:type']
+    const DATAPRODUCT = 'http://dcat-ap.at/concept/resourcetype/Dataproduct'
+    return Array.isArray(val) ? val.includes(DATAPRODUCT) : val === DATAPRODUCT
+  },
+  ifNotDzgDataproduct: (formData) => {
+    return !fieldVisibilityFns.ifDzgDataproduct(formData)
+  },
+  // DZG profile: a dataproduct's survey method (prov:wasGeneratedBy) only
+  // allows a free-text description when the method itself is erh:andere
+  // ("other"). Evaluated against the wasGeneratedBy sub-object itself.
+  ifDzgSurveyMethodAndere: (formData) => {
+    return formData?.['dct:type'] === 'http://dcat-ap.at/concept/erhebungsform/andere'
   }
 }
 

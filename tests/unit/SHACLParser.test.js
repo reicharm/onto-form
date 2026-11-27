@@ -282,3 +282,31 @@ ex:DistShape a sh:NodeShape ;
     expect(field._linkedShape).toBeUndefined()
   })
 })
+
+describe('prefix compaction uses the document\'s own @prefix declarations', () => {
+  // Any namespace not hardcoded in rdfUtils.js's PREFIXES table must still
+  // compact correctly using the @prefix the SHACL document itself declares —
+  // otherwise the field id silently loses its prefix (e.g.
+  // "dcatap:hvdCategory" -> "hvdCategory"), which then no longer matches the
+  // same field's id in ui-config.*.json.
+  const ttlWithCustomPrefix = `
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix dcat: <http://www.w3.org/ns/dcat#> .
+@prefix dzg:  <https://example.org/dzg#> .
+
+<http://example.org/TestShape> a sh:NodeShape ;
+  sh:targetClass dcat:Dataset ;
+  sh:property [
+    sh:path dzg:workingState ;
+    sh:maxCount 1
+  ] .
+`
+
+  it('compacts a field id using a custom, non-hardcoded @prefix', async () => {
+    const parser = new SHACLParser()
+    const shapes = await parser.parse(ttlWithCustomPrefix)
+    const field = shapes['http://www.w3.org/ns/dcat#Dataset'].fields['dzg:workingState']
+    expect(field).toBeDefined()
+    expect(field.id).toBe('dzg:workingState')
+  })
+})

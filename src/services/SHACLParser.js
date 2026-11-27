@@ -19,7 +19,7 @@ const DATATYPE_MAP = {
 
 export class SHACLParser {
   async parse(ttlContent) {
-    const store = await parseTTLToStore(ttlContent)
+    const { store, prefixes } = await parseTTLToStore(ttlContent)
     const rawShapes = {}
 
     // First pass: parse all NodeShapes into raw shapes
@@ -33,7 +33,7 @@ export class SHACLParser {
       const fields = {}
       for (const pNode of propertyNodes) {
         const pTriples = store.get(pNode) || []
-        const field = parsePropertyShape(pTriples, store)
+        const field = parsePropertyShape(pTriples, store, prefixes)
         if (field) fields[field.id] = field
       }
 
@@ -82,12 +82,12 @@ function getLiteral(triples, predicate, lang) {
   return any ? any.o.value : null
 }
 
-function parsePropertyShape(triples, store) {
+function parsePropertyShape(triples, store, prefixes) {
   const pathTriple = triples.find(t => t.p === `${SH}path`)
   if (!pathTriple) return null
 
   const pathValue = pathTriple.o.value
-  const id        = compactIRI(pathValue)
+  const id        = compactIRI(pathValue, prefixes)
 
   const nameDe  = getLiteral(triples, `${SH}name`, 'de')
   const nameEn  = getLiteral(triples, `${SH}name`, 'en')
@@ -102,7 +102,7 @@ function parsePropertyShape(triples, store) {
   const order    = parseFloat(triples.find(t => t.p === `${SH}order`)?.o.value || '999')
 
   const inValues = triples.filter(t => t.p === `${SH}in`)
-  const options  = extractListOptions(inValues, store)
+  const options  = extractListOptions(inValues, store, prefixes)
 
   const linkedShape = triples.find(t => t.p === `${PV}mappingLink`)?.o.value
 
@@ -131,20 +131,20 @@ function parsePropertyShape(triples, store) {
   return field
 }
 
-function extractListOptions(inTriples, store) {
+function extractListOptions(inTriples, store, prefixes) {
   const options = []
-  for (const t of inTriples) collectList(t.o.value, store, options)
+  for (const t of inTriples) collectList(t.o.value, store, options, prefixes)
   return options
 }
 
-function collectList(node, store, result) {
+function collectList(node, store, result, prefixes) {
   if (!node || node === `${RDF}nil`) return
   const triples = store.get(node) || []
   const first = triples.find(t => t.p === `${RDF}first`)
   const rest  = triples.find(t => t.p === `${RDF}rest`)
   if (first) {
     const val = first.o.value
-    result.push({ value: val, label: { de: compactIRI(val), en: compactIRI(val) } })
+    result.push({ value: val, label: { de: compactIRI(val, prefixes), en: compactIRI(val, prefixes) } })
   }
-  if (rest) collectList(rest.o.value, store, result)
+  if (rest) collectList(rest.o.value, store, result, prefixes)
 }

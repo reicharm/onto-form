@@ -17,6 +17,16 @@ const StubField = {
   }
 }
 
+// Stub that records the parentRequired prop it was given, for object /
+// distribution-editor fields.
+const ParentRequiredProbe = {
+  props: ['field', 'lang', 'modelValue', 'parentRequired'],
+  emits: ['update:modelValue'],
+  render() {
+    return h('div', { class: 'probe', 'data-parent-required': String(this.parentRequired) })
+  }
+}
+
 function makeWrapper(fields, modelValue) {
   return mount(FieldGroup, {
     props: {
@@ -109,5 +119,56 @@ describe('FieldGroup field.cssClass', () => {
     const fields = [{ id: 'dct:title', type: 'text', label: { de: 'Titel' }, visible: true }]
     const w = makeWrapper(fields, { 'dct:title': '' })
     expect(w.find('.field-wrapper').classes()).not.toContain('undefined')
+  })
+})
+
+describe('FieldGroup passes parentRequired to object/distribution-editor fields', () => {
+  it('evaluates field.requiredIf against its own modelValue scope and passes the result as parentRequired', () => {
+    const fields = [{
+      id: 'dct:temporal',
+      type: 'object',
+      requiredIf: 'ifNotDzgDataproduct',
+      label: { de: 'Zeitraum' }
+    }]
+    const w = mount(FieldGroup, {
+      props: {
+        fields,
+        lang: 'de',
+        modelValue: { 'dct:type': 'http://dcat-ap.at/concept/resourcetype/Dataproduct' },
+        fieldComponent: () => ParentRequiredProbe
+      }
+    })
+    expect(w.find('.probe').attributes('data-parent-required')).toBe('false')
+  })
+
+  it('passes parentRequired: true when requiredIf evaluates true', () => {
+    const fields = [{
+      id: 'dct:temporal',
+      type: 'object',
+      requiredIf: 'ifNotDzgDataproduct',
+      label: { de: 'Zeitraum' }
+    }]
+    const w = mount(FieldGroup, {
+      props: {
+        fields,
+        lang: 'de',
+        modelValue: { 'dct:type': '' },
+        fieldComponent: () => ParentRequiredProbe
+      }
+    })
+    expect(w.find('.probe').attributes('data-parent-required')).toBe('true')
+  })
+
+  it('does not pass parentRequired to a non-object/distribution-editor field (no stray attribute)', () => {
+    const fields = [{ id: 'dct:title', type: 'text', label: { de: 'Titel' } }]
+    const w = mount(FieldGroup, {
+      props: {
+        fields,
+        lang: 'de',
+        modelValue: {},
+        fieldComponent: () => ParentRequiredProbe
+      }
+    })
+    expect(w.find('.probe').attributes('data-parent-required')).toBe('undefined')
   })
 })

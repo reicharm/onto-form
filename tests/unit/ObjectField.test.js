@@ -59,6 +59,39 @@ describe('ObjectField — sub-fields share the same feature set as top-level fie
     expect(w.find('.field-errors').exists()).toBe(false)
   })
 
+  it('does not show sub-field errors for an untouched object whose own field is conditionally not required (parentRequired: false)', () => {
+    // Mirrors dct:temporal/dct:valid in the DZG profile: a required sub-field
+    // (dcat:startDate) inside an object whose requiredIf currently evaluates
+    // false (e.g. this record is a dataproduct) must not nag the user about
+    // a section they don't need to fill in at all.
+    const field = {
+      id: 'dct:temporal',
+      label: { de: 'Zeitraum', en: 'Period' },
+      subFields: [
+        { id: 'dcat:startDate', type: 'date', required: true, label: { de: 'Von', en: 'Start' } }
+      ]
+    }
+    const w = mount(ObjectField, {
+      props: { field, lang: 'de', modelValue: {}, showErrors: true, parentRequired: false }
+    })
+    expect(w.find('.field-errors').exists()).toBe(false)
+  })
+
+  it('shows sub-field errors once the user starts filling an object whose own field is conditionally not required', () => {
+    const field = {
+      id: 'dct:temporal',
+      label: { de: 'Zeitraum', en: 'Period' },
+      subFields: [
+        { id: 'dcat:startDate', type: 'date', required: true, label: { de: 'Von', en: 'Start' } },
+        { id: 'dcat:endDate', type: 'date', label: { de: 'Bis', en: 'End' } }
+      ]
+    }
+    const w = mount(ObjectField, {
+      props: { field, lang: 'de', modelValue: { 'dcat:endDate': '2024-01-01' }, showErrors: true, parentRequired: false }
+    })
+    expect(w.find('.field-errors').exists()).toBe(true)
+  })
+
   it('hides a sub-field whose visibleIf condition (evaluated against the sub-object) is false', () => {
     const field = {
       id: 'dct:publisher',

@@ -44,7 +44,7 @@ export class SHACLValidationService {
    * @returns {{ valid: boolean, violations: object[] }}
    */
   async validate(ttlContent, formData, config) {
-    const store = await parseTTLToStore(ttlContent)
+    const { store, prefixes } = await parseTTLToStore(ttlContent)
     const shapes = extractNodeShapes(store)
 
     const datasetShape = Object.values(shapes).find(
@@ -55,7 +55,7 @@ export class SHACLValidationService {
     const violations = []
 
     for (const prop of datasetShape.properties) {
-      const fieldId = compactIRI(prop.path)
+      const fieldId = compactIRI(prop.path, prefixes)
       const value   = formData?.[fieldId]
       const label   = config?.fields?.[fieldId]?.label || { en: fieldId, de: fieldId }
       const groupId = findGroupId(fieldId, config)

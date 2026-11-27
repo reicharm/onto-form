@@ -1,0 +1,472 @@
+{
+  "standard": "dzg",
+  "version": "1.1",
+  "rootClass": "dcat:Dataset",
+  "wizard": true,
+  "groups": [
+    {
+      "id": "basic",
+      "label": { "de": "Grunddaten", "en": "Basic Information" },
+      "fields": ["dct:title", "dct:description", "dct:identifier", "dct:type", "dcat:version", "adms:versionNotes"]
+    },
+    {
+      "id": "classification",
+      "label": { "de": "Klassifizierung", "en": "Classification" },
+      "fields": ["dcat:keyword", "dcat:theme", "dcatap:hvdCategory", "dcatap:applicableLegislation", "dct:conformsTo", "stat:statUnit", "stat:population"]
+    },
+    {
+      "id": "access",
+      "label": { "de": "Zugang & Recht", "en": "Access & Rights" },
+      "fields": ["dct:accessRights", "dct:rights", "dct:accrualPeriodicity", "dct:language"]
+    },
+    {
+      "id": "dates",
+      "label": { "de": "Zeitangaben", "en": "Dates" },
+      "fields": ["dct:issued", "dct:modified", "dct:temporal", "dct:valid"]
+    },
+    {
+      "id": "spatial",
+      "label": { "de": "Räumlich", "en": "Spatial" },
+      "fields": ["dct:spatial", "dcat:spatialResolutionInMeters", "dcat:temporalResolution"]
+    },
+    {
+      "id": "relations",
+      "label": { "de": "Beziehungen & Herkunft", "en": "Relations & Provenance" },
+      "fields": ["dct:isPartOf", "dct:hasPart", "dcat:inSeries", "dct:relation", "dcat:qualifiedRelation", "dct:source", "dct:isReferencedBy", "dct:hasVersion", "adms:sample", "dct:provenance", "prov:qualifiedAttribution", "prov:wasGeneratedBy"]
+    },
+    {
+      "id": "contact",
+      "label": { "de": "Kontakt & Herausgeber", "en": "Contact & Publisher" },
+      "fields": ["dcat:contactPoint", "dct:publisher", "dct:creator", "foaf:page", "dcat:landingPage"]
+    },
+    {
+      "id": "distributions",
+      "label": { "de": "Distributionen", "en": "Distributions" },
+      "fields": ["dcat:distribution"]
+    },
+    {
+      "id": "workflow",
+      "label": { "de": "DZG-Workflow", "en": "DZG Workflow" },
+      "fields": ["dzg:working_contact", "dzg:working_state", "dcat:working_state_modified"]
+    }
+  ],
+  "fields": {
+    "dct:title": {
+      "type": "langstring",
+      "required": true,
+      "label": { "de": "Titel", "en": "Title" },
+      "placeholder": { "de": "Titel des Datensatzes", "en": "Dataset title" }
+    },
+    "dct:description": {
+      "type": "langstring",
+      "multiline": true,
+      "required": true,
+      "label": { "de": "Beschreibung", "en": "Description" },
+      "placeholder": { "de": "Beschreibung des Datensatzes, seines Inhalts und Verwendungszwecks …", "en": "Description of the dataset, its content and intended use …" }
+    },
+    "dct:identifier": {
+      "type": "text",
+      "requiredIf": "ifNotDzgDataproduct",
+      "validate": "isURI",
+      "generate": "uuid",
+      "label": { "de": "Datensatz-ID", "en": "Dataset ID" },
+      "hint": { "de": "Eindeutige URI des Datensatzes — für Datensätze verpflichtend, für Datenprodukte optional", "en": "Unique URI of the dataset — required for datasets, optional for dataproducts" }
+    },
+    "dct:type": {
+      "type": "select",
+      "label": { "de": "Datensatztyp", "en": "Dataset Type" },
+      "hint": { "de": "Wählen Sie „Datenprodukt“, wenn dieser Eintrag ein Datenprodukt statt eines einzelnen Datensatzes ist — dadurch ändern sich die verpflichtenden Felder", "en": "Select \"Dataproduct\" if this record is a dataproduct rather than an individual dataset — this changes which fields are mandatory" },
+      "optionsSource": "/vocabularies/dataset-type.json",
+      "options": [
+        { "value": "http://dcat-ap.at/concept/resourcetype/Dataproduct", "label": { "de": "Datenprodukt", "en": "Dataproduct" } }
+      ]
+    },
+    "dcat:version": {
+      "type": "text",
+      "label": { "de": "Version", "en": "Version" }
+    },
+    "adms:versionNotes": {
+      "type": "langstring",
+      "multiline": true,
+      "label": { "de": "Versionshinweise", "en": "Version Notes" }
+    },
+    "dcat:keyword": {
+      "type": "langstring",
+      "multiple": true,
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Schlagwörter", "en": "Keywords" }
+    },
+    "dcat:theme": {
+      "type": "multiselect",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Thema", "en": "Theme" },
+      "optionsSource": "/vocabularies/data-theme.json"
+    },
+    "dcatap:hvdCategory": {
+      "type": "multiselect",
+      "label": { "de": "HVD-Kategorie", "en": "HVD Category" },
+      "hint": { "de": "Nur bei Datensätzen mit hoher Priorität (HVD) relevant — gehört laut DZG-Regeln an den Bestandteil, nicht an das Datenprodukt", "en": "Only relevant for High-Value Datasets — per DZG rules this belongs on the member dataset, not on the dataproduct" }
+    },
+    "dcatap:applicableLegislation": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Anwendbare Rechtsvorschrift", "en": "Applicable Legislation" }
+    },
+    "dct:conformsTo": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Entspricht Standard", "en": "Conforms To" }
+    },
+    "stat:statUnit": {
+      "type": "uri",
+      "multiple": true,
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Statistische Einheit", "en": "Statistical Unit" }
+    },
+    "stat:population": {
+      "type": "langstring",
+      "multiline": true,
+      "label": { "de": "Grundgesamtheit", "en": "Statistical Population" },
+      "hint": { "de": "Beschreibung der statistischen Grundgesamtheit", "en": "Description of the statistical population" }
+    },
+    "dct:accessRights": {
+      "type": "select",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Zugangsbeschränkung", "en": "Access Rights" },
+      "optionsSource": "/vocabularies/access-right.json"
+    },
+    "dct:rights": {
+      "type": "uri",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Rechtehinweis", "en": "Rights" }
+    },
+    "dct:accrualPeriodicity": {
+      "type": "select",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Aktualisierungsfrequenz", "en": "Update Frequency" },
+      "optionsSource": "/vocabularies/frequency.json"
+    },
+    "dct:language": {
+      "type": "select",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Sprache", "en": "Language" },
+      "optionsSource": "https://publications.europa.eu/resource/authority/language.json",
+      "optionsSourceFallback": "/vocabularies/language.json",
+      "defaultValue": "http://publications.europa.eu/resource/authority/language/DEU"
+    },
+    "dct:issued": {
+      "type": "date",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Veröffentlichungsdatum", "en": "Issued" }
+    },
+    "dct:modified": {
+      "type": "date",
+      "requiredIf": "ifNotDzgDataproduct",
+      "compute": "setTodayIfTitleAndEmpty",
+      "label": { "de": "Zuletzt geändert", "en": "Last Modified" }
+    },
+    "dct:temporal": {
+      "type": "object",
+      "multiple": false,
+      "requiredIf": "ifNotDzgDataproduct",
+      "rdfType": "dct:PeriodOfTime",
+      "label": { "de": "Zeitliche Abdeckung", "en": "Temporal Coverage" },
+      "subFields": [
+        { "id": "dcat:startDate", "type": "date", "required": true, "label": { "de": "Von", "en": "Start date" } },
+        { "id": "dcat:endDate", "type": "date", "label": { "de": "Bis", "en": "End date" } }
+      ]
+    },
+    "dct:valid": {
+      "type": "object",
+      "multiple": false,
+      "requiredIf": "ifDzgDataproduct",
+      "visibleIf": "ifDzgDataproduct",
+      "rdfType": "dct:PeriodOfTime",
+      "label": { "de": "Gültigkeitszeitraum", "en": "Validity Period" },
+      "hint": { "de": "Nur für Datenprodukte: gültig seit / gültig bis", "en": "Dataproducts only: valid since / valid until" },
+      "subFields": [
+        { "id": "dcat:startDate", "type": "date", "required": true, "label": { "de": "Gültig seit", "en": "Valid since" } },
+        { "id": "dcat:endDate", "type": "date", "label": { "de": "Gültig bis", "en": "Valid until" } }
+      ]
+    },
+    "dct:spatial": {
+      "type": "map",
+      "rdfType": "dct:Location",
+      "label": { "de": "Räumliche Abdeckung", "en": "Spatial Coverage" },
+      "hint": { "de": "Geografische Region als Bounding Box oder Geometrie", "en": "Geographic region as bounding box or geometry" }
+    },
+    "dcat:spatialResolutionInMeters": {
+      "type": "text",
+      "label": { "de": "Räumliche Auflösung (Meter)", "en": "Spatial Resolution (Meters)" }
+    },
+    "dcat:temporalResolution": {
+      "type": "text",
+      "label": { "de": "Zeitliche Auflösung", "en": "Temporal Resolution" },
+      "placeholder": { "de": "z. B. P1D (ISO 8601 Dauer)", "en": "e.g. P1D (ISO 8601 duration)" }
+    },
+    "dct:isPartOf": {
+      "type": "uri",
+      "label": { "de": "Teil von Datenprodukt", "en": "Part of Dataproduct" },
+      "hint": { "de": "Verweis auf das Datenprodukt, zu dem dieser Datensatz gehört — Zuordnung zu einem Datenprodukt ist verpflichtend (hier oder über die Datensatzserie)", "en": "Reference to the dataproduct this dataset belongs to — assignment to a dataproduct is mandatory (here or via the dataset series)" }
+    },
+    "dct:hasPart": {
+      "type": "uri",
+      "multiple": true,
+      "visibleIf": "ifDzgDataproduct",
+      "label": { "de": "Bestandteile (Datenprodukt)", "en": "Members (Dataproduct)" },
+      "hint": { "de": "Nur für Datenprodukte: zugehörige Datensätze und Datensatzserien", "en": "Dataproducts only: member datasets and dataset series" }
+    },
+    "dcat:inSeries": {
+      "type": "uri",
+      "label": { "de": "Teil der Datensatzserie", "en": "Part of Dataset Series" }
+    },
+    "dct:relation": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "In Beziehung zu", "en": "Related Resource" }
+    },
+    "dcat:qualifiedRelation": {
+      "type": "object",
+      "multiple": true,
+      "label": { "de": "Qualifizierte Beziehung", "en": "Qualified Relation" },
+      "subFields": [
+        { "id": "dct:relation", "type": "uri", "required": true, "label": { "de": "Ressource", "en": "Resource" } },
+        { "id": "dcat:hadRole", "type": "uri", "required": true, "label": { "de": "Rolle", "en": "Role" } }
+      ]
+    },
+    "dct:source": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Quelle", "en": "Source" }
+    },
+    "dct:isReferencedBy": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Referenziert von", "en": "Is Referenced By" }
+    },
+    "dct:hasVersion": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Hat Version", "en": "Has Version" }
+    },
+    "adms:sample": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Beispieldaten", "en": "Sample" }
+    },
+    "dct:provenance": {
+      "type": "uri",
+      "label": { "de": "Herkunft", "en": "Provenance" }
+    },
+    "prov:qualifiedAttribution": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Qualifizierte Zuschreibung", "en": "Qualified Attribution" }
+    },
+    "prov:wasGeneratedBy": {
+      "type": "object",
+      "multiple": false,
+      "visibleIf": "ifDzgDataproduct",
+      "label": { "de": "Erhebungsform", "en": "Survey Method" },
+      "hint": { "de": "Nur für Datenprodukte: Art der Datenerhebung", "en": "Dataproducts only: how the data was collected" },
+      "subFields": [
+        {
+          "id": "dct:type",
+          "type": "select",
+          "required": true,
+          "label": { "de": "Erhebungsform", "en": "Survey Method" },
+          "options": [
+            { "value": "http://dcat-ap.at/concept/erhebungsform/stichprobe-manuell", "label": { "de": "Stichprobe (manuell)", "en": "Sample (manual)" } },
+            { "value": "http://dcat-ap.at/concept/erhebungsform/stichprobe-zufall", "label": { "de": "Stichprobe (Zufallsauswahl)", "en": "Sample (random)" } },
+            { "value": "http://dcat-ap.at/concept/erhebungsform/stichprobe-abschneidegrenze", "label": { "de": "Stichprobe (Abschneidegrenze)", "en": "Sample (cut-off)" } },
+            { "value": "http://dcat-ap.at/concept/erhebungsform/vollerhebung-abschneidegrenze", "label": { "de": "Vollerhebung (Abschneidegrenze)", "en": "Census (cut-off)" } },
+            { "value": "http://dcat-ap.at/concept/erhebungsform/vollerhebung", "label": { "de": "Vollerhebung", "en": "Census" } },
+            { "value": "http://dcat-ap.at/concept/erhebungsform/andere", "label": { "de": "Andere", "en": "Other" } }
+          ]
+        },
+        {
+          "id": "dct:description",
+          "type": "langstring",
+          "multiline": true,
+          "visibleIf": "ifDzgSurveyMethodAndere",
+          "label": { "de": "Beschreibung (nur bei „Andere“)", "en": "Description (only with \"Other\")" }
+        }
+      ]
+    },
+    "dcat:contactPoint": {
+      "type": "object",
+      "multiple": false,
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Kontaktstelle", "en": "Contact Point" },
+      "subFields": [
+        {
+          "id": "rdf:type",
+          "type": "select",
+          "label": { "de": "Art der Kontaktstelle", "en": "Contact Point Type" },
+          "options": [
+            { "value": "vcard:Organization", "label": { "de": "Organisation", "en": "Organisation" } },
+            { "value": "vcard:Individual", "label": { "de": "Einzelperson", "en": "Individual" } }
+          ]
+        },
+        { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "vcard:hasEmail", "type": "text", "required": true, "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
+        { "id": "vcard:hasURL", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } }
+      ]
+    },
+    "dct:publisher": {
+      "type": "object",
+      "multiple": false,
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Herausgeber", "en": "Publisher" },
+      "subFields": [
+        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } },
+        { "id": "foaf:mbox", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } },
+        {
+          "id": "vcard:hasAddress",
+          "type": "object",
+          "label": { "de": "Adresse", "en": "Address" },
+          "subFields": [
+            { "id": "vcard:street-address", "type": "text", "label": { "de": "Straße", "en": "Street" } },
+            { "id": "vcard:locality", "type": "text", "label": { "de": "Ort", "en": "Locality" } },
+            { "id": "vcard:postal-code", "type": "text", "label": { "de": "Postleitzahl", "en": "Postal Code" } }
+          ]
+        },
+        {
+          "id": "dct:type",
+          "type": "select",
+          "label": { "de": "Typ", "en": "Type" },
+          "options": [
+            { "value": "http://purl.org/adms/publishertype/LocalAuthority", "label": { "de": "Lokale Behörde", "en": "Local Authority" } },
+            { "value": "http://purl.org/adms/publishertype/NationalAuthority", "label": { "de": "Nationale Behörde", "en": "National Authority" } },
+            { "value": "http://purl.org/adms/publishertype/RegionalAuthority", "label": { "de": "Regionale Behörde", "en": "Regional Authority" } },
+            { "value": "http://purl.org/adms/publishertype/Company", "label": { "de": "Unternehmen", "en": "Company" } },
+            { "value": "http://purl.org/adms/publishertype/Academia", "label": { "de": "Forschungseinrichtung", "en": "Academia/Scientific organisation" } },
+            { "value": "http://purl.org/adms/publishertype/NonProfitOrganisation", "label": { "de": "Non-Profit-Organisation", "en": "Non-Profit Organisation" } }
+          ]
+        }
+      ]
+    },
+    "dct:creator": {
+      "type": "object",
+      "multiple": false,
+      "label": { "de": "Ersteller", "en": "Creator" },
+      "subFields": [
+        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "Webseite", "en": "Website" } },
+        { "id": "foaf:mbox", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } }
+      ]
+    },
+    "foaf:page": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Zusätzliche Dokumentation", "en": "Additional Documentation" }
+    },
+    "dcat:landingPage": {
+      "type": "uri",
+      "multiple": true,
+      "label": { "de": "Webseite zum Datensatz", "en": "Landing Page" }
+    },
+    "dcat:distribution": {
+      "type": "distribution-editor",
+      "distributionMode": "modal",
+      "requiredIf": "ifNotDzgDataproduct",
+      "label": { "de": "Distributionen", "en": "Distributions" },
+      "hint": { "de": "Jeder Datensatz (außer Datenprodukte) hat mindestens eine Distribution", "en": "Every dataset (except dataproducts) has at least one distribution" },
+      "fileUpload": { "enabled": false },
+      "subFields": [
+        { "id": "dcat:accessURL", "type": "uri", "required": true, "validate": "isURI", "label": { "de": "Zugangs-URL", "en": "Access URL" } },
+        { "id": "dcat:downloadURL", "type": "uri", "validate": "isURI", "label": { "de": "Download-URL", "en": "Download URL" } },
+        { "id": "dct:title", "type": "text", "label": { "de": "Titel", "en": "Title" }, "hint": { "de": "Bei nicht-öffentlichen Datensätzen (Zugangsrecht NON_PUBLIC) verpflichtend", "en": "Mandatory for non-public datasets (access rights NON_PUBLIC)" } },
+        { "id": "dct:description", "type": "langstring", "multiline": true, "label": { "de": "Beschreibung", "en": "Description" } },
+        { "id": "dct:format", "type": "select", "required": true, "label": { "de": "Dateiformat", "en": "File Format" }, "optionsSource": "/vocabularies/file-format.json" },
+        { "id": "dcat:mediaType", "type": "text", "label": { "de": "Medientyp", "en": "Media Type" }, "placeholder": { "de": "text/csv", "en": "text/csv" } },
+        {
+          "id": "dct:license",
+          "type": "object",
+          "required": true,
+          "label": { "de": "Lizenz", "en": "License" },
+          "subFields": [
+            { "id": "skos:prefLabel", "type": "text", "label": { "de": "Bezeichnung", "en": "Label" } },
+            { "id": "dct:description", "type": "text", "label": { "de": "Beschreibung", "en": "Description" } },
+            { "id": "foaf:homepage", "type": "uri", "validate": "isURI", "label": { "de": "URL", "en": "URL" } },
+            { "id": "dct:type", "type": "uri", "label": { "de": "Lizenztyp", "en": "License Type" } }
+          ]
+        },
+        {
+          "id": "dcatap:availability",
+          "type": "select",
+          "label": { "de": "Verfügbarkeit", "en": "Availability" },
+          "options": [
+            { "value": "http://publications.europa.eu/resource/authority/planned-availability/TEMPORARY", "label": { "de": "Vorübergehend", "en": "Temporary" } },
+            { "value": "http://publications.europa.eu/resource/authority/planned-availability/EXPERIMENTAL", "label": { "de": "Experimentell", "en": "Experimental" } },
+            { "value": "http://publications.europa.eu/resource/authority/planned-availability/AVAILABLE", "label": { "de": "Verfügbar", "en": "Available" } },
+            { "value": "http://publications.europa.eu/resource/authority/planned-availability/STABLE", "label": { "de": "Stabil", "en": "Stable" } }
+          ]
+        },
+        { "id": "adms:status", "type": "uri", "label": { "de": "Status", "en": "Status" } },
+        {
+          "id": "spdx:checksum",
+          "type": "object",
+          "label": { "de": "Prüfsumme", "en": "Checksum" },
+          "subFields": [
+            { "id": "spdx:algorithm", "type": "uri", "required": true, "label": { "de": "Algorithmus", "en": "Algorithm" } },
+            { "id": "spdx:checksumValue", "type": "text", "required": true, "label": { "de": "Wert", "en": "Value" } }
+          ]
+        },
+        { "id": "dcat:byteSize", "type": "text", "required": true, "label": { "de": "Dateigröße (Byte)", "en": "Byte Size" }, "hint": { "de": "Kann geschätzt sein", "en": "May be estimated" } },
+        { "id": "dct:issued", "type": "date", "label": { "de": "Veröffentlichungsdatum", "en": "Issued" } },
+        { "id": "dct:modified", "type": "date", "label": { "de": "Zuletzt geändert", "en": "Modified" } },
+        { "id": "dct:rights", "type": "uri", "label": { "de": "Rechtehinweis", "en": "Rights" } },
+        { "id": "dct:language", "type": "select", "label": { "de": "Sprache", "en": "Language" }, "optionsSource": "https://publications.europa.eu/resource/authority/language.json", "optionsSourceFallback": "/vocabularies/language.json" },
+        { "id": "dct:conformsTo", "type": "uri", "label": { "de": "Entspricht Standard", "en": "Conforms To" } },
+        { "id": "foaf:page", "type": "uri", "label": { "de": "Zusätzliche Dokumentation", "en": "Additional Documentation" } },
+        { "id": "odrl:hasPolicy", "type": "uri", "label": { "de": "Nutzungsbedingungen", "en": "Usage Policy" } },
+        { "id": "dcat:compressFormat", "type": "uri", "label": { "de": "Komprimierungsformat", "en": "Compression Format" } },
+        { "id": "dcat:packageFormat", "type": "uri", "label": { "de": "Paketformat", "en": "Package Format" } },
+        { "id": "dcat:temporalResolution", "type": "text", "label": { "de": "Zeitliche Auflösung", "en": "Temporal Resolution" } },
+        { "id": "dcat:spatialResolutionInMeters", "type": "text", "label": { "de": "Räumliche Auflösung (Meter)", "en": "Spatial Resolution (Meters)" } },
+        { "id": "dct:type", "type": "uri", "label": { "de": "Distributionstyp", "en": "Distribution Type" } },
+        { "id": "dcatap:applicableLegislation", "type": "uri", "multiple": true, "label": { "de": "Anwendbare Rechtsvorschrift", "en": "Applicable Legislation" } },
+        {
+          "id": "dcat:accessService",
+          "type": "object",
+          "label": { "de": "Zugangsdienst", "en": "Access Service" },
+          "subFields": [
+            { "id": "dcat:endpointURL", "type": "uri", "required": true, "validate": "isURI", "label": { "de": "Endpunkt-URL", "en": "Endpoint URL" } },
+            { "id": "dct:title", "type": "text", "required": true, "label": { "de": "Titel", "en": "Title" } },
+            { "id": "dct:description", "type": "langstring", "multiline": true, "label": { "de": "Beschreibung", "en": "Description" } },
+            { "id": "dcat:landingPage", "type": "uri", "label": { "de": "Webseite", "en": "Landing Page" } },
+            { "id": "dct:accessRights", "type": "uri", "label": { "de": "Zugangsbeschränkung", "en": "Access Rights" } },
+            { "id": "dcatap:hvdCategory", "type": "uri", "multiple": true, "label": { "de": "HVD-Kategorie", "en": "HVD Category" } }
+          ]
+        }
+      ]
+    },
+    "dzg:working_contact": {
+      "type": "object",
+      "multiple": false,
+      "label": { "de": "Bearbeitungskontakt", "en": "Working Contact" },
+      "hint": { "de": "Interner Kontakt für den Bearbeitungsworkflow (nicht Teil der öffentlichen Metadaten)", "en": "Internal contact for the editorial workflow (not part of the public metadata)" },
+      "subFields": [
+        { "id": "foaf:name", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } },
+        { "id": "foaf:mbox", "type": "text", "validate": "isEmail", "label": { "de": "E-Mail", "en": "Email" } }
+      ]
+    },
+    "dzg:working_state": {
+      "type": "select",
+      "label": { "de": "Bearbeitungsstatus", "en": "Working State" },
+      "options": [
+        { "value": "in Bearbeitung", "label": { "de": "In Bearbeitung", "en": "In progress" } },
+        { "value": "formale Prüfung eingereicht", "label": { "de": "Formale Prüfung eingereicht", "en": "Submitted for formal review" } },
+        { "value": "verworfen", "label": { "de": "Verworfen", "en": "Discarded" } },
+        { "value": "Verbesserung notwendig", "label": { "de": "Verbesserung notwendig", "en": "Revision required" } },
+        { "value": "formale Prüfung abgeschlossen", "label": { "de": "Formale Prüfung abgeschlossen", "en": "Formal review completed" } }
+      ]
+    },
+    "dcat:working_state_modified": {
+      "type": "date",
+      "label": { "de": "Statusänderung am", "en": "Working State Modified" }
+    }
+  }
+}

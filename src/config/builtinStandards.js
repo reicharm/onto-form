@@ -4,5 +4,6 @@
 // App.vue is the standalone demo app; it re-exports this for its own use.
 export const BUILTIN_STANDARDS = [
   { id: 'dcat-ap-at',             label: 'DCAT-AP.at' },
-  { id: 'dcat-ap-at-easy',        label: 'DCAT-AP.at - Einfacher Modus' }
+  { id: 'dcat-ap-at-easy',        label: 'DCAT-AP.at - Einfacher Modus' },
+  { id: 'dzg',                    label: 'DZG DCAT-AP 3.0.1' }
 ]

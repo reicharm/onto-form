@@ -16,6 +16,7 @@
           :lang="lang"
           :modelValue="displayValue(field)"
           :showErrors="(field.type === 'object' || field.type === 'distribution-editor') ? showErrors : undefined"
+          :parentRequired="(field.type === 'object' || field.type === 'distribution-editor') ? isRequired(field) : undefined"
           @update:modelValue="updateField(field, $event)"
         />
         <div v-if="field.transform && displayValue(field)" class="transform-preview">
@@ -34,6 +35,7 @@
 import RepeatableField from './RepeatableField.vue'
 import { applyDisplay, applyEncode } from '../../config/fieldTransforms.js'
 import { useTranslations } from '../../composables/useTranslations.js'
+import { evaluateRequiredIf } from '../../config/fieldVisibility.js'
 
 const { t } = useTranslations()
 
@@ -47,6 +49,15 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+// Whether `field` is currently required, evaluated in this FieldGroup's own
+// scope (its modelValue — root form data at the top level, or the
+// containing sub-object one level down). Passed to object/distribution-editor
+// fields so they know whether to surface their own sub-field errors before
+// the user has entered anything (see ObjectField.vue/DistributionForm.vue).
+function isRequired(field) {
+  return field.required || evaluateRequiredIf(field.requiredIf, props.modelValue)
+}
 
 function displayValue(field) {
   const stored = props.modelValue?.[field.id]
