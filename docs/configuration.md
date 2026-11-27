@@ -439,6 +439,33 @@ Optionale Eigenschaft auf `object`-Feldern. Gibt den RDF-Typ des Blank Nodes an:
 
 Der Typ wird beim Export als `a dct:PeriodOfTime` (Turtle), `<dct:PeriodOfTime>` (RDF/XML) bzw. `"@type": "dct:PeriodOfTime"` (JSON-LD) ausgegeben und beim Import round-trip-sicher eingelesen.
 
+#### Variabler RDF-Typ pro Eintrag (z. B. `vcard:Individual` vs. `vcard:Organization`)
+
+`rdfType` legt einen **festen** Typ für alle Instanzen des Feldes fest. Soll der Nutzer den Typ selbst auswählen können — etwa bei `dcat:contactPoint`, wo eine Kontaktstelle laut vCard-Vokabular entweder `vcard:Organization` oder `vcard:Individual` ist —, lässt man `rdfType` weg und definiert stattdessen ein gewöhnliches `select`-Unterfeld mit der **Id `rdf:type`**:
+
+```json
+"dcat:contactPoint": {
+  "type": "object",
+  "label": { "de": "Kontaktstelle", "en": "Contact Point" },
+  "subFields": [
+    {
+      "id": "rdf:type",
+      "type": "select",
+      "label": { "de": "Art der Kontaktstelle", "en": "Contact Point Type" },
+      "options": [
+        { "value": "vcard:Organization", "label": { "de": "Organisation", "en": "Organisation" } },
+        { "value": "vcard:Individual",   "label": { "de": "Einzelperson", "en": "Individual" } }
+      ]
+    },
+    { "id": "vcard:fn", "type": "text", "required": true, "label": { "de": "Name", "en": "Name" } }
+  ]
+}
+```
+
+Das funktioniert, weil `rdf:type` wie jede andere Unterfeld-Id als Schlüssel im Unterobjekt gespeichert wird (`{ "rdf:type": "vcard:Organization", "vcard:fn": "..." }`) — und `RDFExporter`/`RDFImporter` behandeln genau diesen Schlüssel bereits generisch als den RDF-Typ des Blank Node, unabhängig davon, ob er über `field.rdfType` (fester Wert) oder über ein Unterfeld (vom Nutzer gewählter Wert) gesetzt wurde. Es ist kein zusätzlicher Code nötig; die beiden Mechanismen sind austauschbar und ein Feld darf nur den einen oder den anderen verwenden, nicht beide gleichzeitig.
+
+Hinweis: Ein `rdf:type`-Unterfeld hat — anders als `field.defaultValue` auf Top-Level-Feldern — bei einem neu angelegten, leeren Unterobjekt keinen vorausgewählten Wert; der Nutzer muss aktiv eine Option wählen, bevor beim Export ein `@type`/`a ...` geschrieben wird.
+
 ---
 
 ## Beispiel: Vollständige Feldkonfiguration
